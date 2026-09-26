@@ -21,9 +21,9 @@ import type { CourseLevel, CourseOption, CourseStatus } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Courses', href: '/courses' },
-            { title: 'Create Course', href: '/courses/create' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kursus', href: '/courses' },
+            { title: 'Buat Kursus', href: '/courses/create' },
         ],
     },
 });
@@ -83,23 +83,23 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Create Course" />
+    <Head title="Buat Kursus" />
 
     <div class="flex flex-col space-y-6">
         <Heading
             variant="small"
-            title="Create Course"
-            description="Add a new course to the catalogue"
+            title="Buat Kursus"
+            description="Tambahkan kursus baru ke katalog"
         />
 
         <form @submit.prevent="submit" class="max-w-xl space-y-6">
             <div class="grid gap-2">
-                <Label for="title">Title</Label>
+                <Label for="title">Judul</Label>
                 <Input
                     id="title"
                     v-model="form.title"
                     required
-                    placeholder="Course title"
+                    placeholder="Judul kursus"
                 />
                 <InputError :message="errors.title" />
             </div>
@@ -109,30 +109,30 @@ function submit() {
                 <Input
                     id="slug"
                     v-model="form.slug"
-                    placeholder="Leave blank to generate from the title"
+                    placeholder="Kosongkan untuk dibuat otomatis dari judul"
                 />
                 <InputError :message="errors.slug" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="description">Description</Label>
+                <Label for="description">Deskripsi</Label>
                 <Textarea
                     id="description"
                     v-model="form.description"
                     rows="5"
-                    placeholder="What will students learn?"
+                    placeholder="Apa yang akan dipelajari siswa?"
                 />
                 <InputError :message="errors.description" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="category">Category</Label>
+                <Label for="category">Kategori</Label>
                 <Select v-model="form.category_id">
                     <SelectTrigger id="category">
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder="Pilih kategori" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem :value="NONE">No category</SelectItem>
+                        <SelectItem :value="NONE">Tanpa kategori</SelectItem>
                         <SelectItem
                             v-for="category in categories"
                             :key="category.id"
@@ -146,10 +146,10 @@ function submit() {
             </div>
 
             <div v-if="isAdmin" class="grid gap-2">
-                <Label for="instructor">Instructor</Label>
+                <Label for="instructor">Instruktur</Label>
                 <Select v-model="form.instructor_id">
                     <SelectTrigger id="instructor">
-                        <SelectValue placeholder="Select instructor" />
+                        <SelectValue placeholder="Pilih instruktur" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem
@@ -165,7 +165,7 @@ function submit() {
             </div>
 
             <div class="grid gap-2">
-                <Label for="price">Price (IDR)</Label>
+                <Label for="price">Harga (IDR)</Label>
                 <Input
                     id="price"
                     v-model="form.price"
@@ -178,10 +178,10 @@ function submit() {
             </div>
 
             <div class="grid gap-2">
-                <Label for="level">Level</Label>
+                <Label for="level">Tingkat</Label>
                 <Select v-model="form.level">
                     <SelectTrigger id="level">
-                        <SelectValue placeholder="Select level" />
+                        <SelectValue placeholder="Pilih tingkat" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem
@@ -200,7 +200,7 @@ function submit() {
                 <Label for="status">Status</Label>
                 <Select v-model="form.status">
                     <SelectTrigger id="status">
-                        <SelectValue placeholder="Select status" />
+                        <SelectValue placeholder="Pilih status" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem
@@ -213,14 +213,14 @@ function submit() {
                     </SelectContent>
                 </Select>
                 <p v-if="!isAdmin" class="text-xs text-muted-foreground">
-                    Submit the course for review when it is ready. Only an
-                    administrator can publish or archive it.
+                    Ajukan kursus untuk ditinjau bila sudah siap. Hanya
+                    administrator yang dapat menerbitkan atau mengarsipkannya.
                 </p>
                 <InputError :message="errors.status" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="thumbnail">Thumbnail</Label>
+                <Label for="thumbnail">Gambar sampul</Label>
                 <Input
                     id="thumbnail"
                     type="file"
@@ -228,17 +228,17 @@ function submit() {
                     @change="onThumbnailChange"
                 />
                 <p class="text-xs text-muted-foreground">
-                    JPG, PNG or WebP, up to 2 MB.
+                    JPG, PNG, atau WebP, maksimal 2 MB.
                 </p>
                 <InputError :message="errors.thumbnail" />
             </div>
 
             <div class="flex items-center gap-4">
                 <Button :disabled="processing">
-                    {{ processing ? 'Creating...' : 'Create Course' }}
+                    {{ processing ? 'Membuat...' : 'Buat Kursus' }}
                 </Button>
                 <Link :href="courses.index()">
-                    <Button type="button" variant="ghost">Cancel</Button>
+                    <Button type="button" variant="ghost">Batal</Button>
                 </Link>
             </div>
         </form>

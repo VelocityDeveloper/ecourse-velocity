@@ -8,10 +8,10 @@ import type {
 } from '@/types';
 
 const STATUS_LABELS: Record<CourseStatus, string> = {
-    draft: 'Draft',
-    pending: 'Pending Review',
-    published: 'Published',
-    archived: 'Archived',
+    draft: 'Draf',
+    pending: 'Menunggu Tinjauan',
+    published: 'Terbit',
+    archived: 'Diarsipkan',
 };
 
 const STATUS_VARIANTS: Record<CourseStatus, BadgeVariants['variant']> = {
@@ -22,9 +22,9 @@ const STATUS_VARIANTS: Record<CourseStatus, BadgeVariants['variant']> = {
 };
 
 const LEVEL_LABELS: Record<CourseLevel, string> = {
-    beginner: 'Beginner',
-    intermediate: 'Intermediate',
-    advanced: 'Advanced',
+    beginner: 'Pemula',
+    intermediate: 'Menengah',
+    advanced: 'Lanjutan',
 };
 
 export function statusLabel(status: CourseStatus): string {
@@ -49,7 +49,7 @@ export function formatPrice(price: string | number): string {
     }
 
     if (amount === 0) {
-        return 'Free';
+        return 'Gratis';
     }
 
     return new Intl.NumberFormat('id-ID', {
@@ -73,7 +73,7 @@ export function formatDate(date: string | null): string {
 
 const CONTENT_TYPE_LABELS: Record<LessonContentType, string> = {
     video: 'Video',
-    article: 'Article',
+    article: 'Artikel',
 };
 
 export function contentTypeLabel(type: LessonContentType): string {
@@ -86,20 +86,31 @@ export function formatDuration(minutes: number | null): string {
     }
 
     if (minutes < 60) {
-        return `${minutes} min`;
+        return `${minutes} mnt`;
     }
 
     const hours = Math.floor(minutes / 60);
     const rest = minutes % 60;
 
-    return rest === 0 ? `${hours} j` : `${hours} j ${rest} min`;
+    return rest === 0 ? `${hours} j` : `${hours} j ${rest} mnt`;
 }
 
 const ANSWER_MODE_LABELS: Record<AnswerMode, string> = {
-    single: 'One correct answer',
-    multiple: 'Several correct answers',
-    true_false: 'True or false',
+    single: 'Satu jawaban benar',
+    multiple: 'Beberapa jawaban benar',
+    true_false: 'Benar atau salah',
 };
+
+// True/false questions store their fixed options in English (QuizQuestion::TRUE_FALSE_OPTIONS),
+// so they are translated only when shown.
+const OPTION_LABELS: Record<string, string> = {
+    True: 'Benar',
+    False: 'Salah',
+};
+
+export function optionLabel(text: string): string {
+    return OPTION_LABELS[text] ?? text;
+}
 
 export function answerModeLabel(mode: AnswerMode): string {
     return ANSWER_MODE_LABELS[mode] ?? mode;
@@ -107,22 +118,22 @@ export function answerModeLabel(mode: AnswerMode): string {
 
 export function formatTimeLimit(minutes: number | null): string {
     if (minutes === null) {
-        return 'No time limit';
+        return 'Tanpa batas waktu';
     }
 
     const hours = Math.floor(minutes / 60);
     const remainder = minutes % 60;
 
     if (hours === 0) {
-        return `${remainder} min`;
+        return `${remainder} mnt`;
     }
 
-    return remainder === 0 ? `${hours} h` : `${hours} h ${remainder} min`;
+    return remainder === 0 ? `${hours} j` : `${hours} j ${remainder} mnt`;
 }
 
 const ENROLLMENT_STATUS_LABELS: Record<EnrollmentStatus, string> = {
-    active: 'Active',
-    cancelled: 'Cancelled',
+    active: 'Aktif',
+    cancelled: 'Dibatalkan',
 };
 
 const ENROLLMENT_STATUS_VARIANTS: Record<

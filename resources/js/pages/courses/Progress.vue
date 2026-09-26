@@ -30,9 +30,9 @@ const props = defineProps<{
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Courses', href: '/courses' },
-            { title: 'Student Progress', href: '#' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kursus', href: '/courses' },
+            { title: 'Progres Siswa', href: '#' },
         ],
     },
 });
@@ -40,11 +40,11 @@ defineOptions({
 const search = ref(props.filters.search ?? '');
 
 const summaryItems = computed(() => [
-    { label: 'Enrolled students', value: String(props.summary.students) },
-    { label: 'Average progress', value: `${props.summary.average_percent}%` },
-    { label: 'Completed the course', value: String(props.summary.completed) },
+    { label: 'Siswa terdaftar', value: String(props.summary.students) },
+    { label: 'Rata-rata progres', value: `${props.summary.average_percent}%` },
+    { label: 'Menyelesaikan kursus', value: String(props.summary.completed) },
     {
-        label: 'Average quiz score',
+        label: 'Rata-rata nilai kuis',
         value:
             props.summary.average_quiz_score === null
                 ? '-'
@@ -63,18 +63,18 @@ function applySearch(): void {
 
 <template>
     <div class="flex flex-col space-y-6">
-        <Head :title="`Progress · ${course.title}`" />
+        <Head :title="`Progres · ${course.title}`" />
 
         <div class="flex flex-wrap items-start justify-between gap-4">
             <Heading
                 variant="small"
-                title="Student Progress"
+                title="Progres Siswa"
                 :description="course.title"
             />
             <Link :href="courses.show(course.id)">
                 <Button variant="outline" size="sm">
                     <ArrowLeft class="mr-2 h-4 w-4" />
-                    Back to course
+                    Kembali ke kursus
                 </Button>
             </Link>
         </div>
@@ -93,7 +93,7 @@ function applySearch(): void {
         </div>
 
         <p v-if="summary.inactive > 0" class="text-sm text-muted-foreground">
-            {{ summary.inactive }} student(s) have not opened the course yet.
+            {{ summary.inactive }} siswa belum membuka kursus ini.
         </p>
 
         <form
@@ -108,12 +108,12 @@ function applySearch(): void {
                 <Input
                     v-model="search"
                     type="search"
-                    aria-label="Search students"
-                    placeholder="Search by name or email..."
+                    aria-label="Cari siswa"
+                    placeholder="Cari berdasarkan nama atau email..."
                     class="pl-9"
                 />
             </div>
-            <Button variant="outline" type="submit">Search</Button>
+            <Button variant="outline" type="submit">Cari</Button>
         </form>
 
         <div class="rounded-lg border">
@@ -124,32 +124,32 @@ function applySearch(): void {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Student
+                                Siswa
                             </th>
                             <th
                                 class="h-12 min-w-40 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Progress
+                                Progres
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Lessons
+                                Materi
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Quizzes
+                                Kuis
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Quiz score
+                                Nilai kuis
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Last active
+                                Terakhir aktif
                             </th>
                         </tr>
                     </thead>
@@ -159,7 +159,7 @@ function applySearch(): void {
                                 colspan="6"
                                 class="py-8 text-center text-muted-foreground"
                             >
-                                No enrolled students found.
+                                Tidak ada siswa terdaftar.
                             </td>
                         </tr>
                         <tr
@@ -211,7 +211,7 @@ function applySearch(): void {
                                         :aria-valuenow="row.percent"
                                         aria-valuemin="0"
                                         aria-valuemax="100"
-                                        :aria-label="`${row.student.name} progress`"
+                                        :aria-label="`Progres ${row.student.name}`"
                                     >
                                         <div
                                             class="h-full rounded-full bg-primary"
@@ -247,7 +247,7 @@ function applySearch(): void {
                                     v-if="row.last_accessed_at === null"
                                     variant="outline"
                                 >
-                                    Not started
+                                    Belum mulai
                                 </Badge>
                                 <span v-else>{{
                                     formatDate(row.last_accessed_at)
@@ -262,13 +262,13 @@ function applySearch(): void {
         <section class="space-y-3">
             <h3 class="flex items-center gap-2 text-sm font-medium">
                 <MessageCircleQuestion class="h-4 w-4" />
-                Unanswered questions
+                Pertanyaan belum dijawab
             </h3>
             <p
                 v-if="unansweredQuestions.length === 0"
                 class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground"
             >
-                Every question has a reply. Nice work!
+                Semua pertanyaan sudah dibalas. Kerja bagus!
             </p>
             <ul v-else class="divide-y rounded-lg border">
                 <li v-for="question in unansweredQuestions" :key="question.id">
@@ -299,7 +299,7 @@ function applySearch(): void {
                                     question.author.name
                                 }}</span>
                                 <span class="text-muted-foreground">
-                                    in {{ question.lesson.title }} ·
+                                    di {{ question.lesson.title }} ·
                                     {{ formatDate(question.created_at) }}
                                 </span>
                             </span>

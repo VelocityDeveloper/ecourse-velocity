@@ -24,7 +24,7 @@ const isStaff = computed(() =>
         <slot />
     </AppLayout>
     <PublicLayout v-else>
-        <div class="mx-auto w-full max-w-6xl px-0 py-4 sm:px-2">
+        <div class="mx-auto w-full max-w-site px-4 py-10 sm:px-6">
             <slot />
         </div>
     </PublicLayout>

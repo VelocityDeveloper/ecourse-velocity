@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banner;
 use App\Models\Category;
 use App\Models\Course;
+use App\Models\CourseReview;
 use App\Models\Lesson;
+use App\Models\SiteSetting;
+use App\Models\Testimonial;
 use App\Models\User;
+use App\Support\CatalogCourseCard;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,7 +21,14 @@ class HomeController extends Controller
     /**
      * The number of courses highlighted on the homepage.
      */
-    private const int FEATURED_COURSES = 6;
+    private const int FEATURED_COURSES = 8;
+
+    /**
+     * The number of student reviews shown as success stories, and the lowest rating shown.
+     */
+    private const int TESTIMONIALS = 8;
+
+    private const int TESTIMONIAL_MIN_RATING = 4;
 
     /**
      * Show the public homepage.
@@ -26,6 +38,10 @@ class HomeController extends Controller
         $userId = $request->user()?->id;
 
         return Inertia::render('Welcome', [
+            'banner' => SiteSetting::banner(),
+            'banners' => Banner::query()->active()->ordered()->get(['id', 'title', 'image_path', 'link_url'])
+                ->map(fn (Banner $banner): array => $banner->only(['id', 'title', 'image_url', 'link_url'])),
+            'testimonials' => $this->testimonials(),
             'stats' => [
                 'courses' => Course::query()->published()->count(),
                 'lessons' => Lesson::query()
@@ -36,30 +52,14 @@ class HomeController extends Controller
             ],
             'featuredCourses' => Course::query()
                 ->published()
-                ->with(['category:id,name', 'instructor:id,name,avatar_path'])
-                ->withCount(['enrollments as students_count' => fn (Builder $query) => $query->active()])
-                ->withCount('reviews')
-                ->withAvg('reviews', 'rating')
-                ->withExists(['enrollments as is_enrolled' => fn (Builder $query) => $query->active()->where('user_id', $userId)])
+                ->forCatalogCard($userId)
                 ->orderByDesc('students_count')
                 ->latest()
                 ->limit(self::FEATURED_COURSES)
                 ->get()
-                ->map(fn (Course $course): array => [
-                    'id' => $course->id,
-                    'title' => $course->title,
-                    'level' => $course->level,
-                    'price' => $course->price,
-                    'thumbnail_url' => $course->thumbnail_url,
-                    'category' => $course->category?->only(['id', 'name']),
-                    'instructor' => $course->instructor?->only(['id', 'name', 'avatar']),
-                    'students_count' => (int) $course->students_count,
-                    'reviews_count' => (int) $course->reviews_count,
-                    'rating_average' => $course->reviews_avg_rating === null ? null : round((float) $course->reviews_avg_rating, 1),
-                    'is_enrolled' => (bool) $course->is_enrolled,
-                ]),
+                ->map(fn (Course $course): array => CatalogCourseCard::from($course)),
             'categories' => Category::query()
-                ->select(['id', 'name', 'description'])
+                ->select(['id', 'name', 'description', 'image_path'])
                 ->withCount(['courses' => fn (Builder $query) => $query->published()])
                 ->whereHas('courses', fn (Builder $query) => $query->published())
                 ->orderByDesc('courses_count')
@@ -70,6 +70,7 @@ class HomeController extends Controller
                     'id' => $category->id,
                     'name' => $category->name,
                     'description' => $category->description,
+                    'image_url' => $category->image_url,
                     'courses_count' => (int) $category->courses_count,
                 ]),
             'instructors' => User::query()
@@ -88,5 +89,46 @@ class HomeController extends Controller
                     'courses_count' => (int) $instructor->courses_count,
                 ]),
         ]);
+    }
+
+    /**
+     * The alumni stories for the homepage: the admin's testimonials, or the latest
+     * good course reviews while none have been added.
+     *
+     * @return list<array{id: string, name: string, subtitle: string|null, quote: string, rating: int, avatar: string|null}>
+     */
+    private function testimonials(): array
+    {
+        $testimonials = Testimonial::query()->active()->ordered()->get()
+            ->map(fn (Testimonial $item): array => [
+                'id' => 't'.$item->id,
+                'name' => $item->display_name,
+                'subtitle' => $item->subtitle,
+                'quote' => $item->quote,
+                'rating' => $item->rating,
+                'avatar' => $item->photo_url,
+            ]);
+
+        if ($testimonials->isNotEmpty()) {
+            return array_values($testimonials->all());
+        }
+
+        return array_values(CourseReview::query()
+            ->whereNotNull('comment')
+            ->where('rating', '>=', self::TESTIMONIAL_MIN_RATING)
+            ->whereHas('course', fn (Builder $course) => $course->published())
+            ->with(['user:id,name,avatar_path', 'course:id,title'])
+            ->latest()
+            ->limit(self::TESTIMONIALS)
+            ->get()
+            ->map(fn (CourseReview $review): array => [
+                'id' => 'r'.$review->id,
+                'name' => $review->user->name,
+                'subtitle' => $review->course->title,
+                'quote' => (string) $review->comment,
+                'rating' => $review->rating,
+                'avatar' => $review->user->avatar,
+            ])
+            ->all());
     }
 }

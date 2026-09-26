@@ -2,12 +2,20 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Category;
+use App\Models\SiteSetting;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Laravel\Fortify\Features;
 
 class HandleInertiaRequests extends Middleware
 {
+    /**
+     * The most categories listed in the public header's "Kursus" submenu.
+     */
+    private const int NAV_CATEGORY_LIMIT = 8;
+
     /**
      * The root template that's loaded on the first page visit.
      *
@@ -39,6 +47,17 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'branding' => [
+                'logoUrl' => SiteSetting::logoUrl(),
+                'paletteCss' => SiteSetting::paletteCss(),
+            ],
+            'site' => SiteSetting::publicSite(),
+            // Categories with published courses, for the "Kursus" submenu of the public header.
+            'navCategories' => fn () => Category::query()
+                ->whereHas('courses', fn (Builder $query) => $query->published())
+                ->orderBy('name')
+                ->limit(self::NAV_CATEGORY_LIMIT)
+                ->get(['id', 'name']),
             'canRegister' => Features::enabled(Features::registration()),
             'auth' => [
                 'user' => $request->user(),

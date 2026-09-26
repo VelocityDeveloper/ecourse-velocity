@@ -10,6 +10,7 @@ use App\Models\Lesson;
 use App\Models\Quiz;
 use App\Models\Section;
 use App\Models\User;
+use App\Support\CatalogCourseCard;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,18 @@ use Inertia\Response;
 
 class CatalogController extends Controller
 {
+    /**
+     * The catalogue orderings, the first being the default.
+     *
+     * @var list<string>
+     */
+    /**
+     * The number of other courses suggested at the bottom of a course page.
+     */
+    private const int RELATED_LIMIT = 4;
+
+    private const array SORTS = ['terbaru', 'populer', 'rating', 'termurah'];
+
     /**
      * How many written reviews the course page shows.
      */
@@ -33,38 +46,39 @@ class CatalogController extends Controller
         $search = $request->string('search')->toString();
         $level = $request->string('level')->toString();
 
+        $sort = $request->string('sort')->toString();
+        $sort = in_array($sort, self::SORTS, true) ? $sort : self::SORTS[0];
+
         $courses = Course::query()
             ->published()
-            ->with(['category:id,name', 'instructor:id,name,avatar_path'])
-            ->withCount(['enrollments as students_count' => fn (Builder $query) => $query->active()])
-            ->withCount('reviews')
-            ->withAvg('reviews', 'rating')
-            ->withExists(['enrollments as is_enrolled' => fn (Builder $query) => $query->active()->where('user_id', $viewerId)])
+            ->forCatalogCard($viewerId)
             ->when($search !== '', fn (Builder $query) => $query->where('title', 'like', "%{$search}%"))
             ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
             ->when(in_array($level, Course::LEVELS, true), fn (Builder $query) => $query->where('level', $level))
+            ->when($sort === 'populer', fn (Builder $query) => $query->orderByDesc('students_count'))
+            ->when($sort === 'rating', fn (Builder $query) => $query->orderByRaw('reviews_avg_rating IS NULL')->orderByDesc('reviews_avg_rating'))
+            ->when($sort === 'termurah', fn (Builder $query) => $query->orderBy('price'))
             ->latest()
+            ->orderByDesc('id')
             ->paginate(12)
             ->withQueryString()
-            ->through(fn (Course $course): array => [
-                'id' => $course->id,
-                'title' => $course->title,
-                'level' => $course->level,
-                'price' => $course->price,
-                'thumbnail_url' => $course->thumbnail_url,
-                'category' => $course->category?->only(['id', 'name']),
-                'instructor' => $course->instructor?->only(['id', 'name', 'avatar']),
-                'students_count' => (int) $course->students_count,
-                'reviews_count' => (int) $course->reviews_count,
-                'rating_average' => $course->reviews_avg_rating === null ? null : round((float) $course->reviews_avg_rating, 1),
-                'is_enrolled' => (bool) $course->is_enrolled,
-            ]);
+            ->through(fn (Course $course): array => CatalogCourseCard::from($course));
 
         return Inertia::render('catalog/Index', [
             'courses' => $courses,
-            'filters' => $request->only(['search', 'category_id', 'level']),
-            'categories' => Category::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [...$request->only(['search', 'category_id', 'level']), 'sort' => $sort],
+            'categories' => Category::query()
+                ->withCount(['courses' => fn (Builder $query) => $query->published()])
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (Category $category): array => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'courses_count' => (int) $category->courses_count,
+                ]),
             'levels' => Course::LEVELS,
+            'sorts' => self::SORTS,
+            'total' => Course::query()->published()->count(),
         ]);
     }
 
@@ -84,7 +98,7 @@ class CatalogController extends Controller
 
         $course->load([
             'category:id,name',
-            'instructor:id,name,avatar_path,headline',
+            'instructor:id,name,avatar_path,headline,bio',
             'sections.lessons:id,section_id,title,content_type,duration_minutes,position',
             'sections.quizzes' => fn ($query) => $query->withCount('questions'),
         ]);
@@ -103,9 +117,24 @@ class CatalogController extends Controller
                 'status' => $course->status,
                 'thumbnail_url' => $course->thumbnail_url,
                 'category' => $course->category?->only(['id', 'name']),
-                'instructor' => $course->instructor?->only(['id', 'name', 'avatar', 'headline']),
+                'instructor' => $course->instructor === null ? null : [
+                    ...$course->instructor->only(['id', 'name', 'avatar', 'headline', 'bio']),
+                    'courses_count' => $course->instructor->courses()->published()->count(),
+                ],
                 'students_count' => $course->enrollments()->active()->count(),
+                'total_minutes' => (int) $course->sections->flatMap->lessons->sum('duration_minutes'),
+                'updated_at' => $course->updated_at?->toIso8601String(),
             ],
+            'related' => Course::query()
+                ->published()
+                ->whereKeyNot($course->id)
+                ->when($course->category_id !== null, fn (Builder $query) => $query->where('category_id', $course->category_id))
+                ->forCatalogCard($viewer?->id)
+                ->orderByDesc('students_count')
+                ->limit(self::RELATED_LIMIT)
+                ->get()
+                ->map(fn (Course $related): array => CatalogCourseCard::from($related))
+                ->all(),
             'sections' => $course->sections
                 ->map(fn (Section $section): array => [
                     'id' => $section->id,

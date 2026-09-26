@@ -68,9 +68,9 @@ const props = defineProps<{
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Courses', href: '/courses' },
-            { title: 'Student Progress', href: '#' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kursus', href: '/courses' },
+            { title: 'Progres Siswa', href: '#' },
         ],
     },
 });
@@ -99,12 +99,12 @@ const totals = computed(() => {
             <Heading
                 variant="small"
                 :title="student.name"
-                :description="`Progress in ${course.title}`"
+                :description="`Progres di ${course.title}`"
             />
             <Link :href="courses.progress.index(course.id)">
                 <Button variant="outline" size="sm">
                     <ArrowLeft class="mr-2 h-4 w-4" />
-                    All students
+                    Semua siswa
                 </Button>
             </Link>
         </div>
@@ -135,14 +135,14 @@ const totals = computed(() => {
                             {{ enrollmentStatusLabel(enrollment.status) }}
                         </Badge>
                         <span class="text-xs text-muted-foreground">
-                            Enrolled {{ formatDate(enrollment.enrolled_at) }}
+                            Terdaftar {{ formatDate(enrollment.enrolled_at) }}
                         </span>
                     </div>
                 </div>
             </div>
             <div class="space-y-3 rounded-lg border p-4">
                 <div class="flex items-baseline justify-between">
-                    <p class="text-sm font-medium">Overall progress</p>
+                    <p class="text-sm font-medium">Progres keseluruhan</p>
                     <p class="text-2xl font-semibold tracking-tight">
                         {{ totals.percent }}%
                     </p>
@@ -153,7 +153,7 @@ const totals = computed(() => {
                     :aria-valuenow="totals.percent"
                     aria-valuemin="0"
                     aria-valuemax="100"
-                    aria-label="Overall progress"
+                    aria-label="Progres keseluruhan"
                 >
                     <div
                         class="h-full rounded-full bg-primary"
@@ -161,15 +161,15 @@ const totals = computed(() => {
                     />
                 </div>
                 <p class="text-xs text-muted-foreground">
-                    {{ totals.done }} of {{ totals.total }} items complete ·
-                    Last active
+                    {{ totals.done }} dari {{ totals.total }} item selesai ·
+                    Terakhir aktif
                     {{
                         enrollment.last_accessed_at
                             ? formatDate(enrollment.last_accessed_at)
-                            : 'never'
+                            : 'belum pernah'
                     }}
                     <template v-if="enrollment.last_lesson">
-                        · Last opened “{{ enrollment.last_lesson.title }}”
+                        · Terakhir dibuka “{{ enrollment.last_lesson.title }}”
                     </template>
                 </p>
             </div>
@@ -193,20 +193,20 @@ const totals = computed(() => {
                         <CircleCheck
                             v-if="lesson.completed_at"
                             class="h-4 w-4 shrink-0 text-primary"
-                            aria-label="Completed"
+                            aria-label="Selesai"
                         />
                         <Circle
                             v-else
                             class="h-4 w-4 shrink-0 text-muted-foreground/50"
-                            aria-label="Not completed"
+                            aria-label="Belum selesai"
                         />
                         <span class="truncate">{{ lesson.title }}</span>
                     </span>
                     <span class="shrink-0 text-xs text-muted-foreground">
                         {{
                             lesson.completed_at
-                                ? `Completed ${formatDate(lesson.completed_at)}`
-                                : 'Not completed'
+                                ? `Selesai ${formatDate(lesson.completed_at)}`
+                                : 'Belum selesai'
                         }}
                     </span>
                 </li>
@@ -228,10 +228,10 @@ const totals = computed(() => {
                     </span>
                     <span class="shrink-0 text-xs text-muted-foreground">
                         <template v-if="quiz.attempts > 0">
-                            Best {{ quiz.best_score }}/{{ quiz.max_score }} ·
-                            {{ quiz.attempts }} attempt(s)
+                            Terbaik {{ quiz.best_score }}/{{ quiz.max_score }} ·
+                            {{ quiz.attempts }} percobaan
                         </template>
-                        <template v-else>Not attempted</template>
+                        <template v-else>Belum dikerjakan</template>
                     </span>
                 </li>
             </ul>
@@ -240,13 +240,13 @@ const totals = computed(() => {
         <section class="space-y-3">
             <h3 class="flex items-center gap-2 text-sm font-medium">
                 <MessageCircleQuestion class="h-4 w-4" />
-                Questions asked
+                Pertanyaan yang diajukan
             </h3>
             <p
                 v-if="questions.length === 0"
                 class="text-sm text-muted-foreground"
             >
-                {{ student.name }} has not asked any questions in this course.
+                {{ student.name }} belum mengajukan pertanyaan di kursus ini.
             </p>
             <ul v-else class="divide-y rounded-lg border">
                 <li v-for="question in questions" :key="question.id">
@@ -278,8 +278,8 @@ const totals = computed(() => {
                         >
                             {{
                                 question.replies_count > 0
-                                    ? `${question.replies_count} repl${question.replies_count > 1 ? 'ies' : 'y'}`
-                                    : 'Unanswered'
+                                    ? `${question.replies_count} balasan`
+                                    : 'Belum dijawab'
                             }}
                         </Badge>
                     </Link>

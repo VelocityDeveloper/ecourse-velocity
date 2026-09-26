@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -10,36 +11,43 @@ import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
+const page = usePage();
+
+// Dark mode only exists in the dashboard, so students (public site) get no Tampilan tab.
+const sidebarNavItems = computed<NavItem[]>(() => [
     {
-        title: 'Profile',
+        title: 'Profil',
         href: editProfile(),
     },
     {
-        title: 'Security',
+        title: 'Keamanan',
         href: editSecurity(),
     },
-    {
-        title: 'Appearance',
-        href: editAppearance(),
-    },
-];
+    ...(page.props.auth.user?.role === 'student'
+        ? []
+        : [
+              {
+                  title: 'Tampilan',
+                  href: editAppearance(),
+              },
+          ]),
+]);
 
 const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <div class="px-4 py-6">
+    <div>
         <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
+            title="Pengaturan"
+            description="Kelola profil dan pengaturan akun Anda"
         />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">
                 <nav
                     class="flex flex-col space-y-1 space-x-0"
-                    aria-label="Settings"
+                    aria-label="Pengaturan"
                 >
                     <Button
                         v-for="item in sidebarNavItems"

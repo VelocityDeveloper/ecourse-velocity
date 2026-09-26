@@ -69,7 +69,7 @@ function setLink() {
     }
 
     const current = String(instance.getAttributes('link').href ?? '');
-    const url = window.prompt('Link URL', current);
+    const url = window.prompt('URL tautan', current);
 
     if (url === null) {
         return;
@@ -103,7 +103,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :class="editor.isActive('bold') ? 'bg-accent' : ''"
-                aria-label="Bold"
+                aria-label="Tebal"
                 @click="editor.chain().focus().toggleBold().run()"
             >
                 <Bold class="h-4 w-4" />
@@ -113,7 +113,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :class="editor.isActive('italic') ? 'bg-accent' : ''"
-                aria-label="Italic"
+                aria-label="Miring"
                 @click="editor.chain().focus().toggleItalic().run()"
             >
                 <Italic class="h-4 w-4" />
@@ -123,7 +123,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :class="editor.isActive('strike') ? 'bg-accent' : ''"
-                aria-label="Strikethrough"
+                aria-label="Coret"
                 @click="editor.chain().focus().toggleStrike().run()"
             >
                 <Strikethrough class="h-4 w-4" />
@@ -133,7 +133,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :class="editor.isActive('code') ? 'bg-accent' : ''"
-                aria-label="Inline code"
+                aria-label="Kode sebaris"
                 @click="editor.chain().focus().toggleCode().run()"
             >
                 <Code class="h-4 w-4" />
@@ -148,7 +148,7 @@ function setLink() {
                 :class="
                     editor.isActive('heading', { level: 2 }) ? 'bg-accent' : ''
                 "
-                aria-label="Heading 2"
+                aria-label="Judul 2"
                 @click="
                     editor.chain().focus().toggleHeading({ level: 2 }).run()
                 "
@@ -162,7 +162,7 @@ function setLink() {
                 :class="
                     editor.isActive('heading', { level: 3 }) ? 'bg-accent' : ''
                 "
-                aria-label="Heading 3"
+                aria-label="Judul 3"
                 @click="
                     editor.chain().focus().toggleHeading({ level: 3 }).run()
                 "
@@ -177,7 +177,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :class="editor.isActive('bulletList') ? 'bg-accent' : ''"
-                aria-label="Bullet list"
+                aria-label="Daftar berpoin"
                 @click="editor.chain().focus().toggleBulletList().run()"
             >
                 <List class="h-4 w-4" />
@@ -187,7 +187,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :class="editor.isActive('orderedList') ? 'bg-accent' : ''"
-                aria-label="Numbered list"
+                aria-label="Daftar bernomor"
                 @click="editor.chain().focus().toggleOrderedList().run()"
             >
                 <ListOrdered class="h-4 w-4" />
@@ -197,7 +197,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :class="editor.isActive('blockquote') ? 'bg-accent' : ''"
-                aria-label="Quote"
+                aria-label="Kutipan"
                 @click="editor.chain().focus().toggleBlockquote().run()"
             >
                 <Quote class="h-4 w-4" />
@@ -206,7 +206,7 @@ function setLink() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                aria-label="Divider"
+                aria-label="Garis pemisah"
                 @click="editor.chain().focus().setHorizontalRule().run()"
             >
                 <Minus class="h-4 w-4" />
@@ -216,7 +216,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :class="editor.isActive('link') ? 'bg-accent' : ''"
-                aria-label="Link"
+                aria-label="Tautan"
                 @click="setLink"
             >
                 <LinkIcon class="h-4 w-4" />
@@ -229,7 +229,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :disabled="!editor.can().undo()"
-                aria-label="Undo"
+                aria-label="Urungkan"
                 @click="editor.chain().focus().undo().run()"
             >
                 <Undo2 class="h-4 w-4" />
@@ -239,7 +239,7 @@ function setLink() {
                 variant="ghost"
                 size="sm"
                 :disabled="!editor.can().redo()"
-                aria-label="Redo"
+                aria-label="Ulangi"
                 @click="editor.chain().focus().redo().run()"
             >
                 <Redo2 class="h-4 w-4" />

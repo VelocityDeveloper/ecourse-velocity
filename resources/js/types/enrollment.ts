@@ -12,11 +12,13 @@ export type PersonSummary = {
 export type CatalogCourse = {
     id: number;
     title: string;
+    summary: string;
     level: CourseLevel;
     price: string;
     thumbnail_url: string | null;
     category: CourseOption | null;
     instructor: PersonSummary | null;
+    lessons_count: number;
     students_count: number;
     reviews_count: number;
     rating_average: number | null;
@@ -32,8 +34,16 @@ export type CatalogCourseDetail = {
     status: CourseStatus;
     thumbnail_url: string | null;
     category: CourseOption | null;
-    instructor: (PersonSummary & { headline: string | null }) | null;
+    instructor:
+        | (PersonSummary & {
+              headline: string | null;
+              bio: string | null;
+              courses_count: number;
+          })
+        | null;
     students_count: number;
+    total_minutes: number;
+    updated_at: string | null;
 };
 
 export type CatalogSection = {

@@ -24,9 +24,9 @@ import type { LessonContentType } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Lessons', href: '/lessons' },
-            { title: 'Edit Lesson', href: '/lessons' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Materi', href: '/lessons' },
+            { title: 'Ubah Materi', href: '/lessons' },
         ],
     },
 });
@@ -121,33 +121,33 @@ function removeAttachment(id: number) {
 </script>
 
 <template>
-    <Head :title="`Edit ${lesson.title}`" />
+    <Head :title="`Ubah ${lesson.title}`" />
 
     <div class="flex flex-col space-y-6">
         <div class="flex items-start justify-between gap-4">
             <Heading
                 variant="small"
-                title="Edit Lesson"
+                title="Ubah Materi"
                 :description="`${course.title} › ${section.title}`"
             />
             <Link :href="courseRoutes.show(course.id)">
-                <Button variant="outline" size="sm">Back to course</Button>
+                <Button variant="outline" size="sm">Kembali ke kursus</Button>
             </Link>
         </div>
 
         <form @submit.prevent="submit" class="space-y-6">
             <div class="grid gap-4 md:grid-cols-3">
                 <div class="grid gap-2 md:col-span-2">
-                    <Label for="title">Title</Label>
+                    <Label for="title">Judul</Label>
                     <Input id="title" v-model="form.title" required />
                     <InputError :message="errors.title" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="content-type">Content type</Label>
+                    <Label for="content-type">Jenis konten</Label>
                     <Select v-model="form.content_type">
                         <SelectTrigger id="content-type">
-                            <SelectValue placeholder="Select type" />
+                            <SelectValue placeholder="Pilih jenis" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem
@@ -164,18 +164,18 @@ function removeAttachment(id: number) {
             </div>
 
             <div class="grid gap-2">
-                <Label>Material</Label>
+                <Label>Isi materi</Label>
                 <RichTextEditor v-model="form.content" />
                 <p class="text-xs text-muted-foreground">
-                    Written material for this lesson. Formatting is cleaned on
-                    save.
+                    Isi tertulis untuk materi ini. Format dirapikan saat
+                    disimpan.
                 </p>
                 <InputError :message="errors.content" />
             </div>
 
             <div class="grid gap-4 md:grid-cols-3">
                 <div class="grid gap-2 md:col-span-2">
-                    <Label for="content-url">Learning URL</Label>
+                    <Label for="content-url">URL pembelajaran</Label>
                     <Input
                         id="content-url"
                         v-model="form.content_url"
@@ -186,7 +186,7 @@ function removeAttachment(id: number) {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="duration">Duration (minutes)</Label>
+                    <Label for="duration">Durasi (menit)</Label>
                     <Input
                         id="duration"
                         v-model="form.duration_minutes"
@@ -200,11 +200,11 @@ function removeAttachment(id: number) {
 
             <div class="flex items-center gap-4">
                 <Button :disabled="processing">
-                    {{ processing ? 'Saving...' : 'Save Lesson' }}
+                    {{ processing ? 'Menyimpan...' : 'Simpan Materi' }}
                 </Button>
                 <Link :href="lessonRoutes.index()">
                     <Button type="button" variant="ghost"
-                        >Back to lessons</Button
+                        >Kembali ke daftar materi</Button
                     >
                 </Link>
             </div>
@@ -215,11 +215,12 @@ function removeAttachment(id: number) {
                 <div>
                     <h3 class="flex items-center gap-2 text-sm font-medium">
                         <Paperclip class="h-4 w-4" />
-                        Attachments
+                        Lampiran
                     </h3>
                     <p class="text-xs text-muted-foreground">
-                        Documents, archives or images, up to
-                        {{ Math.round(maxAttachmentKilobytes / 1024) }} MB each.
+                        Dokumen, arsip, atau gambar, maksimal
+                        {{ Math.round(maxAttachmentKilobytes / 1024) }} MB per
+                        berkas.
                     </p>
                 </div>
                 <div>
@@ -238,7 +239,7 @@ function removeAttachment(id: number) {
                         @click="fileInput?.click()"
                     >
                         <Upload class="mr-2 h-4 w-4" />
-                        {{ uploading ? 'Uploading...' : 'Add Files' }}
+                        {{ uploading ? 'Mengunggah...' : 'Tambah Berkas' }}
                     </Button>
                 </div>
             </div>
@@ -252,7 +253,7 @@ function removeAttachment(id: number) {
                 v-if="lesson.attachments.length === 0"
                 class="p-8 text-center text-sm text-muted-foreground"
             >
-                No files attached yet.
+                Belum ada berkas terlampir.
             </p>
 
             <ul v-else>

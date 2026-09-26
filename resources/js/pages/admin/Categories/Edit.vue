@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
+import CategoryImageField from '@/components/CategoryImageField.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,9 +14,9 @@ import type { Category } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Categories', href: '/admin/categories' },
-            { title: 'Edit Category', href: '/admin/categories' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kategori', href: '/admin/categories' },
+            { title: 'Ubah Kategori', href: '/admin/categories' },
         ],
     },
 });
@@ -28,6 +29,8 @@ const form = reactive({
     name: props.category.name,
     slug: props.category.slug,
     description: props.category.description ?? '',
+    image: null as File | null,
+    remove_image: false,
 });
 
 const errors = ref<Record<string, string>>({});
@@ -37,35 +40,41 @@ function submit() {
     processing.value = true;
     errors.value = {};
 
-    router.put(categories.update(props.category.id).url, form, {
-        onError: (err) => {
-            errors.value = err as Record<string, string>;
+    // Files need multipart, which PUT cannot carry: POST with a spoofed method.
+    router.post(
+        categories.update(props.category.id).url,
+        { ...form, _method: 'put' },
+        {
+            forceFormData: true,
+            onError: (err) => {
+                errors.value = err as Record<string, string>;
+            },
+            onFinish: () => {
+                processing.value = false;
+            },
         },
-        onFinish: () => {
-            processing.value = false;
-        },
-    });
+    );
 }
 </script>
 
 <template>
-    <Head title="Edit Category" />
+    <Head title="Ubah Kategori" />
 
     <div class="flex flex-col space-y-6">
         <Heading
             variant="small"
-            title="Edit Category"
+            title="Ubah Kategori"
             :description="category.name"
         />
 
         <form @submit.prevent="submit" class="max-w-xl space-y-6">
             <div class="grid gap-2">
-                <Label for="name">Name</Label>
+                <Label for="name">Nama</Label>
                 <Input
                     id="name"
                     v-model="form.name"
                     required
-                    placeholder="Web Development"
+                    placeholder="Pengembangan Web"
                 />
                 <InputError :message="errors.name" />
             </div>
@@ -75,28 +84,36 @@ function submit() {
                 <Input
                     id="slug"
                     v-model="form.slug"
-                    placeholder="Leave blank to regenerate from the name"
+                    placeholder="Kosongkan untuk dibuat ulang dari nama"
                 />
                 <InputError :message="errors.slug" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="description">Description</Label>
+                <Label for="description">Deskripsi</Label>
                 <Textarea
                     id="description"
                     v-model="form.description"
                     rows="4"
-                    placeholder="What does this category cover?"
+                    placeholder="Apa cakupan kategori ini?"
                 />
                 <InputError :message="errors.description" />
             </div>
 
+            <CategoryImageField
+                v-model:file="form.image"
+                v-model:remove="form.remove_image"
+                :current-url="category.image_url"
+                :name="form.name"
+                :error="errors.image"
+            />
+
             <div class="flex items-center gap-4">
                 <Button :disabled="processing">
-                    {{ processing ? 'Saving...' : 'Save Changes' }}
+                    {{ processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
                 </Button>
                 <Link :href="categories.index()">
-                    <Button type="button" variant="ghost">Cancel</Button>
+                    <Button type="button" variant="ghost">Batal</Button>
                 </Link>
             </div>
         </form>

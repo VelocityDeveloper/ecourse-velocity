@@ -21,7 +21,7 @@ defineProps<{
 
 <template>
     <div
-        class="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[300px_minmax(0,1fr)]"
+        class="mx-auto grid w-full max-w-site gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[300px_minmax(0,1fr)]"
     >
         <aside
             class="hidden lg:sticky lg:top-24 lg:block lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto lg:pr-2"
@@ -38,15 +38,15 @@ defineProps<{
                 <SheetTrigger as-child>
                     <Button variant="outline" size="sm" class="w-fit lg:hidden">
                         <ListTree class="mr-2 h-4 w-4" />
-                        Course content ·
+                        Isi kursus ·
                         {{ outline.progress.percent }}%
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" class="w-80 overflow-y-auto p-4">
                     <SheetHeader class="sr-only">
-                        <SheetTitle>Course content</SheetTitle>
+                        <SheetTitle>Isi kursus</SheetTitle>
                         <SheetDescription>
-                            Lessons and quizzes in this course
+                            Materi dan kuis dalam kursus ini
                         </SheetDescription>
                     </SheetHeader>
                     <LearnOutline

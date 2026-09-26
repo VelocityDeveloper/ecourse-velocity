@@ -21,7 +21,7 @@ const iconClass = computed(() =>
         class="inline-flex items-center gap-0.5"
         role="img"
         :aria-label="
-            rating === null ? 'Not rated yet' : `Rated ${rating} out of 5`
+            rating === null ? 'Belum dinilai' : `Dinilai ${rating} dari 5`
         "
     >
         <Star
@@ -30,7 +30,7 @@ const iconClass = computed(() =>
             :class="[
                 iconClass,
                 index <= rounded
-                    ? 'fill-current text-chart-4'
+                    ? 'fill-current text-rating'
                     : 'text-muted-foreground/40',
             ]"
         />

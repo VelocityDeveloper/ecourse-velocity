@@ -119,8 +119,8 @@ trait CourseValidationRules
     protected function courseMessages(): array
     {
         return [
-            'status.in' => 'Only an administrator can publish or archive a course.',
-            'instructor_id.exists' => 'The selected owner is not an instructor.',
+            'status.in' => __('Only an administrator can publish or archive a course.'),
+            'instructor_id.exists' => __('The selected owner is not an instructor.'),
         ];
     }
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import AppWordmark from '@/components/AppWordmark.vue';
+import SiteLogo from '@/components/SiteLogo.vue';
 import { home } from '@/routes';
 
 defineProps<{
@@ -22,8 +21,7 @@ defineProps<{
                 :href="home()"
                 class="relative z-20 flex items-center text-lg font-medium"
             >
-                <AppLogoIcon class="mr-2 size-8 fill-current text-brand" />
-                <AppWordmark />
+                <SiteLogo tile="none" wordmark class="[&_svg]:text-brand" />
             </Link>
         </div>
         <div class="lg:p-8">

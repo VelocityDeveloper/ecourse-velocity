@@ -4,6 +4,7 @@ import { ArrowLeft, Check, CircleAlert, X } from '@lucide/vue';
 import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { optionLabel } from '@/lib/course';
 import learn from '@/routes/learn';
 import type { AttemptContext, ResultQuestion } from '@/types';
 
@@ -32,20 +33,20 @@ const quizHref = computed(() =>
 
 <template>
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:px-6">
-        <Head :title="`${quiz.title} · Result`" />
+        <Head :title="`${quiz.title} · Hasil`" />
 
         <Link
             :href="quizHref"
             class="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
             <ArrowLeft class="h-4 w-4" />
-            Back to {{ quiz.title }}
+            Kembali ke {{ quiz.title }}
         </Link>
 
         <section
             class="flex flex-col items-center gap-4 rounded-xl border bg-card p-8 text-center text-card-foreground"
         >
-            <p class="text-sm font-semibold text-primary">Your score</p>
+            <p class="text-sm font-semibold text-primary">Nilai Anda</p>
             <p class="text-5xl font-semibold tracking-tight">
                 {{ attempt.score ?? 0 }}
                 <span class="text-2xl font-normal text-muted-foreground">
@@ -60,8 +61,8 @@ const quizHref = computed(() =>
                     />
                 </div>
                 <p class="text-sm text-muted-foreground">
-                    {{ percent }}% · {{ correctCount }} of
-                    {{ questions.length }} fully correct
+                    {{ percent }}% · {{ correctCount }} dari
+                    {{ questions.length }} benar sepenuhnya
                 </p>
             </div>
             <p
@@ -69,21 +70,21 @@ const quizHref = computed(() =>
                 class="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
             >
                 <CircleAlert class="h-4 w-4" />
-                Time ran out before the answers were submitted, so they were not
-                counted.
+                Waktu habis sebelum jawaban dikirim, sehingga jawaban tidak
+                dihitung.
             </p>
             <div class="flex flex-wrap justify-center gap-3 pt-2">
                 <Link :href="quizHref">
-                    <Button variant="outline">Retake quiz</Button>
+                    <Button variant="outline">Ulangi kuis</Button>
                 </Link>
                 <Link :href="learn.show(course.id)">
-                    <Button>Continue course</Button>
+                    <Button>Lanjutkan kursus</Button>
                 </Link>
             </div>
         </section>
 
         <section class="space-y-4">
-            <h2 class="text-lg font-semibold">Review</h2>
+            <h2 class="text-lg font-semibold">Tinjauan</h2>
             <article
                 v-for="(question, index) in questions"
                 :key="question.id"
@@ -100,7 +101,7 @@ const quizHref = computed(() =>
                         :variant="question.is_correct ? 'default' : 'outline'"
                         class="shrink-0"
                     >
-                        {{ question.points }} / {{ question.max_points }} pts
+                        {{ question.points }} / {{ question.max_points }} poin
                     </Badge>
                 </div>
                 <ul class="space-y-2">
@@ -117,20 +118,22 @@ const quizHref = computed(() =>
                         <Check
                             v-if="option.is_correct"
                             class="h-4 w-4 shrink-0 text-primary"
-                            aria-label="Correct answer"
+                            aria-label="Jawaban benar"
                         />
                         <X
                             v-else-if="option.was_selected"
                             class="h-4 w-4 shrink-0 text-destructive"
-                            aria-label="Wrong answer"
+                            aria-label="Jawaban salah"
                         />
                         <span v-else class="h-4 w-4 shrink-0" />
-                        <span class="flex-1">{{ option.text }}</span>
+                        <span class="flex-1">{{
+                            optionLabel(option.text)
+                        }}</span>
                         <span
                             v-if="option.was_selected"
                             class="text-xs text-muted-foreground"
                         >
-                            Your answer
+                            Jawaban Anda
                         </span>
                     </li>
                 </ul>

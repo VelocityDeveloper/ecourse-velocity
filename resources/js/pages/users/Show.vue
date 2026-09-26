@@ -15,8 +15,8 @@ defineProps<{
 
 const ROLE_LABELS: Record<UserRole, string> = {
     admin: 'Admin',
-    instructor: 'Instructor',
-    student: 'Student',
+    instructor: 'Instruktur',
+    student: 'Siswa',
 };
 </script>
 
@@ -56,13 +56,13 @@ const ROLE_LABELS: Record<UserRole, string> = {
                     v-if="profile.joined_at"
                     class="text-xs text-muted-foreground"
                 >
-                    Joined {{ formatDate(profile.joined_at) }}
+                    Bergabung {{ formatDate(profile.joined_at) }}
                 </p>
             </div>
         </section>
 
         <section class="flex flex-col gap-3">
-            <h2 class="text-lg font-semibold">About</h2>
+            <h2 class="text-lg font-semibold">Tentang</h2>
             <p
                 v-if="profile.bio"
                 class="text-sm leading-relaxed whitespace-pre-line"
@@ -70,7 +70,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
                 {{ profile.bio }}
             </p>
             <p v-else class="text-sm text-muted-foreground">
-                {{ profile.name }} hasn't written a bio yet.
+                {{ profile.name }} belum menulis bio.
             </p>
         </section>
 
@@ -78,7 +78,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
             v-if="profile.role === 'instructor'"
             class="flex flex-col gap-3"
         >
-            <h2 class="text-lg font-semibold">Courses</h2>
+            <h2 class="text-lg font-semibold">Kursus</h2>
             <div
                 v-if="courses.length > 0"
                 class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
@@ -112,7 +112,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
                 </Link>
             </div>
             <p v-else class="text-sm text-muted-foreground">
-                No published courses yet.
+                Belum ada kursus yang terbit.
             </p>
         </section>
     </div>

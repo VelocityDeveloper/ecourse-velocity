@@ -13,7 +13,7 @@ class AdminMiddleware
         $user = $request->user();
 
         if (! $user || ! in_array($user->role, ['admin'])) {
-            abort(403, 'Unauthorized. Admin access required.');
+            abort(403, __('Unauthorized. Admin access required.'));
         }
 
         return $next($request);

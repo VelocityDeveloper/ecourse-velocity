@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Course;
+use App\Models\SiteSetting;
 use App\Models\User;
+use App\Support\BrandPalette;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
@@ -115,8 +117,9 @@ class CourseSeeder extends Seeder
     /**
      * Draw a placeholder thumbnail for the course and store it on disk.
      *
-     * The colours are derived from the slug, so a course always gets the same
-     * image without any network access.
+     * Every thumbnail shares the brand look (the dark surface colour, a glow in
+     * the main colour, category eyebrow and title), so catalogue cards read as one set without
+     * any network access.
      */
     private function makeThumbnail(Course $course): ?string
     {
@@ -126,14 +129,14 @@ class CourseSeeder extends Seeder
             return null;
         }
 
-        $hue = (float) (crc32($course->slug) % 360);
+        imagealphablending($image, true);
 
-        $this->paintGradient($image, $hue);
-        $this->paintAccents($image, $hue);
+        $this->paintGradient($image);
+        $this->paintAccents($image);
         $this->paintText($image, $course);
 
         ob_start();
-        imagejpeg($image, null, 85);
+        imagejpeg($image, null, 88);
         $contents = ob_get_clean();
         imagedestroy($image);
 
@@ -148,15 +151,17 @@ class CourseSeeder extends Seeder
     }
 
     /**
-     * Fill the canvas with a vertical two tone gradient.
+     * Fill the canvas with a diagonal gradient from warm charcoal to near black.
      */
-    private function paintGradient(\GdImage $image, float $hue): void
+    private function paintGradient(\GdImage $image): void
     {
-        [$fromR, $fromG, $fromB] = $this->hslToRgb($hue, 0.58, 0.46);
-        [$toR, $toG, $toB] = $this->hslToRgb(fmod($hue + 45.0, 360.0), 0.62, 0.20);
+        $surface = $this->surfaceHue();
+        [$fromR, $fromG, $fromB] = $this->hslToRgb($surface, 0.45, 0.16);
+        [$toR, $toG, $toB] = $this->hslToRgb($surface, 0.50, 0.07);
+        $span = self::THUMBNAIL_WIDTH + self::THUMBNAIL_HEIGHT;
 
-        for ($y = 0; $y < self::THUMBNAIL_HEIGHT; $y++) {
-            $ratio = $y / (self::THUMBNAIL_HEIGHT - 1);
+        for ($x = 0; $x < $span; $x++) {
+            $ratio = $x / ($span - 1);
 
             $color = $this->color(
                 $image,
@@ -165,59 +170,103 @@ class CourseSeeder extends Seeder
                 $this->blendChannel($fromB, $toB, $ratio),
             );
 
-            imageline($image, 0, $y, self::THUMBNAIL_WIDTH, $y, $color);
+            imageline($image, $x, 0, $x - self::THUMBNAIL_HEIGHT, self::THUMBNAIL_HEIGHT, $color);
         }
     }
 
     /**
-     * Scatter a few translucent circles so the image is not a flat wash.
+     * Add the brand glow, a fading dot grid and the orange accent bar.
      */
-    private function paintAccents(\GdImage $image, float $hue): void
+    private function paintAccents(\GdImage $image): void
     {
-        [$r, $g, $b] = $this->hslToRgb(fmod($hue + 180.0, 360.0), 0.70, 0.72);
+        [$r, $g, $b] = $this->hslToRgb($this->brandHue(), 0.95, 0.53);
 
-        $circles = [
-            [1060, 170, 460],
-            [1210, 560, 300],
-            [180, 640, 240],
-        ];
-
-        foreach ($circles as [$x, $y, $diameter]) {
-            $color = imagecolorallocatealpha($image, $r, $g, $b, 105);
+        // Soft glow in the top right corner, built from stacked translucent discs.
+        for ($step = 0; $step < 40; $step++) {
+            $diameter = 1000 - $step * 22;
+            $color = imagecolorallocatealpha($image, $r, $g, $b, 124);
 
             if ($color !== false) {
-                imagefilledellipse($image, $x, $y, $diameter, $diameter, $color);
+                imagefilledellipse($image, self::THUMBNAIL_WIDTH - 120, 60, $diameter, $diameter, $color);
             }
         }
+
+        // Dot grid that fades out towards the bottom left.
+        for ($y = 32; $y < self::THUMBNAIL_HEIGHT; $y += 40) {
+            for ($x = 32; $x < self::THUMBNAIL_WIDTH; $x += 40) {
+                $fade = 1 - min(1.0, hypot(self::THUMBNAIL_WIDTH - $x, $y) / 1100);
+
+                if ($fade <= 0) {
+                    continue;
+                }
+
+                $dot = imagecolorallocatealpha($image, 255, 255, 255, max(0, min(127, (int) round(127 - 40 * $fade))));
+
+                if ($dot !== false) {
+                    imagefilledellipse($image, $x, $y, 4, 4, $dot);
+                }
+            }
+        }
+
+        imagefilledrectangle($image, 64, 150, 64 + 72, 157, $this->color($image, $r, $g, $b));
     }
 
     /**
-     * Write the category, title and status onto the canvas.
+     * Write the category, title and level onto the canvas.
      */
     private function paintText(\GdImage $image, Course $course): void
     {
         $font = $this->findFont();
         $white = $this->color($image, 255, 255, 255);
+        [$r, $g, $b] = $this->hslToRgb($this->brandHue(), 0.95, 0.65);
+        $orange = $this->color($image, $r, $g, $b);
+        $muted = imagecolorallocatealpha($image, 255, 255, 255, 50) ?: $white;
 
         if ($font === null) {
-            imagestring($image, 5, 60, 60, strtoupper($course->title), $white);
+            imagestring($image, 5, 64, 64, $course->title, $white);
 
             return;
         }
 
         $categoryName = $course->category()->value('name');
         $category = is_string($categoryName) ? $categoryName : 'Uncategorised';
-        imagettftext($image, 26, 0, 64, 96, $white, $font, strtoupper($category));
+        imagettftext($image, 28, 0, 64, 118, $orange, $font, strtoupper($category));
 
-        $lines = $this->wrapTitle($course->title, $font, 58, self::THUMBNAIL_WIDTH - 128);
-        $y = self::THUMBNAIL_HEIGHT - 150 - (count($lines) - 1) * 74;
+        $lines = $this->wrapTitle($course->title, $font, 62, self::THUMBNAIL_WIDTH - 200);
+        $y = 262;
 
         foreach ($lines as $line) {
-            imagettftext($image, 58, 0, 64, $y, $white, $font, $line);
-            $y += 74;
+            imagettftext($image, 62, 0, 64, $y, $white, $font, $line);
+            $y += 84;
         }
 
-        imagettftext($image, 22, 0, 64, self::THUMBNAIL_HEIGHT - 64, $white, $font, strtoupper($course->status));
+        $level = match ($course->level) {
+            'beginner' => 'Pemula',
+            'intermediate' => 'Menengah',
+            'advanced' => 'Lanjutan',
+            default => ucfirst($course->level),
+        };
+        imagettftext($image, 26, 0, 64, self::THUMBNAIL_HEIGHT - 64, $muted, $font, $level);
+    }
+
+    /**
+     * The hue of the site's main colour (Admin → Pengaturan Situs → Warna), orange by default.
+     */
+    private function brandHue(): float
+    {
+        $color = SiteSetting::get(SiteSetting::PRIMARY_COLOR);
+
+        return $color === null ? 24.0 : BrandPalette::hueOf($color);
+    }
+
+    /**
+     * The hue of the site's dark surface colour, navy by default.
+     */
+    private function surfaceHue(): float
+    {
+        $color = SiteSetting::get(SiteSetting::SURFACE_COLOR);
+
+        return $color === null ? 223.0 : BrandPalette::hueOf($color);
     }
 
     /**
@@ -261,6 +310,7 @@ class CourseSeeder extends Seeder
             'C:/Windows/Fonts/arialbd.ttf',
             'C:/Windows/Fonts/arial.ttf',
             '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+            '/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Bold.ttf',
             '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
             '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
         ];

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
@@ -142,6 +143,16 @@ class Course extends Model
     }
 
     /**
+     * Get every lesson of this course, across its sections.
+     *
+     * @return HasManyThrough<Lesson, Section, $this>
+     */
+    public function lessons(): HasManyThrough
+    {
+        return $this->hasManyThrough(Lesson::class, Section::class);
+    }
+
+    /**
      * Determine whether the given user is the instructor of this course.
      */
     public function isOwnedBy(User $user): bool
@@ -185,6 +196,26 @@ class Course extends Model
     public function scopePublished(Builder $query): void
     {
         $query->where('status', self::STATUS_PUBLISHED);
+    }
+
+    /**
+     * Load what a course card needs (see App\Support\CatalogCourseCard): category,
+     * instructor, lesson/student/review counts, average rating and whether the
+     * viewer is enrolled.
+     *
+     * @param  Builder<Course>  $query
+     */
+    public function scopeForCatalogCard(Builder $query, ?int $viewerId): void
+    {
+        $query
+            ->with(['category:id,name', 'instructor:id,name,avatar_path'])
+            ->withCount([
+                'lessons',
+                'reviews',
+                'enrollments as students_count' => fn (Builder $enrollments) => $enrollments->active(),
+            ])
+            ->withAvg('reviews', 'rating')
+            ->withExists(['enrollments as is_enrolled' => fn (Builder $enrollments) => $enrollments->active()->where('user_id', $viewerId)]);
     }
 
     /**

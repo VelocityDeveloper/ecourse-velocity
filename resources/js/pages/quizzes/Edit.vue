@@ -34,7 +34,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { answerModeLabel, formatTimeLimit } from '@/lib/course';
+import { answerModeLabel, formatTimeLimit, optionLabel } from '@/lib/course';
 import courseRoutes from '@/routes/courses';
 import questionRoutes from '@/routes/quiz-questions';
 import quizRoutes from '@/routes/quizzes';
@@ -48,9 +48,9 @@ import type {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Quizzes', href: '/quizzes' },
-            { title: 'Edit Quiz', href: '/quizzes' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kuis', href: '/quizzes' },
+            { title: 'Ubah Kuis', href: '/quizzes' },
         ],
     },
 });
@@ -279,12 +279,12 @@ function confirmDelete() {
 
 <template>
     <div class="flex flex-col space-y-6">
-        <Head :title="`Edit ${quiz.title}`" />
+        <Head :title="`Ubah ${quiz.title}`" />
 
         <div class="flex items-start justify-between gap-4">
             <Heading
                 variant="small"
-                title="Quiz Builder"
+                title="Penyusun Kuis"
                 :description="`${course.title} › ${section.title}`"
             />
             <div class="flex items-center gap-2">
@@ -293,10 +293,12 @@ function confirmDelete() {
                     {{ formatTimeLimit(quiz.time_limit_minutes) }}
                 </Badge>
                 <Badge variant="secondary"
-                    >{{ quiz.total_points }} pts total</Badge
+                    >Total {{ quiz.total_points }} poin</Badge
                 >
                 <Link :href="courseRoutes.show(course.id)">
-                    <Button variant="outline" size="sm">Back to course</Button>
+                    <Button variant="outline" size="sm"
+                        >Kembali ke kursus</Button
+                    >
                 </Link>
             </div>
         </div>
@@ -306,24 +308,24 @@ function confirmDelete() {
             class="space-y-4 rounded-lg border p-4"
         >
             <div class="grid gap-2">
-                <Label for="quiz-title">Quiz title</Label>
+                <Label for="quiz-title">Judul kuis</Label>
                 <Input id="quiz-title" v-model="quizForm.title" required />
                 <InputError :message="errors.title" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="quiz-description">Description</Label>
+                <Label for="quiz-description">Deskripsi</Label>
                 <Textarea
                     id="quiz-description"
                     v-model="quizForm.description"
                     rows="2"
-                    placeholder="What does this quiz assess?"
+                    placeholder="Apa yang dinilai kuis ini?"
                 />
                 <InputError :message="errors.description" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="quiz-time-limit">Time limit (minutes)</Label>
+                <Label for="quiz-time-limit">Batas waktu (menit)</Label>
                 <Input
                     id="quiz-time-limit"
                     v-model="quizForm.time_limit_minutes"
@@ -331,31 +333,31 @@ function confirmDelete() {
                     min="1"
                     :max="maxTimeLimitMinutes"
                     class="max-w-48"
-                    placeholder="No limit"
+                    placeholder="Tanpa batas"
                 />
                 <p class="text-xs text-muted-foreground">
-                    Leave empty for no time limit.
+                    Kosongkan jika tanpa batas waktu.
                 </p>
                 <InputError :message="errors.time_limit_minutes" />
             </div>
 
             <Button size="sm" :disabled="processing">
-                {{ processing ? 'Saving...' : 'Save Quiz' }}
+                {{ processing ? 'Menyimpan...' : 'Simpan Kuis' }}
             </Button>
         </form>
 
         <div class="rounded-lg border">
             <div class="flex items-center justify-between gap-4 border-b p-4">
                 <div>
-                    <h3 class="text-sm font-medium">Questions</h3>
+                    <h3 class="text-sm font-medium">Soal</h3>
                     <p class="text-xs text-muted-foreground">
-                        {{ quiz.questions.length }} question(s) ·
-                        {{ quiz.total_points }} points in total
+                        {{ quiz.questions.length }} soal · total
+                        {{ quiz.total_points }} poin
                     </p>
                 </div>
                 <Button size="sm" @click="openQuestionDialog()">
                     <Plus class="mr-2 h-4 w-4" />
-                    Add Question
+                    Tambah Soal
                 </Button>
             </div>
 
@@ -363,7 +365,7 @@ function confirmDelete() {
                 v-if="quiz.questions.length === 0"
                 class="p-8 text-center text-sm text-muted-foreground"
             >
-                No questions yet. Add the first one to start scoring.
+                Belum ada soal. Tambahkan soal pertama untuk mulai menilai.
             </p>
 
             <div
@@ -381,7 +383,7 @@ function confirmDelete() {
                                 {{ answerModeLabel(question.answer_mode) }}
                             </Badge>
                             <Badge variant="secondary">
-                                max {{ question.max_points }} pts
+                                maks. {{ question.max_points }} poin
                             </Badge>
                         </div>
                     </div>
@@ -391,7 +393,7 @@ function confirmDelete() {
                             variant="ghost"
                             size="sm"
                             :disabled="questionIndex === 0"
-                            aria-label="Move question up"
+                            aria-label="Pindahkan soal ke atas"
                             @click="moveQuestion(question, 'up')"
                         >
                             <ChevronUp class="h-4 w-4" />
@@ -402,7 +404,7 @@ function confirmDelete() {
                             :disabled="
                                 questionIndex === quiz.questions.length - 1
                             "
-                            aria-label="Move question down"
+                            aria-label="Pindahkan soal ke bawah"
                             @click="moveQuestion(question, 'down')"
                         >
                             <ChevronDown class="h-4 w-4" />
@@ -440,7 +442,7 @@ function confirmDelete() {
                             class="h-4 w-4 shrink-0 text-green-600"
                         />
                         <X v-else class="h-4 w-4 shrink-0 opacity-40" />
-                        <span>{{ option.text }}</span>
+                        <span>{{ optionLabel(option.text) }}</span>
                     </li>
                 </ul>
 
@@ -453,7 +455,7 @@ function confirmDelete() {
                         :key="tier"
                         variant="outline"
                     >
-                        {{ tier + 1 }} correct → {{ points }} pts
+                        {{ tier + 1 }} benar → {{ points }} poin
                     </Badge>
                 </div>
             </div>
@@ -465,19 +467,19 @@ function confirmDelete() {
                     <DialogTitle>
                         {{
                             editingQuestionId === null
-                                ? 'Add Question'
-                                : 'Edit Question'
+                                ? 'Tambah Soal'
+                                : 'Ubah Soal'
                         }}
                     </DialogTitle>
                     <DialogDescription>
-                        Write the question, mark the answer key, and set how it
-                        scores.
+                        Tulis soal, tandai kunci jawaban, dan atur cara
+                        penilaiannya.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form @submit.prevent="submitQuestion" class="space-y-4">
                     <div class="grid gap-2">
-                        <Label for="question-text">Question</Label>
+                        <Label for="question-text">Soal</Label>
                         <Textarea
                             id="question-text"
                             v-model="questionForm.question"
@@ -489,13 +491,13 @@ function confirmDelete() {
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="answer-mode">Answer key</Label>
+                        <Label for="answer-mode">Kunci jawaban</Label>
                         <Select
                             v-model="questionForm.answer_mode"
                             @update:model-value="onModeChange"
                         >
                             <SelectTrigger id="answer-mode">
-                                <SelectValue placeholder="Select mode" />
+                                <SelectValue placeholder="Pilih mode" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem
@@ -514,7 +516,7 @@ function confirmDelete() {
                         v-if="questionForm.answer_mode !== 'multiple'"
                         class="grid gap-2"
                     >
-                        <Label for="question-points">Points</Label>
+                        <Label for="question-points">Poin</Label>
                         <Input
                             id="question-points"
                             v-model="questionForm.points"
@@ -528,7 +530,7 @@ function confirmDelete() {
                     <div class="grid gap-2">
                         <div class="flex items-center justify-between">
                             <Label>{{
-                                isTrueFalse ? 'Correct answer' : 'Options'
+                                isTrueFalse ? 'Jawaban benar' : 'Pilihan'
                             }}</Label>
                             <Button
                                 v-if="!isTrueFalse"
@@ -541,7 +543,7 @@ function confirmDelete() {
                                 @click="addOption"
                             >
                                 <Plus class="mr-2 h-4 w-4" />
-                                Add option
+                                Tambah pilihan
                             </Button>
                         </div>
 
@@ -549,7 +551,7 @@ function confirmDelete() {
                             v-if="isTrueFalse"
                             class="grid grid-cols-2 gap-2"
                             role="radiogroup"
-                            aria-label="Correct answer"
+                            aria-label="Jawaban benar"
                         >
                             <label
                                 v-for="(option, index) in questionForm.options"
@@ -568,7 +570,7 @@ function confirmDelete() {
                                     :checked="option.is_correct"
                                     @change="markCorrect(index)"
                                 />
-                                {{ option.text }}
+                                {{ optionLabel(option.text) }}
                             </label>
                         </div>
 
@@ -584,13 +586,13 @@ function confirmDelete() {
                                     name="correct-option"
                                     class="h-4 w-4 shrink-0 accent-primary"
                                     :checked="option.is_correct"
-                                    :aria-label="`Mark option ${index + 1} as correct`"
+                                    :aria-label="`Tandai pilihan ${index + 1} sebagai benar`"
                                     @change="markCorrect(index)"
                                 />
                                 <Checkbox
                                     v-else
                                     :model-value="option.is_correct"
-                                    :aria-label="`Mark option ${index + 1} as correct`"
+                                    :aria-label="`Tandai pilihan ${index + 1} sebagai benar`"
                                     @update:model-value="
                                         (value) =>
                                             toggleCorrect(index, value === true)
@@ -599,14 +601,14 @@ function confirmDelete() {
                                 <Input
                                     v-model="option.text"
                                     required
-                                    :placeholder="`Option ${index + 1}`"
+                                    :placeholder="`Pilihan ${index + 1}`"
                                 />
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
                                     :disabled="questionForm.options.length <= 2"
-                                    aria-label="Remove option"
+                                    aria-label="Hapus pilihan"
                                     @click="removeOption(index)"
                                 >
                                     <Trash2 class="h-4 w-4 text-destructive" />
@@ -620,19 +622,19 @@ function confirmDelete() {
                         v-if="questionForm.answer_mode === 'multiple'"
                         class="grid gap-2 rounded-md border bg-muted/30 p-3"
                     >
-                        <Label>Scoring</Label>
+                        <Label>Penilaian</Label>
                         <p class="text-xs text-muted-foreground">
-                            {{ correctCount }} correct option(s) marked. Set the
-                            points awarded for each number the student gets
-                            right.
+                            {{ correctCount }} pilihan benar ditandai. Atur poin
+                            yang diberikan untuk tiap jumlah jawaban benar
+                            siswa.
                         </p>
 
                         <p
                             v-if="correctCount < 2"
                             class="text-sm text-destructive"
                         >
-                            Mark at least two correct options to configure
-                            scoring.
+                            Tandai minimal dua pilihan benar untuk mengatur
+                            penilaian.
                         </p>
 
                         <div
@@ -641,8 +643,8 @@ function confirmDelete() {
                             class="flex items-center gap-3"
                         >
                             <span class="w-40 shrink-0 text-sm">
-                                {{ tier + 1 }} correct{{
-                                    tier + 1 === correctCount ? ' (all)' : ''
+                                {{ tier + 1 }} benar{{
+                                    tier + 1 === correctCount ? ' (semua)' : ''
                                 }}
                             </span>
                             <Input
@@ -653,7 +655,7 @@ function confirmDelete() {
                                 placeholder="0"
                             />
                             <span class="text-sm text-muted-foreground"
-                                >pts</span
+                                >poin</span
                             >
                         </div>
                         <InputError :message="errors.scores" />
@@ -665,10 +667,10 @@ function confirmDelete() {
                             variant="secondary"
                             @click="questionDialogOpen = false"
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button :disabled="processing">
-                            {{ processing ? 'Saving...' : 'Save Question' }}
+                            {{ processing ? 'Menyimpan...' : 'Simpan Soal' }}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -685,19 +687,19 @@ function confirmDelete() {
         >
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Delete Question</DialogTitle>
+                    <DialogTitle>Hapus Soal</DialogTitle>
                     <DialogDescription>
-                        Delete <strong>{{ deleteTarget?.question }}</strong
-                        >? Its options and answer key will be removed too. This
-                        action cannot be undone.
+                        Hapus <strong>{{ deleteTarget?.question }}</strong
+                        >? Pilihan dan kunci jawabannya juga akan dihapus.
+                        Tindakan ini tidak bisa dibatalkan.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter class="gap-2">
                     <Button variant="secondary" @click="deleteTarget = null"
-                        >Cancel</Button
+                        >Batal</Button
                     >
                     <Button variant="destructive" @click="confirmDelete"
-                        >Delete</Button
+                        >Hapus</Button
                     >
                 </DialogFooter>
             </DialogContent>

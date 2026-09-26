@@ -77,8 +77,12 @@ function remove(reviewId: number): void {
 
 <template>
     <section class="flex flex-col gap-4" aria-labelledby="reviews-heading">
-        <h2 id="reviews-heading" class="text-lg font-semibold">
-            Student reviews
+        <h2
+            id="reviews-heading"
+            class="flex items-center gap-3 text-xl font-bold tracking-tight"
+        >
+            <span class="h-6 w-1 rounded-full bg-primary" aria-hidden="true" />
+            Ulasan Siswa
         </h2>
 
         <div class="grid gap-6 rounded-lg border p-5 sm:grid-cols-[160px_1fr]">
@@ -90,23 +94,25 @@ function remove(reviewId: number): void {
                 </p>
                 <StarRating :rating="rating.average" size="md" />
                 <p class="text-sm text-muted-foreground">
-                    {{ rating.count }} rating(s)
+                    {{ rating.count }} penilaian
                 </p>
             </div>
-            <ul class="space-y-1.5" aria-label="Rating breakdown">
+            <ul class="space-y-1.5" aria-label="Rincian penilaian">
                 <li
                     v-for="stars in STARS"
                     :key="stars"
                     class="flex items-center gap-3 text-sm"
                 >
-                    <span class="w-12 shrink-0 text-muted-foreground">
-                        {{ stars }} star
+                    <span
+                        class="w-16 shrink-0 whitespace-nowrap text-muted-foreground"
+                    >
+                        {{ stars }} bintang
                     </span>
                     <div
                         class="h-2 flex-1 overflow-hidden rounded-full bg-muted"
                     >
                         <div
-                            class="h-full rounded-full bg-chart-4"
+                            class="h-full rounded-full bg-rating"
                             :style="{ width: barWidth(stars) }"
                         />
                     </div>
@@ -125,7 +131,11 @@ function remove(reviewId: number): void {
         >
             <template v-if="editing">
                 <p class="font-medium">
-                    {{ myReview ? 'Edit your review' : 'Rate this course' }}
+                    {{
+                        myReview
+                            ? 'Ubah ulasan Anda'
+                            : 'Beri penilaian kursus ini'
+                    }}
                 </p>
                 <form class="space-y-3" @submit.prevent="submit">
                     <StarRatingInput v-model="form.rating" />
@@ -134,8 +144,8 @@ function remove(reviewId: number): void {
                         v-model="form.comment"
                         rows="3"
                         maxlength="2000"
-                        aria-label="Your review"
-                        placeholder="What did you like? What could be better? (optional)"
+                        aria-label="Ulasan Anda"
+                        placeholder="Apa yang Anda sukai? Apa yang bisa lebih baik? (opsional)"
                     />
                     <InputError :message="errors.comment" />
                     <div class="flex justify-end gap-2">
@@ -145,10 +155,10 @@ function remove(reviewId: number): void {
                             variant="ghost"
                             @click="editing = false"
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button :disabled="saving || form.rating === 0">
-                            {{ saving ? 'Saving...' : 'Submit review' }}
+                            {{ saving ? 'Menyimpan...' : 'Kirim ulasan' }}
                         </Button>
                     </div>
                 </form>
@@ -158,7 +168,7 @@ function remove(reviewId: number): void {
                 class="flex flex-wrap items-center justify-between gap-3"
             >
                 <div class="space-y-1">
-                    <p class="text-sm font-medium">Your review</p>
+                    <p class="text-sm font-medium">Ulasan Anda</p>
                     <StarRating :rating="myReview.rating" />
                     <p
                         v-if="myReview.comment"
@@ -169,7 +179,7 @@ function remove(reviewId: number): void {
                 </div>
                 <div class="flex gap-2">
                     <Button variant="outline" size="sm" @click="editing = true">
-                        Edit
+                        Ubah
                     </Button>
                     <Button
                         variant="ghost"
@@ -177,7 +187,7 @@ function remove(reviewId: number): void {
                         class="text-destructive"
                         @click="remove(myReview.id)"
                     >
-                        Remove
+                        Hapus
                     </Button>
                 </div>
             </div>
@@ -187,7 +197,7 @@ function remove(reviewId: number): void {
             v-if="reviews.length === 0"
             class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground"
         >
-            No written reviews yet.
+            Belum ada ulasan tertulis.
         </p>
 
         <article
@@ -224,7 +234,7 @@ function remove(reviewId: number): void {
                 variant="ghost"
                 size="icon"
                 class="size-8 shrink-0"
-                :aria-label="`Remove review by ${review.author.name}`"
+                :aria-label="`Hapus ulasan dari ${review.author.name}`"
                 @click="remove(review.id)"
             >
                 <Trash2 class="h-4 w-4 text-destructive" />

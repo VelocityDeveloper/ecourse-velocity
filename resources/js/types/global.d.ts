@@ -1,5 +1,6 @@
 import type { Directive } from 'vue';
 import type { Auth } from '@/types/auth';
+import type { PublicSite } from '@/types/home';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -21,6 +22,9 @@ declare module '@inertiajs/core' {
             auth: Auth;
             sidebarOpen: boolean;
             canRegister: boolean;
+            branding: { logoUrl: string | null; paletteCss: string | null };
+            site: PublicSite;
+            navCategories: { id: number; name: string }[];
             [key: string]: unknown;
         };
     }

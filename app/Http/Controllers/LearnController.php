@@ -171,10 +171,14 @@ class LearnController extends Controller
             'is_staff' => $user->isAdmin() || $course->isOwnedBy($user),
         ];
 
+        // The latest questions, shown oldest first like a chat: the newest sits
+        // right above the question box at the bottom.
         return $lesson->questions()
             ->with(['user:id,name,role,avatar_path', 'replies.user:id,name,role,avatar_path'])
             ->limit(self::DISCUSSION_LIMIT)
             ->get()
+            ->reverse()
+            ->values()
             ->map(fn (LessonQuestion $question): array => [
                 'id' => $question->id,
                 'body' => $question->body,

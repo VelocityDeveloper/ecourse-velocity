@@ -42,8 +42,8 @@ import type {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Enrollments', href: '/enrollments' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Pendaftaran', href: '/enrollments' },
         ],
     },
 });
@@ -165,17 +165,17 @@ function submitEnrollment(): void {
 
 <template>
     <div class="flex flex-col space-y-6">
-        <Head title="Enrollments" />
+        <Head title="Pendaftaran" />
 
         <div class="flex items-center justify-between gap-4">
             <Heading
                 variant="small"
-                title="Enrollments"
-                description="Students enrolled in the courses you manage"
+                title="Pendaftaran"
+                description="Siswa yang terdaftar di kursus yang Anda kelola"
             />
             <Button @click="openEnrollDialog">
                 <Plus class="mr-2 h-4 w-4" />
-                Enroll Student
+                Daftarkan Siswa
             </Button>
         </div>
 
@@ -186,7 +186,7 @@ function submitEnrollment(): void {
                 />
                 <Input
                     v-model="search"
-                    placeholder="Search student or course..."
+                    placeholder="Cari siswa atau kursus..."
                     class="pl-9"
                     @keyup.enter="applyFilters"
                 />
@@ -194,10 +194,10 @@ function submitEnrollment(): void {
 
             <Select v-model="courseId" @update:model-value="applyFilters">
                 <SelectTrigger class="w-[220px]">
-                    <SelectValue placeholder="All Courses" />
+                    <SelectValue placeholder="Semua Kursus" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ANY">All Courses</SelectItem>
+                    <SelectItem :value="ANY">Semua Kursus</SelectItem>
                     <SelectItem
                         v-for="course in courses"
                         :key="course.id"
@@ -210,10 +210,10 @@ function submitEnrollment(): void {
 
             <Select v-model="status" @update:model-value="applyFilters">
                 <SelectTrigger class="w-[160px]">
-                    <SelectValue placeholder="All Statuses" />
+                    <SelectValue placeholder="Semua Status" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ANY">All Statuses</SelectItem>
+                    <SelectItem :value="ANY">Semua Status</SelectItem>
                     <SelectItem
                         v-for="option in statuses"
                         :key="option"
@@ -224,7 +224,7 @@ function submitEnrollment(): void {
                 </SelectContent>
             </Select>
 
-            <Button variant="outline" @click="applyFilters">Search</Button>
+            <Button variant="outline" @click="applyFilters">Cari</Button>
         </div>
 
         <div class="rounded-lg border">
@@ -235,12 +235,12 @@ function submitEnrollment(): void {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Student
+                                Siswa
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Course
+                                Kursus
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
@@ -250,17 +250,17 @@ function submitEnrollment(): void {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Enrolled
+                                Terdaftar
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Method
+                                Metode
                             </th>
                             <th
                                 class="h-12 px-4 text-right align-middle font-medium text-muted-foreground"
                             >
-                                Actions
+                                Aksi
                             </th>
                         </tr>
                     </thead>
@@ -270,7 +270,7 @@ function submitEnrollment(): void {
                                 colspan="6"
                                 class="py-8 text-center text-muted-foreground"
                             >
-                                No enrollments found.
+                                Pendaftaran tidak ditemukan.
                             </td>
                         </tr>
                         <tr
@@ -330,8 +330,8 @@ function submitEnrollment(): void {
                             <td class="p-4 align-middle text-muted-foreground">
                                 {{
                                     enrollment.is_self_enrolled
-                                        ? 'Self-enrolled'
-                                        : `By ${enrollment.enrolled_by?.name ?? 'staff'}`
+                                        ? 'Daftar mandiri'
+                                        : `Oleh ${enrollment.enrolled_by?.name ?? 'staf'}`
                                 }}
                             </td>
                             <td class="p-4 text-right align-middle">
@@ -346,7 +346,7 @@ function submitEnrollment(): void {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            aria-label="View enrollment"
+                                            aria-label="Lihat pendaftaran"
                                         >
                                             <Eye class="h-4 w-4" />
                                         </Button>
@@ -355,7 +355,7 @@ function submitEnrollment(): void {
                                         v-if="enrollment.can_cancel"
                                         variant="ghost"
                                         size="sm"
-                                        aria-label="Cancel enrollment"
+                                        aria-label="Batalkan pendaftaran"
                                         @click="askCancel(enrollment)"
                                     >
                                         <UserMinus
@@ -373,11 +373,13 @@ function submitEnrollment(): void {
                                 class="h-12 px-4 text-sm text-muted-foreground"
                             >
                                 <template v-if="enrollments.total > 0">
-                                    Showing {{ enrollments.from }} to
-                                    {{ enrollments.to }} of
-                                    {{ enrollments.total }} enrollments
+                                    Menampilkan
+                                    {{ enrollments.from }}–{{
+                                        enrollments.to
+                                    }}
+                                    dari {{ enrollments.total }} pendaftaran
                                 </template>
-                                <template v-else>0 enrollments</template>
+                                <template v-else>0 pendaftaran</template>
                             </td>
                         </tr>
                     </tfoot>
@@ -395,10 +397,10 @@ function submitEnrollment(): void {
                 :disabled="enrollments.current_page <= 1"
                 @click="goToPage(enrollments.current_page - 1)"
             >
-                Previous
+                Sebelumnya
             </Button>
             <span class="text-sm text-muted-foreground">
-                Page {{ enrollments.current_page }} of
+                Halaman {{ enrollments.current_page }} dari
                 {{ enrollments.last_page }}
             </span>
             <Button
@@ -407,26 +409,26 @@ function submitEnrollment(): void {
                 :disabled="enrollments.current_page >= enrollments.last_page"
                 @click="goToPage(enrollments.current_page + 1)"
             >
-                Next
+                Berikutnya
             </Button>
         </div>
 
         <Dialog v-model:open="enrollDialogOpen">
             <DialogContent class="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Enroll Student</DialogTitle>
+                    <DialogTitle>Daftarkan Siswa</DialogTitle>
                     <DialogDescription>
-                        Add a student to one of your courses. A previously
-                        cancelled enrollment is reactivated.
+                        Tambahkan siswa ke salah satu kursus Anda. Pendaftaran
+                        yang pernah dibatalkan akan diaktifkan kembali.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form class="space-y-4" @submit.prevent="submitEnrollment">
                     <div class="grid gap-2">
-                        <Label for="enroll-course">Course</Label>
+                        <Label for="enroll-course">Kursus</Label>
                         <Select v-model="enrollForm.course_id">
                             <SelectTrigger id="enroll-course">
-                                <SelectValue placeholder="Select a course" />
+                                <SelectValue placeholder="Pilih kursus" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem
@@ -442,28 +444,28 @@ function submitEnrollment(): void {
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="enroll-student-search">Student</Label>
+                        <Label for="enroll-student-search">Siswa</Label>
                         <Input
                             id="enroll-student-search"
                             v-model="studentSearch"
-                            placeholder="Search by name or email..."
+                            placeholder="Cari nama atau email..."
                         />
                         <div
                             class="max-h-60 overflow-y-auto rounded-md border"
                             role="listbox"
-                            aria-label="Students"
+                            aria-label="Siswa"
                         >
                             <p
                                 v-if="loadingStudents"
                                 class="p-3 text-sm text-muted-foreground"
                             >
-                                Loading students...
+                                Memuat siswa...
                             </p>
                             <p
                                 v-else-if="filteredStudents.length === 0"
                                 class="p-3 text-sm text-muted-foreground"
                             >
-                                No students found.
+                                Siswa tidak ditemukan.
                             </p>
                             <template v-else>
                                 <button
@@ -500,7 +502,7 @@ function submitEnrollment(): void {
                             variant="secondary"
                             @click="enrollDialogOpen = false"
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button
                             :disabled="
@@ -509,7 +511,7 @@ function submitEnrollment(): void {
                                 enrollForm.user_id === null
                             "
                         >
-                            {{ enrolling ? 'Enrolling...' : 'Enroll' }}
+                            {{ enrolling ? 'Mendaftarkan...' : 'Daftarkan' }}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -519,7 +521,7 @@ function submitEnrollment(): void {
         <CancelEnrollmentDialog
             v-model:open="cancelDialogOpen"
             :enrollment-id="cancelTarget?.id ?? null"
-            :description="`Cancel ${cancelTarget?.student.name ?? 'this student'}'s enrollment in ${cancelTarget?.course.title ?? 'this course'}? They will lose access to the course.`"
+            :description="`Batalkan pendaftaran ${cancelTarget?.student.name ?? 'siswa ini'} di ${cancelTarget?.course.title ?? 'kursus ini'}? Siswa akan kehilangan akses ke kursus.`"
         />
     </div>
 </template>

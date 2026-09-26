@@ -46,7 +46,7 @@ class StoreEnrollmentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user_id.exists' => 'Only students can be enrolled in a course.',
+            'user_id.exists' => __('Only students can be enrolled in a course.'),
         ];
     }
 

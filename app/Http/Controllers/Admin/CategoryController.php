@@ -9,6 +9,7 @@ use App\Models\Category;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -51,7 +52,9 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        Category::create($request->validated());
+        $category = new Category($request->safe()->only(['name', 'slug', 'description']));
+        $this->replaceImage($request, $category);
+        $category->save();
 
         return to_route('admin.categories.index');
     }
@@ -62,7 +65,7 @@ class CategoryController extends Controller
     public function edit(Category $category): Response
     {
         return Inertia::render('admin/Categories/Edit', [
-            'category' => $category->only(['id', 'name', 'slug', 'description']),
+            'category' => $category->only(['id', 'name', 'slug', 'description', 'image_url']),
         ]);
     }
 
@@ -71,7 +74,9 @@ class CategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
-        $category->update($request->validated());
+        $category->fill($request->safe()->only(['name', 'slug', 'description']));
+        $this->replaceImage($request, $category);
+        $category->save();
 
         return to_route('admin.categories.index');
     }
@@ -81,8 +86,32 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category): RedirectResponse
     {
+        if ($category->image_path !== null) {
+            Storage::disk(Category::IMAGE_DISK)->delete($category->image_path);
+        }
+
         $category->delete();
 
         return to_route('admin.categories.index');
+    }
+
+    /**
+     * Store a newly uploaded image, or remove the current one, deleting the old file.
+     */
+    private function replaceImage(StoreCategoryRequest|UpdateCategoryRequest $request, Category $category): void
+    {
+        if (! $request->hasFile('image') && ! $request->boolean('remove_image')) {
+            return;
+        }
+
+        if ($category->image_path !== null) {
+            Storage::disk(Category::IMAGE_DISK)->delete($category->image_path);
+        }
+
+        $path = $request->hasFile('image')
+            ? $request->file('image')?->store(Category::IMAGE_DIRECTORY, Category::IMAGE_DISK)
+            : null;
+
+        $category->image_path = is_string($path) ? $path : null;
     }
 }

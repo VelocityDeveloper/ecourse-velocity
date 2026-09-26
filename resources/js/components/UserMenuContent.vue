@@ -39,19 +39,19 @@ defineProps<Props>();
                 :href="learning.dashboard()"
             >
                 <GraduationCap class="mr-2 h-4 w-4" />
-                My Learning
+                Belajar Saya
             </Link>
         </DropdownMenuItem>
         <DropdownMenuItem v-if="user.role === 'student'" :as-child="true">
             <Link class="block w-full cursor-pointer" :href="myCourses.index()">
                 <BookMarked class="mr-2 h-4 w-4" />
-                My Courses
+                Kursus Saya
             </Link>
         </DropdownMenuItem>
         <DropdownMenuItem :as-child="true">
             <Link class="block w-full cursor-pointer" :href="edit()" prefetch>
                 <Settings class="mr-2 h-4 w-4" />
-                Settings
+                Pengaturan
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>
@@ -65,7 +65,7 @@ defineProps<Props>();
             data-test="logout-button"
         >
             <LogOut class="mr-2 h-4 w-4" />
-            Log out
+            Keluar
         </Link>
     </DropdownMenuItem>
 </template>

@@ -40,8 +40,8 @@ import type {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Courses', href: '/courses' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kursus', href: '/courses' },
         ],
     },
 });
@@ -97,23 +97,23 @@ function deleteCourse(id: number) {
 </script>
 
 <template>
-    <Head title="Courses" />
+    <Head title="Kursus" />
 
     <div class="flex flex-col space-y-6">
         <div class="flex items-center justify-between">
             <Heading
                 variant="small"
-                title="Course Management"
+                title="Manajemen Kursus"
                 :description="
                     can.manageAllCourses
-                        ? 'Manage every course across all instructors'
-                        : 'Manage the courses you teach'
+                        ? 'Kelola semua kursus dari seluruh instruktur'
+                        : 'Kelola kursus yang Anda ajar'
                 "
             />
             <Link v-if="can.create" :href="courseRoutes.create()">
                 <Button>
                     <Plus class="mr-2 h-4 w-4" />
-                    Add Course
+                    Tambah Kursus
                 </Button>
             </Link>
         </div>
@@ -125,7 +125,7 @@ function deleteCourse(id: number) {
                 />
                 <Input
                     v-model="search"
-                    placeholder="Search by title or slug..."
+                    placeholder="Cari berdasarkan judul atau slug..."
                     class="pl-9"
                     @keyup.enter="applyFilters"
                 />
@@ -133,10 +133,10 @@ function deleteCourse(id: number) {
 
             <Select v-model="status" @update:model-value="applyFilters">
                 <SelectTrigger class="w-[170px]">
-                    <SelectValue placeholder="All Statuses" />
+                    <SelectValue placeholder="Semua Status" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ANY">All Statuses</SelectItem>
+                    <SelectItem :value="ANY">Semua Status</SelectItem>
                     <SelectItem v-for="s in statuses" :key="s" :value="s">
                         {{ statusLabel(s) }}
                     </SelectItem>
@@ -145,10 +145,10 @@ function deleteCourse(id: number) {
 
             <Select v-model="categoryId" @update:model-value="applyFilters">
                 <SelectTrigger class="w-[180px]">
-                    <SelectValue placeholder="All Categories" />
+                    <SelectValue placeholder="Semua Kategori" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ANY">All Categories</SelectItem>
+                    <SelectItem :value="ANY">Semua Kategori</SelectItem>
                     <SelectItem
                         v-for="category in categories"
                         :key="category.id"
@@ -165,10 +165,10 @@ function deleteCourse(id: number) {
                 @update:model-value="applyFilters"
             >
                 <SelectTrigger class="w-[180px]">
-                    <SelectValue placeholder="All Instructors" />
+                    <SelectValue placeholder="Semua Instruktur" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ANY">All Instructors</SelectItem>
+                    <SelectItem :value="ANY">Semua Instruktur</SelectItem>
                     <SelectItem
                         v-for="instructor in instructors"
                         :key="instructor.id"
@@ -179,7 +179,7 @@ function deleteCourse(id: number) {
                 </SelectContent>
             </Select>
 
-            <Button variant="outline" @click="applyFilters">Search</Button>
+            <Button variant="outline" @click="applyFilters">Cari</Button>
         </div>
 
         <div class="rounded-lg border">
@@ -190,18 +190,18 @@ function deleteCourse(id: number) {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Course
+                                Kursus
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Category
+                                Kategori
                             </th>
                             <th
                                 v-if="can.manageAllCourses"
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Instructor
+                                Instruktur
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
@@ -211,17 +211,17 @@ function deleteCourse(id: number) {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Level
+                                Tingkat
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Price
+                                Harga
                             </th>
                             <th
                                 class="h-12 px-4 text-right align-middle font-medium text-muted-foreground"
                             >
-                                Actions
+                                Aksi
                             </th>
                         </tr>
                     </thead>
@@ -231,7 +231,7 @@ function deleteCourse(id: number) {
                                 :colspan="can.manageAllCourses ? 7 : 6"
                                 class="py-8 text-center text-muted-foreground"
                             >
-                                No courses found.
+                                Tidak ada kursus.
                             </td>
                         </tr>
                         <tr
@@ -311,22 +311,21 @@ function deleteCourse(id: number) {
                                         <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle
-                                                    >Delete Course</DialogTitle
+                                                    >Hapus Kursus</DialogTitle
                                                 >
                                                 <DialogDescription>
-                                                    Are you sure you want to
-                                                    delete
+                                                    Yakin ingin menghapus
                                                     <strong>{{
                                                         course.title
                                                     }}</strong
-                                                    >? This action cannot be
-                                                    undone.
+                                                    >? Tindakan ini tidak bisa
+                                                    dibatalkan.
                                                 </DialogDescription>
                                             </DialogHeader>
                                             <DialogFooter class="gap-2">
                                                 <DialogClose as-child>
                                                     <Button variant="secondary"
-                                                        >Cancel</Button
+                                                        >Batal</Button
                                                     >
                                                 </DialogClose>
                                                 <Button
@@ -335,7 +334,7 @@ function deleteCourse(id: number) {
                                                         deleteCourse(course.id)
                                                     "
                                                 >
-                                                    Delete
+                                                    Hapus
                                                 </Button>
                                             </DialogFooter>
                                         </DialogContent>
@@ -350,9 +349,10 @@ function deleteCourse(id: number) {
                                 :colspan="can.manageAllCourses ? 7 : 6"
                                 class="h-12 px-4 text-sm text-muted-foreground"
                             >
-                                Showing {{ courses.from ?? 0 }} to
-                                {{ courses.to ?? 0 }} of
-                                {{ courses.total }} courses
+                                Menampilkan {{ courses.from ?? 0 }}–{{
+                                    courses.to ?? 0
+                                }}
+                                dari {{ courses.total }} kursus
                             </td>
                         </tr>
                     </tfoot>
@@ -370,10 +370,10 @@ function deleteCourse(id: number) {
                 :disabled="courses.current_page <= 1"
                 @click="goToPage(courses.current_page - 1)"
             >
-                Previous
+                Sebelumnya
             </Button>
             <span class="text-sm text-muted-foreground">
-                Page {{ courses.current_page }} of {{ courses.last_page }}
+                Halaman {{ courses.current_page }} dari {{ courses.last_page }}
             </span>
             <Button
                 variant="outline"
@@ -381,7 +381,7 @@ function deleteCourse(id: number) {
                 :disabled="courses.current_page >= courses.last_page"
                 @click="goToPage(courses.current_page + 1)"
             >
-                Next
+                Berikutnya
             </Button>
         </div>
     </div>
