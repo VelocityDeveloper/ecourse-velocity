@@ -13,7 +13,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { answerModeLabel } from '@/lib/course';
+import { answerModeLabel, optionLabel } from '@/lib/course';
 import learn from '@/routes/learn';
 import type { AttemptContext, AttemptQuestion } from '@/types';
 
@@ -183,7 +183,7 @@ function submit(): void {
 
 <template>
     <div class="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
-        <Head :title="`${quiz.title} · Attempt`" />
+        <Head :title="`${quiz.title} · Percobaan`" />
 
         <div
             class="sticky top-16 z-30 -mx-4 mb-6 flex items-center justify-between gap-4 border-b bg-background/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6"
@@ -202,7 +202,7 @@ function submit(): void {
             </div>
             <div class="flex shrink-0 items-center gap-3">
                 <span class="hidden text-sm text-muted-foreground sm:inline">
-                    {{ answeredCount }}/{{ questions.length }} answered
+                    {{ answeredCount }}/{{ questions.length }} terjawab
                 </span>
                 <span
                     v-if="timeLabel"
@@ -213,7 +213,7 @@ function submit(): void {
                             : 'text-foreground'
                     "
                     role="timer"
-                    :aria-label="`Time remaining ${timeLabel}`"
+                    :aria-label="`Sisa waktu ${timeLabel}`"
                 >
                     <Clock class="h-4 w-4" />
                     {{ timeLabel }}
@@ -227,7 +227,7 @@ function submit(): void {
                 :key="question.id"
                 class="space-y-4 rounded-lg border bg-card p-5 text-card-foreground"
             >
-                <legend class="sr-only">Question {{ index + 1 }}</legend>
+                <legend class="sr-only">Soal {{ index + 1 }}</legend>
                 <div class="flex items-start justify-between gap-4">
                     <p class="font-medium">
                         <span class="text-muted-foreground"
@@ -236,13 +236,13 @@ function submit(): void {
                         {{ question.question }}
                     </p>
                     <Badge variant="secondary" class="shrink-0">
-                        {{ question.max_points }} pts
+                        {{ question.max_points }} poin
                     </Badge>
                 </div>
                 <p class="text-xs text-muted-foreground">
                     {{
                         question.answer_mode === 'multiple'
-                            ? 'Select every correct answer. Wrong picks cancel out right ones.'
+                            ? 'Pilih semua jawaban yang benar. Pilihan salah mengurangi nilai pilihan benar.'
                             : answerModeLabel(question.answer_mode)
                     }}
                 </p>
@@ -284,7 +284,7 @@ function submit(): void {
                             :checked="isSelected(question.id, option.id)"
                             @change="chooseSingle(question.id, option.id)"
                         />
-                        <span>{{ option.text }}</span>
+                        <span>{{ optionLabel(option.text) }}</span>
                     </label>
                 </div>
             </fieldset>
@@ -293,12 +293,12 @@ function submit(): void {
                 class="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 p-4"
             >
                 <p class="text-sm text-muted-foreground">
-                    {{ answeredCount }} of {{ questions.length }} questions
-                    answered.
+                    {{ answeredCount }} dari {{ questions.length }} soal
+                    terjawab.
                 </p>
                 <Button type="submit" size="lg" :disabled="submitting">
                     <Send class="mr-2 h-4 w-4" />
-                    {{ submitting ? 'Submitting...' : 'Submit answers' }}
+                    {{ submitting ? 'Mengirim...' : 'Kirim jawaban' }}
                 </Button>
             </div>
         </form>
@@ -306,19 +306,21 @@ function submit(): void {
         <Dialog v-model:open="confirmOpen">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Submit with unanswered questions?</DialogTitle>
+                    <DialogTitle
+                        >Kirim dengan soal yang belum dijawab?</DialogTitle
+                    >
                     <DialogDescription>
-                        {{ unansweredCount }} question(s) have no answer and
-                        will score zero. You cannot change your answers after
-                        submitting.
+                        {{ unansweredCount }} soal belum dijawab dan akan
+                        bernilai nol. Anda tidak bisa mengubah jawaban setelah
+                        mengirim.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter class="gap-2">
                     <Button variant="secondary" @click="confirmOpen = false">
-                        Keep answering
+                        Lanjut menjawab
                     </Button>
                     <Button :disabled="submitting" @click="submit">
-                        Submit anyway
+                        Tetap kirim
                     </Button>
                 </DialogFooter>
             </DialogContent>

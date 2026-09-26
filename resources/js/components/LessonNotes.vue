@@ -57,26 +57,26 @@ function save(): void {
         <div class="flex items-center justify-between gap-3">
             <h2 class="flex items-center gap-2 font-semibold">
                 <NotebookPen class="h-4 w-4" />
-                My notes
+                Catatan Saya
             </h2>
             <span class="text-xs text-muted-foreground">
-                Only you can see these
+                Hanya Anda yang bisa melihatnya
             </span>
         </div>
         <Textarea
             v-model="body"
             rows="4"
             maxlength="10000"
-            aria-label="My notes for this lesson"
-            placeholder="Write down key points, questions or code snippets..."
+            aria-label="Catatan saya untuk materi ini"
+            placeholder="Tulis poin penting, pertanyaan, atau potongan kode..."
         />
         <InputError :message="error" />
         <div class="flex items-center justify-end gap-2">
             <span v-if="isDirty" class="text-xs text-muted-foreground">
-                Unsaved changes
+                Perubahan belum disimpan
             </span>
             <Button size="sm" :disabled="saving || !isDirty" @click="save">
-                {{ saving ? 'Saving...' : 'Save note' }}
+                {{ saving ? 'Menyimpan...' : 'Simpan catatan' }}
             </Button>
         </div>
     </section>

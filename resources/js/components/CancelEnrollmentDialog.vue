@@ -64,32 +64,32 @@ function confirmCancel(): void {
     <Dialog v-model:open="open">
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>{{ title ?? 'Cancel Enrollment' }}</DialogTitle>
+                <DialogTitle>{{ title ?? 'Batalkan Pendaftaran' }}</DialogTitle>
                 <DialogDescription>{{ description }}</DialogDescription>
             </DialogHeader>
 
             <div class="grid gap-2">
-                <Label for="cancel-reason">Reason (optional)</Label>
+                <Label for="cancel-reason">Alasan (opsional)</Label>
                 <Textarea
                     id="cancel-reason"
                     v-model="reason"
                     rows="3"
                     maxlength="1000"
-                    placeholder="Why is this enrollment being cancelled?"
+                    placeholder="Mengapa pendaftaran ini dibatalkan?"
                 />
                 <InputError :message="error" />
             </div>
 
             <DialogFooter class="gap-2">
                 <Button variant="secondary" @click="open = false">
-                    Keep enrollment
+                    Pertahankan pendaftaran
                 </Button>
                 <Button
                     variant="destructive"
                     :disabled="processing"
                     @click="confirmCancel"
                 >
-                    {{ processing ? 'Cancelling...' : 'Cancel enrollment' }}
+                    {{ processing ? 'Membatalkan...' : 'Batalkan pendaftaran' }}
                 </Button>
             </DialogFooter>
         </DialogContent>

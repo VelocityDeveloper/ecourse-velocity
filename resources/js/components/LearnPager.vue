@@ -19,7 +19,7 @@ function href(item: OutlineReference) {
 <template>
     <nav
         class="grid gap-3 border-t pt-6 sm:grid-cols-2"
-        aria-label="Lesson navigation"
+        aria-label="Navigasi materi"
     >
         <Link
             v-if="neighbours.previous"
@@ -31,7 +31,7 @@ function href(item: OutlineReference) {
             />
             <span class="min-w-0">
                 <span class="block text-xs text-muted-foreground">
-                    Previous
+                    Sebelumnya
                 </span>
                 <span class="line-clamp-1 text-sm font-medium">
                     {{ neighbours.previous.title }}
@@ -46,7 +46,9 @@ function href(item: OutlineReference) {
             class="group flex items-center justify-end gap-3 rounded-lg border p-4 text-right transition-colors hover:bg-muted/40"
         >
             <span class="min-w-0">
-                <span class="block text-xs text-muted-foreground">Next</span>
+                <span class="block text-xs text-muted-foreground"
+                    >Berikutnya</span
+                >
                 <span class="line-clamp-1 text-sm font-medium">
                     {{ neighbours.next.title }}
                 </span>

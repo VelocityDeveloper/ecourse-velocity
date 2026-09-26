@@ -43,8 +43,8 @@ type UserRow = {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Users', href: '/admin/users' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Pengguna', href: '/admin/users' },
         ],
     },
 });
@@ -103,6 +103,16 @@ function roleBadgeVariant(role: string) {
     }
 }
 
+function roleLabel(role: string): string {
+    const labels: Record<string, string> = {
+        admin: 'Admin',
+        instructor: 'Instruktur',
+        student: 'Siswa',
+    };
+
+    return labels[role] ?? role;
+}
+
 function formatDate(date: string) {
     return new Date(date).toLocaleDateString('id-ID', {
         day: 'numeric',
@@ -113,19 +123,19 @@ function formatDate(date: string) {
 </script>
 
 <template>
-    <Head title="User Management" />
+    <Head title="Manajemen Pengguna" />
 
     <div class="flex flex-col space-y-6">
         <div class="flex items-center justify-between">
             <Heading
                 variant="small"
-                title="User Management"
-                description="Manage all users and their roles"
+                title="Manajemen Pengguna"
+                description="Kelola semua pengguna dan perannya"
             />
             <Link href="/admin/users/create">
                 <Button>
                     <Plus class="mr-2 h-4 w-4" />
-                    Add User
+                    Tambah Pengguna
                 </Button>
             </Link>
         </div>
@@ -138,23 +148,23 @@ function formatDate(date: string) {
                 />
                 <Input
                     v-model="search"
-                    placeholder="Search by name or email..."
+                    placeholder="Cari nama atau email..."
                     class="pl-9"
                     @keyup.enter="applyFilters"
                 />
             </div>
             <Select v-model="selectedRole" @update:model-value="applyFilters">
                 <SelectTrigger class="w-[180px]">
-                    <SelectValue placeholder="All Roles" />
+                    <SelectValue placeholder="Semua Peran" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="all">Semua Peran</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="instructor">Instructor</SelectItem>
-                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="instructor">Instruktur</SelectItem>
+                    <SelectItem value="student">Siswa</SelectItem>
                 </SelectContent>
             </Select>
-            <Button variant="outline" @click="applyFilters">Search</Button>
+            <Button variant="outline" @click="applyFilters">Cari</Button>
         </div>
 
         <!-- Table -->
@@ -166,12 +176,12 @@ function formatDate(date: string) {
                             <th
                                 class="h-12 w-16 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Photo
+                                Foto
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Name
+                                Nama
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
@@ -181,17 +191,17 @@ function formatDate(date: string) {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Role
+                                Peran
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Joined
+                                Bergabung
                             </th>
                             <th
                                 class="h-12 px-4 text-right align-middle font-medium text-muted-foreground"
                             >
-                                Actions
+                                Aksi
                             </th>
                         </tr>
                     </thead>
@@ -201,7 +211,7 @@ function formatDate(date: string) {
                                 colspan="6"
                                 class="py-8 text-center text-muted-foreground"
                             >
-                                No users found.
+                                Pengguna tidak ditemukan.
                             </td>
                         </tr>
                         <tr
@@ -229,7 +239,7 @@ function formatDate(date: string) {
                             <td class="p-4 align-middle">{{ user.email }}</td>
                             <td class="p-4 align-middle">
                                 <Badge :variant="roleBadgeVariant(user.role)">
-                                    {{ user.role }}
+                                    {{ roleLabel(user.role) }}
                                 </Badge>
                             </td>
                             <td class="p-4 align-middle">
@@ -242,7 +252,7 @@ function formatDate(date: string) {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        :aria-label="`View ${user.name} details`"
+                                        :aria-label="`Lihat detail ${user.name}`"
                                         @click="showDetail(user)"
                                     >
                                         <Eye class="h-4 w-4" />
@@ -271,29 +281,28 @@ function formatDate(date: string) {
                                         <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle
-                                                    >Delete User</DialogTitle
+                                                    >Hapus Pengguna</DialogTitle
                                                 >
                                                 <DialogDescription>
-                                                    Are you sure you want to
-                                                    delete
+                                                    Yakin ingin menghapus
                                                     <strong>{{
                                                         user.name
                                                     }}</strong
-                                                    >? This action cannot be
-                                                    undone.
+                                                    >? Tindakan ini tidak bisa
+                                                    dibatalkan.
                                                 </DialogDescription>
                                             </DialogHeader>
                                             <DialogFooter class="gap-2">
                                                 <DialogClose as-child>
                                                     <Button variant="secondary"
-                                                        >Cancel</Button
+                                                        >Batal</Button
                                                     >
                                                 </DialogClose>
                                                 <Button
                                                     variant="destructive"
                                                     @click="deleteUser(user.id)"
                                                 >
-                                                    Delete
+                                                    Hapus
                                                 </Button>
                                             </DialogFooter>
                                         </DialogContent>
@@ -308,19 +317,17 @@ function formatDate(date: string) {
                                 colspan="6"
                                 class="h-12 px-4 text-sm text-muted-foreground"
                             >
-                                Showing
+                                Menampilkan
                                 {{
                                     (users.current_page - 1) * users.per_page +
                                     1
-                                }}
-                                to
-                                {{
+                                }}–{{
                                     Math.min(
                                         users.current_page * users.per_page,
                                         users.total,
                                     )
                                 }}
-                                of {{ users.total }} users
+                                dari {{ users.total }} pengguna
                             </td>
                         </tr>
                     </tfoot>
@@ -333,7 +340,9 @@ function formatDate(date: string) {
             <DialogContent v-if="viewedUser" class="sm:max-w-lg">
                 <DialogHeader class="sr-only">
                     <DialogTitle>{{ viewedUser.name }}</DialogTitle>
-                    <DialogDescription>User profile details</DialogDescription>
+                    <DialogDescription
+                        >Detail profil pengguna</DialogDescription
+                    >
                 </DialogHeader>
 
                 <div class="flex flex-col items-center gap-3 text-center">
@@ -361,7 +370,7 @@ function formatDate(date: string) {
                             :variant="roleBadgeVariant(viewedUser.role)"
                             class="mt-1"
                         >
-                            {{ viewedUser.role }}
+                            {{ roleLabel(viewedUser.role) }}
                         </Badge>
                     </div>
                 </div>
@@ -375,7 +384,7 @@ function formatDate(date: string) {
                         {{ viewedUser.bio }}
                     </p>
                     <p v-else class="text-sm text-muted-foreground">
-                        No bio yet.
+                        Belum ada bio.
                     </p>
                 </div>
 
@@ -387,12 +396,14 @@ function formatDate(date: string) {
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Email verified</dt>
+                        <dt class="text-muted-foreground">
+                            Email terverifikasi
+                        </dt>
                         <dd class="text-right">
                             {{
                                 viewedUser.email_verified_at
                                     ? formatDate(viewedUser.email_verified_at)
-                                    : 'Not verified'
+                                    : 'Belum terverifikasi'
                             }}
                         </dd>
                     </div>
@@ -400,13 +411,13 @@ function formatDate(date: string) {
                         v-if="viewedUser.role === 'instructor'"
                         class="flex items-center justify-between gap-4"
                     >
-                        <dt class="text-muted-foreground">Courses</dt>
+                        <dt class="text-muted-foreground">Kursus</dt>
                         <dd class="text-right">
                             {{ viewedUser.courses_count }}
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Joined</dt>
+                        <dt class="text-muted-foreground">Bergabung</dt>
                         <dd class="text-right">
                             {{ formatDate(viewedUser.created_at) }}
                         </dd>
@@ -415,12 +426,12 @@ function formatDate(date: string) {
 
                 <DialogFooter class="gap-2">
                     <Link :href="userRoutes.show(viewedUser.id)">
-                        <Button variant="outline">Public Profile</Button>
+                        <Button variant="outline">Profil Publik</Button>
                     </Link>
                     <Link :href="`/admin/users/${viewedUser.id}/edit`">
                         <Button>
                             <Pencil class="mr-2 h-4 w-4" />
-                            Edit
+                            Ubah
                         </Button>
                     </Link>
                 </DialogFooter>
@@ -442,10 +453,10 @@ function formatDate(date: string) {
                     })
                 "
             >
-                Previous
+                Sebelumnya
             </Button>
             <span class="text-sm text-muted-foreground">
-                Page {{ users.current_page }} of {{ users.last_page }}
+                Halaman {{ users.current_page }} dari {{ users.last_page }}
             </span>
             <Button
                 variant="outline"
@@ -457,7 +468,7 @@ function formatDate(date: string) {
                     })
                 "
             >
-                Next
+                Berikutnya
             </Button>
         </div>
     </div>

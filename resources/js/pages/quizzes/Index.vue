@@ -20,9 +20,9 @@ import type { Paginated } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Courses', href: '/courses' },
-            { title: 'Quizzes', href: '/quizzes' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kursus', href: '/courses' },
+            { title: 'Kuis', href: '/quizzes' },
         ],
     },
 });
@@ -71,13 +71,13 @@ function goToPage(page: number) {
 </script>
 
 <template>
-    <Head title="Quizzes" />
+    <Head title="Kuis" />
 
     <div class="flex flex-col space-y-6">
         <Heading
             variant="small"
-            title="Quizzes"
-            description="Every quiz across the courses you manage"
+            title="Kuis"
+            description="Semua kuis dari kursus yang Anda kelola"
         />
 
         <div class="flex flex-wrap items-center gap-3">
@@ -87,7 +87,7 @@ function goToPage(page: number) {
                 />
                 <Input
                     v-model="search"
-                    placeholder="Search quiz title..."
+                    placeholder="Cari judul kuis..."
                     class="pl-9"
                     @keyup.enter="applyFilters"
                 />
@@ -95,10 +95,10 @@ function goToPage(page: number) {
 
             <Select v-model="courseId" @update:model-value="applyFilters">
                 <SelectTrigger class="w-[220px]">
-                    <SelectValue placeholder="All Courses" />
+                    <SelectValue placeholder="Semua Kursus" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ANY">All Courses</SelectItem>
+                    <SelectItem :value="ANY">Semua Kursus</SelectItem>
                     <SelectItem
                         v-for="course in courses"
                         :key="course.id"
@@ -109,7 +109,7 @@ function goToPage(page: number) {
                 </SelectContent>
             </Select>
 
-            <Button variant="outline" @click="applyFilters">Search</Button>
+            <Button variant="outline" @click="applyFilters">Cari</Button>
         </div>
 
         <div class="rounded-lg border">
@@ -120,27 +120,27 @@ function goToPage(page: number) {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Quiz
+                                Kuis
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Questions
+                                Soal
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Time limit
+                                Batas waktu
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Total points
+                                Total poin
                             </th>
                             <th
                                 class="h-12 px-4 text-right align-middle font-medium text-muted-foreground"
                             >
-                                Actions
+                                Aksi
                             </th>
                         </tr>
                     </thead>
@@ -150,7 +150,7 @@ function goToPage(page: number) {
                                 colspan="5"
                                 class="py-8 text-center text-muted-foreground"
                             >
-                                No quizzes found.
+                                Tidak ada kuis.
                             </td>
                         </tr>
                         <tr
@@ -180,7 +180,7 @@ function goToPage(page: number) {
                             </td>
                             <td class="p-4 align-middle">
                                 <Badge variant="secondary"
-                                    >{{ quiz.total_points }} pts</Badge
+                                    >{{ quiz.total_points }} poin</Badge
                                 >
                             </td>
                             <td class="p-4 text-right align-middle">
@@ -198,9 +198,10 @@ function goToPage(page: number) {
                                 colspan="5"
                                 class="h-12 px-4 text-sm text-muted-foreground"
                             >
-                                Showing {{ quizzes.from ?? 0 }} to
-                                {{ quizzes.to ?? 0 }} of
-                                {{ quizzes.total }} quizzes
+                                Menampilkan {{ quizzes.from ?? 0 }}–{{
+                                    quizzes.to ?? 0
+                                }}
+                                dari {{ quizzes.total }} kuis
                             </td>
                         </tr>
                     </tfoot>
@@ -218,10 +219,10 @@ function goToPage(page: number) {
                 :disabled="quizzes.current_page <= 1"
                 @click="goToPage(quizzes.current_page - 1)"
             >
-                Previous
+                Sebelumnya
             </Button>
             <span class="text-sm text-muted-foreground">
-                Page {{ quizzes.current_page }} of {{ quizzes.last_page }}
+                Halaman {{ quizzes.current_page }} dari {{ quizzes.last_page }}
             </span>
             <Button
                 variant="outline"
@@ -229,7 +230,7 @@ function goToPage(page: number) {
                 :disabled="quizzes.current_page >= quizzes.last_page"
                 @click="goToPage(quizzes.current_page + 1)"
             >
-                Next
+                Berikutnya
             </Button>
         </div>
     </div>

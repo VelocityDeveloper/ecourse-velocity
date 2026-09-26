@@ -2,24 +2,24 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight,
-    BookOpen,
     Check,
     ClipboardCheck,
     Clock,
     Compass,
     GraduationCap,
     Layers,
-    PlayCircle,
     Search,
     Sparkles,
-    Users,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import BannerSlider from '@/components/BannerSlider.vue';
 import CourseCard from '@/components/CourseCard.vue';
+import SectionHeading from '@/components/SectionHeading.vue';
+import TestimonialCarousel from '@/components/TestimonialCarousel.vue';
+import StarRating from '@/components/StarRating.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { getInitials } from '@/composables/useInitials';
 import { dashboard, login, register } from '@/routes';
 import catalogRoutes from '@/routes/catalog';
@@ -27,9 +27,12 @@ import myCourses from '@/routes/my-courses';
 import users from '@/routes/users';
 import type {
     CatalogCourse,
+    HomeBanner,
+    HomeBannerSlide,
     HomeCategory,
     HomeInstructor,
     HomeStats,
+    HomeTestimonial,
 } from '@/types';
 
 const props = defineProps<{
@@ -37,6 +40,9 @@ const props = defineProps<{
     featuredCourses: CatalogCourse[];
     categories: HomeCategory[];
     instructors: HomeInstructor[];
+    banner: HomeBanner;
+    banners: HomeBannerSlide[];
+    testimonials: HomeTestimonial[];
 }>();
 
 const page = usePage();
@@ -62,33 +68,29 @@ const ACCENTS = [
 const steps = [
     {
         Icon: Compass,
-        title: 'Browse the catalog',
+        title: 'Jelajahi katalog',
         description:
-            'Filter published courses by category and level to find the right fit.',
+            'Saring kursus berdasarkan kategori dan tingkat untuk menemukan yang paling cocok.',
     },
     {
         Icon: ClipboardCheck,
-        title: 'Enroll in one click',
+        title: 'Daftar dengan satu klik',
         description:
-            'Join a course instantly. It appears in My Courses right away.',
+            'Ikuti kursus seketika. Kursus langsung muncul di Kursus Saya.',
     },
     {
         Icon: GraduationCap,
-        title: 'Learn at your pace',
+        title: 'Belajar sesuai ritme Anda',
         description:
-            'Work through video and article lessons, then check yourself with quizzes.',
+            'Pelajari materi video dan artikel, lalu uji pemahaman Anda dengan kuis.',
     },
 ];
 
 const statItems = computed(() => [
-    { label: 'Courses', value: props.stats.courses, Icon: BookOpen },
-    { label: 'Lessons', value: props.stats.lessons, Icon: PlayCircle },
-    { label: 'Students', value: props.stats.students, Icon: Users },
-    {
-        label: 'Instructors',
-        value: props.stats.instructors,
-        Icon: GraduationCap,
-    },
+    { label: 'Siswa', value: props.stats.students },
+    { label: 'Kursus', value: props.stats.courses },
+    { label: 'Materi', value: props.stats.lessons },
+    { label: 'Instruktur', value: props.stats.instructors },
 ]);
 
 function formatCount(value: number): string {
@@ -104,105 +106,126 @@ function searchCatalog(): void {
 
 <template>
     <div>
-        <Head title="Welcome" />
+        <Head title="Selamat Datang" />
 
-        <!-- Hero -->
+        <!-- Hero: dark band, the admin's banner image as a photo background -->
         <section
-            class="relative overflow-hidden border-b bg-gradient-to-b from-primary/5 via-background to-background"
+            class="relative isolate overflow-hidden bg-surface text-surface-foreground"
         >
+            <template v-if="banner.hero_image_url">
+                <img
+                    :src="banner.hero_image_url"
+                    alt=""
+                    class="absolute inset-0 -z-20 size-full object-cover"
+                />
+                <div
+                    aria-hidden="true"
+                    class="absolute inset-0 -z-10 bg-gradient-to-r from-surface via-surface/85 to-surface/30"
+                />
+            </template>
+            <template v-else>
+                <div
+                    aria-hidden="true"
+                    class="pointer-events-none absolute -top-40 right-0 -z-10 size-[40rem] rounded-full bg-primary/30 blur-3xl"
+                />
+                <div
+                    aria-hidden="true"
+                    class="pointer-events-none absolute -bottom-40 -left-32 -z-10 size-96 rounded-full bg-brand/15 blur-3xl"
+                />
+            </template>
             <div
                 aria-hidden="true"
-                class="pointer-events-none absolute -top-40 left-1/2 size-[36rem] -translate-x-1/2 rounded-full bg-brand/25 blur-3xl sm:left-2/3"
+                class="pointer-events-none absolute inset-0 -z-10 [background-image:linear-gradient(currentColor_1px,transparent_1px),linear-gradient(90deg,currentColor_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_top_left,black_10%,transparent_70%)] [background-size:48px_48px] opacity-[0.06]"
             />
             <div
                 aria-hidden="true"
-                class="pointer-events-none absolute top-1/3 -left-32 size-80 rounded-full bg-chart-4/20 blur-3xl"
-            />
-            <div
-                aria-hidden="true"
-                class="pointer-events-none absolute inset-0 [background-image:radial-gradient(var(--border)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)] [background-size:24px_24px]"
+                class="absolute inset-x-0 bottom-0 -z-10 h-1 bg-gradient-to-r from-primary via-brand to-primary"
             />
 
             <div
-                class="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24"
+                class="mx-auto grid w-full max-w-site items-center gap-12 px-4 py-16 sm:px-6 lg:py-24"
+                :class="
+                    banner.hero_image_url ? '' : 'lg:grid-cols-[1.15fr_1fr]'
+                "
             >
-                <div class="flex flex-col gap-6">
-                    <Badge
-                        variant="outline"
-                        class="w-fit gap-1.5 border-primary/30 bg-primary/10 py-1 text-primary"
+                <div
+                    class="flex flex-col gap-6"
+                    :class="banner.hero_image_url ? 'max-w-3xl' : ''"
+                >
+                    <p
+                        class="flex w-fit items-center gap-2 rounded-full border border-surface-foreground/15 bg-surface-foreground/10 px-3 py-1 font-mono text-xs font-semibold tracking-widest uppercase"
                     >
-                        <Sparkles class="h-3.5 w-3.5" />
-                        Learn from practising instructors
-                    </Badge>
+                        <span class="size-2 rounded-full bg-brand" />
+                        {{ banner.hero_badge }}
+                    </p>
 
                     <h1
-                        class="text-4xl font-semibold tracking-tight text-balance sm:text-5xl"
+                        class="text-4xl leading-[1.1] font-extrabold tracking-tight text-balance sm:text-5xl lg:text-6xl"
                     >
-                        Build real skills,
+                        {{ banner.hero_title }}
                         <span
-                            class="bg-gradient-to-r from-primary to-brand bg-clip-text text-transparent"
-                            >one course at a time.</span
+                            class="bg-gradient-to-r from-brand to-[color-mix(in_oklch,var(--brand)_45%,white)] bg-clip-text text-transparent"
+                            >{{ banner.hero_highlight }}</span
                         >
                     </h1>
 
                     <p
-                        class="max-w-xl text-lg text-pretty text-muted-foreground"
+                        class="max-w-xl text-lg text-pretty text-surface-foreground/75"
                     >
-                        Structured video and article lessons, quizzes that check
-                        your understanding, and instructors who teach what they
-                        practise.
+                        {{ banner.hero_description }}
                     </p>
 
                     <form
-                        class="flex w-full max-w-lg flex-col gap-2 sm:flex-row"
+                        class="flex w-full max-w-xl items-center gap-2 rounded-2xl bg-background p-2 text-foreground shadow-2xl shadow-black/30"
                         role="search"
                         @submit.prevent="searchCatalog"
                     >
-                        <div class="relative flex-1">
-                            <Search
-                                class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                            />
-                            <Input
-                                v-model="search"
-                                type="search"
-                                aria-label="Search courses"
-                                placeholder="What do you want to learn?"
-                                class="h-11 pl-9"
-                            />
-                        </div>
+                        <Search
+                            class="ml-2 h-4 w-4 shrink-0 text-muted-foreground"
+                        />
+                        <input
+                            v-model="search"
+                            type="search"
+                            aria-label="Cari kursus"
+                            placeholder="Apa yang ingin Anda pelajari?"
+                            class="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                        />
                         <Button
                             type="submit"
                             size="lg"
-                            class="h-11 shadow-md shadow-primary/25"
+                            class="h-11 rounded-xl px-5 font-bold shadow-md shadow-primary/30"
                         >
-                            Search
+                            Cari Kelas
+                            <ArrowRight class="ml-1 h-4 w-4" />
                         </Button>
                     </form>
 
-                    <div class="flex flex-wrap items-center gap-3">
-                        <Link :href="catalogRoutes.index()">
-                            <Button variant="outline">
-                                Browse all courses
-                                <ArrowRight class="ml-1 h-4 w-4" />
-                            </Button>
-                        </Link>
-                        <Link
-                            v-if="!isAuthenticated && canRegister"
-                            :href="register()"
-                            class="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                    <dl class="grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
+                        <div
+                            v-for="stat in statItems"
+                            :key="stat.label"
+                            class="flex flex-col-reverse rounded-xl border border-surface-foreground/15 bg-surface-foreground/5 px-4 py-3 backdrop-blur"
                         >
-                            Create a free account
-                        </Link>
-                    </div>
+                            <dt
+                                class="text-[11px] font-semibold tracking-wider text-surface-foreground/60 uppercase"
+                            >
+                                {{ stat.label }}
+                            </dt>
+                            <dd class="text-2xl font-extrabold tracking-tight">
+                                {{ formatCount(stat.value) }}+
+                            </dd>
+                        </div>
+                    </dl>
                 </div>
 
-                <!-- Hero visual: a product preview built from theme tokens -->
+                <!-- Without a banner image: a product preview built from theme tokens -->
                 <div
+                    v-if="!banner.hero_image_url"
                     aria-hidden="true"
-                    class="relative mx-auto w-full max-w-md lg:mx-0 lg:ml-auto"
+                    class="relative mx-auto hidden w-full max-w-md lg:mx-0 lg:ml-auto lg:block"
                 >
                     <div
-                        class="rounded-xl border border-t-4 border-t-primary bg-card p-5 text-card-foreground shadow-xl shadow-primary/10"
+                        class="rounded-2xl border border-t-4 border-t-primary bg-card p-5 pb-12 text-card-foreground shadow-2xl shadow-black/30"
                     >
                         <div class="flex items-center gap-3">
                             <span
@@ -212,10 +235,10 @@ function searchCatalog(): void {
                             </span>
                             <div class="min-w-0">
                                 <p class="text-xs text-muted-foreground">
-                                    Continue learning
+                                    Lanjutkan belajar
                                 </p>
-                                <p class="truncate font-medium">
-                                    Laravel from Scratch
+                                <p class="truncate font-semibold">
+                                    Laravel dari Nol
                                 </p>
                             </div>
                         </div>
@@ -224,7 +247,7 @@ function searchCatalog(): void {
                             <div
                                 class="flex justify-between text-xs text-muted-foreground"
                             >
-                                <span>Progress</span>
+                                <span>Progres</span>
                                 <span>62%</span>
                             </div>
                             <div
@@ -239,9 +262,9 @@ function searchCatalog(): void {
                         <ul class="mt-5 space-y-2 text-sm">
                             <li
                                 v-for="(lesson, index) in [
-                                    'Routing & controllers',
-                                    'Eloquent relationships',
-                                    'Validation with form requests',
+                                    'Routing & controller',
+                                    'Relasi Eloquent',
+                                    'Validasi dengan form request',
                                 ]"
                                 :key="lesson"
                                 class="flex items-center gap-3 rounded-md border px-3 py-2"
@@ -271,7 +294,7 @@ function searchCatalog(): void {
                     </div>
 
                     <div
-                        class="absolute -bottom-6 -left-4 flex items-center gap-3 rounded-lg border bg-card p-3 text-card-foreground shadow-sm sm:-left-8"
+                        class="absolute -bottom-6 -left-8 flex items-center gap-3 rounded-lg border bg-card p-3 text-card-foreground shadow-lg"
                     >
                         <span
                             class="flex size-9 items-center justify-center rounded-md bg-chart-1/10 text-chart-1"
@@ -279,152 +302,169 @@ function searchCatalog(): void {
                             <Clock class="h-4 w-4" />
                         </span>
                         <div class="text-sm">
-                            <p class="font-medium">Chapter quiz</p>
+                            <p class="font-semibold">Kuis bab</p>
                             <p class="text-xs text-muted-foreground">
-                                10 questions · 30 min
+                                10 soal · 30 mnt
                             </p>
                         </div>
                     </div>
 
                     <div
-                        class="absolute -top-5 -right-3 hidden items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm text-card-foreground shadow-sm sm:flex"
+                        class="absolute -top-5 -right-3 flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm text-card-foreground shadow-lg"
                     >
                         <span
                             class="flex size-6 items-center justify-center rounded-full bg-chart-4/15 text-chart-4"
                         >
                             <Sparkles class="h-3.5 w-3.5" />
                         </span>
-                        Enrolled!
+                        Terdaftar!
                     </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Stats -->
-            <div class="relative border-t bg-background/60 backdrop-blur">
-                <div
-                    class="mx-auto grid w-full max-w-6xl grid-cols-2 gap-6 px-4 py-8 sm:px-6 md:grid-cols-4"
-                >
-                    <div
-                        v-for="item in statItems"
-                        :key="item.label"
-                        class="flex items-center gap-3"
-                    >
-                        <span
-                            class="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15"
-                        >
-                            <component :is="item.Icon" class="h-5 w-5" />
-                        </span>
-                        <div>
-                            <p class="text-2xl font-semibold tracking-tight">
-                                {{ formatCount(item.value) }}
-                            </p>
-                            <p class="text-sm text-muted-foreground">
-                                {{ item.label }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+        <!-- Promo banners (Admin → Pengaturan Situs → Banner Promo) -->
+        <section
+            v-if="banners.length > 0"
+            class="border-b bg-muted/40"
+            aria-label="Promo"
+        >
+            <div class="mx-auto w-full max-w-site px-4 py-10 sm:px-6">
+                <BannerSlider :slides="banners" />
             </div>
         </section>
 
         <!-- Featured courses -->
         <section
             id="courses"
-            class="mx-auto w-full max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6 lg:py-20"
+            class="mx-auto w-full max-w-site scroll-mt-20 px-4 py-16 sm:px-6 lg:py-20"
         >
-            <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
-                <div class="max-w-2xl space-y-2">
-                    <p class="text-sm font-semibold text-primary">
-                        Featured courses
-                    </p>
-                    <h2
-                        class="text-2xl font-semibold tracking-tight sm:text-3xl"
-                    >
-                        Popular with our students
-                    </h2>
-                </div>
-                <Link :href="catalogRoutes.index()">
-                    <Button variant="ghost">
-                        View all
-                        <ArrowRight class="ml-1 h-4 w-4" />
-                    </Button>
-                </Link>
-            </div>
+            <SectionHeading
+                eyebrow="E-Course"
+                title="Katalog Kursus Unggulan"
+                description="Kursus pilihan yang paling banyak diikuti siswa, lengkap dengan materi terstruktur dan kuis."
+            />
 
             <div
                 v-if="featuredCourses.length > 0"
-                class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
             >
+                <!-- Phones show the first four; the button below leads to the rest. -->
                 <CourseCard
-                    v-for="course in featuredCourses"
+                    v-for="(course, index) in featuredCourses"
                     :key="course.id"
                     :course="course"
+                    :class="index >= 4 ? 'hidden sm:flex' : ''"
                 />
             </div>
             <div
                 v-else
-                class="flex flex-col items-center gap-2 rounded-lg border border-dashed p-10 text-center"
+                class="rounded-2xl border border-dashed p-10 text-center"
             >
-                <BookOpen class="size-8 text-muted-foreground" />
-                <p class="font-medium">New courses are on the way</p>
-                <p class="text-sm text-muted-foreground">
-                    Published courses will appear here.
+                <Layers class="mx-auto size-10 text-muted-foreground" />
+                <h3 class="mt-3 font-semibold">Belum ada kursus</h3>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Kursus yang sudah terbit akan muncul di sini.
                 </p>
+            </div>
+
+            <div v-if="featuredCourses.length > 0" class="mt-10 text-center">
+                <Link :href="catalogRoutes.index()">
+                    <Button size="lg" class="rounded-xl font-bold">
+                        Lihat semua kursus
+                        <ArrowRight class="ml-1 h-4 w-4" />
+                    </Button>
+                </Link>
             </div>
         </section>
 
-        <!-- Categories -->
+        <!-- Learning paths: one dark card per category -->
         <section
             v-if="categories.length > 0"
             id="categories"
-            class="scroll-mt-20 border-y bg-muted/30"
+            class="scroll-mt-20 border-y bg-muted/40"
         >
-            <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-                <div class="mb-8 max-w-2xl space-y-2">
-                    <p class="text-sm font-semibold text-primary">Categories</p>
-                    <h2
-                        class="text-2xl font-semibold tracking-tight sm:text-3xl"
-                    >
-                        Explore by topic
-                    </h2>
-                </div>
+            <div class="mx-auto w-full max-w-site px-4 py-16 sm:px-6 lg:py-20">
+                <SectionHeading
+                    eyebrow="Jalur Belajar"
+                    title="Belajar Sesuai Bidang"
+                    description="Pilih bidang yang ingin Anda kuasai, lalu ikuti kursusnya dari dasar hingga mahir."
+                />
 
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="grid gap-4 md:grid-cols-2">
                     <Link
-                        v-for="(category, index) in categories"
+                        v-for="category in categories"
                         :key="category.id"
                         :href="
                             catalogRoutes.index({
                                 query: { category_id: category.id },
                             })
                         "
-                        class="group flex flex-col gap-3 rounded-lg border bg-card p-5 text-card-foreground transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10"
+                        class="group relative isolate flex min-h-56 flex-col justify-between gap-6 overflow-hidden rounded-2xl bg-surface p-7 text-surface-foreground shadow-lg shadow-black/10 transition-transform hover:-translate-y-0.5 md:[&:last-child:nth-child(odd)]:col-span-2"
                     >
-                        <span
-                            class="flex size-10 items-center justify-center rounded-lg"
-                            :class="ACCENTS[index % ACCENTS.length]"
-                        >
-                            <Layers class="h-5 w-5" />
-                        </span>
-                        <div class="space-y-1">
-                            <h3 class="font-semibold">
-                                {{ category.name }}
-                            </h3>
-                            <p
-                                v-if="category.description"
-                                class="line-clamp-2 text-sm text-muted-foreground"
-                            >
-                                {{ category.description }}
-                            </p>
-                        </div>
-                        <span
-                            class="mt-auto flex items-center gap-1 text-sm text-muted-foreground group-hover:text-foreground"
-                        >
-                            {{ category.courses_count }} course(s)
-                            <ArrowRight
-                                class="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                        <!-- The admin's category picture, darkened so the text stays readable -->
+                        <template v-if="category.image_url">
+                            <img
+                                :src="category.image_url"
+                                alt=""
+                                loading="lazy"
+                                class="absolute inset-0 -z-20 size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                             />
-                        </span>
+                            <div
+                                aria-hidden="true"
+                                class="absolute inset-0 -z-10 bg-gradient-to-r from-surface via-surface/80 to-surface/20"
+                            />
+                            <div
+                                aria-hidden="true"
+                                class="absolute inset-0 -z-10 bg-gradient-to-t from-surface/70 to-transparent"
+                            />
+                        </template>
+                        <template v-else>
+                            <div
+                                aria-hidden="true"
+                                class="absolute -top-24 -right-24 -z-10 size-72 rounded-full bg-primary/40 blur-3xl transition-opacity group-hover:opacity-80"
+                            />
+                            <div
+                                aria-hidden="true"
+                                class="absolute inset-0 -z-10 [background-image:radial-gradient(currentColor_1px,transparent_1px)] [mask-image:linear-gradient(to_left,black,transparent_70%)] [background-size:18px_18px] opacity-15"
+                            />
+                            <Layers
+                                aria-hidden="true"
+                                class="absolute right-6 bottom-6 -z-10 size-28 text-surface-foreground/5"
+                            />
+                        </template>
+
+                        <p
+                            class="w-fit rounded-full border border-surface-foreground/15 bg-surface-foreground/10 px-3 py-1 text-[11px] font-bold tracking-wider uppercase"
+                        >
+                            {{ category.courses_count }} kursus
+                        </p>
+
+                        <div
+                            class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+                        >
+                            <div class="min-w-0 flex-1 space-y-2">
+                                <h3
+                                    class="text-2xl font-extrabold tracking-tight"
+                                >
+                                    {{ category.name }}
+                                </h3>
+                                <p
+                                    v-if="category.description"
+                                    class="line-clamp-2 text-sm text-surface-foreground/70"
+                                >
+                                    {{ category.description }}
+                                </p>
+                            </div>
+                            <span
+                                class="flex w-fit shrink-0 items-center gap-1 rounded-lg bg-surface-foreground px-3 py-2 text-sm font-bold text-surface"
+                            >
+                                Mulai Belajar
+                                <ArrowRight
+                                    class="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                                />
+                            </span>
+                        </div>
                     </Link>
                 </div>
             </div>
@@ -433,34 +473,33 @@ function searchCatalog(): void {
         <!-- How it works -->
         <section
             id="how-it-works"
-            class="mx-auto w-full max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6 lg:py-20"
+            class="mx-auto w-full max-w-site scroll-mt-20 px-4 py-16 sm:px-6 lg:py-20"
         >
-            <div class="mx-auto mb-10 max-w-2xl space-y-2 text-center">
-                <p class="text-sm font-semibold text-primary">How it works</p>
-                <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
-                    From curious to capable in three steps
-                </h2>
-            </div>
+            <SectionHeading
+                eyebrow="Cara Kerja"
+                title="Dari Penasaran Menjadi Mahir"
+                description="Tiga langkah sederhana untuk mulai belajar hari ini."
+            />
 
-            <ol class="grid gap-4 md:grid-cols-3">
+            <ol class="grid gap-5 md:grid-cols-3">
                 <li
                     v-for="(step, index) in steps"
                     :key="step.title"
-                    class="relative flex flex-col gap-4 rounded-lg border bg-card p-6 text-card-foreground"
+                    class="relative flex flex-col gap-4 rounded-2xl border bg-card p-6 text-card-foreground shadow-sm"
                 >
                     <div class="flex items-center justify-between">
                         <span
-                            class="flex size-10 items-center justify-center rounded-lg"
+                            class="flex size-11 items-center justify-center rounded-xl"
                             :class="ACCENTS[index % ACCENTS.length]"
                         >
                             <component :is="step.Icon" class="h-5 w-5" />
                         </span>
-                        <span class="text-4xl font-semibold text-primary/25">
-                            {{ index + 1 }}
+                        <span class="text-4xl font-extrabold text-primary/20">
+                            {{ String(index + 1).padStart(2, '0') }}
                         </span>
                     </div>
                     <div class="space-y-1">
-                        <h3 class="font-semibold">{{ step.title }}</h3>
+                        <h3 class="font-bold">{{ step.title }}</h3>
                         <p class="text-sm text-muted-foreground">
                             {{ step.description }}
                         </p>
@@ -469,64 +508,76 @@ function searchCatalog(): void {
             </ol>
         </section>
 
+        <!-- Success stories (Admin → Pengaturan Situs → Testimoni, else course reviews) -->
+        <section
+            v-if="testimonials.length > 0"
+            id="testimonials"
+            class="scroll-mt-20 border-y bg-muted/40"
+        >
+            <div class="mx-auto w-full max-w-site px-4 py-16 sm:px-6 lg:py-20">
+                <SectionHeading
+                    eyebrow="Testimoni"
+                    title="Cerita Sukses Alumni"
+                    description="Ulasan langsung dari siswa yang telah mengikuti kursus kami."
+                />
+
+                <TestimonialCarousel :items="testimonials" />
+            </div>
+        </section>
+
         <!-- Instructors -->
         <section
             v-if="instructors.length > 0"
             id="instructors"
-            class="scroll-mt-20 border-y bg-muted/30"
+            class="mx-auto w-full max-w-site scroll-mt-20 px-4 py-16 sm:px-6 lg:py-20"
         >
-            <div class="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-                <div class="mb-8 max-w-2xl space-y-2">
-                    <p class="text-sm font-semibold text-primary">
-                        Instructors
-                    </p>
-                    <h2
-                        class="text-2xl font-semibold tracking-tight sm:text-3xl"
-                    >
-                        Learn from people who do the work
-                    </h2>
-                </div>
+            <SectionHeading
+                eyebrow="Instruktur"
+                title="Belajar dari Praktisi di Bidangnya"
+                description="Materi disusun dan diajarkan langsung oleh instruktur yang berpengalaman."
+            />
 
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <Link
-                        v-for="instructor in instructors"
-                        :key="instructor.id"
-                        :href="users.show(instructor.id)"
-                        class="flex flex-col items-center gap-3 rounded-lg border bg-card p-6 text-center text-card-foreground transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10"
-                    >
-                        <Avatar class="size-20 overflow-hidden rounded-full">
-                            <AvatarImage
-                                v-if="instructor.avatar"
-                                :src="instructor.avatar"
-                                :alt="instructor.name"
-                            />
-                            <AvatarFallback class="text-xl">
-                                {{ getInitials(instructor.name) }}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div class="space-y-1">
-                            <h3 class="font-semibold">
-                                {{ instructor.name }}
-                            </h3>
-                            <p
-                                v-if="instructor.headline"
-                                class="line-clamp-2 text-sm text-muted-foreground"
-                            >
-                                {{ instructor.headline }}
-                            </p>
-                        </div>
-                        <Badge variant="secondary">
-                            {{ instructor.courses_count }} course(s)
-                        </Badge>
-                    </Link>
-                </div>
+            <div class="flex flex-wrap justify-center gap-5">
+                <Link
+                    v-for="instructor in instructors"
+                    :key="instructor.id"
+                    :href="users.show(instructor.id)"
+                    class="flex w-full flex-col items-center gap-3 rounded-2xl border bg-card p-6 text-center text-card-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-3.75rem)/4)]"
+                >
+                    <Avatar class="size-20 overflow-hidden rounded-full">
+                        <AvatarImage
+                            v-if="instructor.avatar"
+                            :src="instructor.avatar"
+                            :alt="instructor.name"
+                        />
+                        <AvatarFallback
+                            class="bg-primary/10 text-xl font-semibold text-primary"
+                        >
+                            {{ getInitials(instructor.name) }}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div class="space-y-1">
+                        <h3 class="font-bold">
+                            {{ instructor.name }}
+                        </h3>
+                        <p
+                            v-if="instructor.headline"
+                            class="line-clamp-2 text-sm text-muted-foreground"
+                        >
+                            {{ instructor.headline }}
+                        </p>
+                    </div>
+                    <Badge variant="secondary">
+                        {{ instructor.courses_count }} kursus
+                    </Badge>
+                </Link>
             </div>
         </section>
 
         <!-- Call to action -->
-        <section class="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+        <section class="mx-auto w-full max-w-site px-4 pb-16 sm:px-6 lg:pb-20">
             <div
-                class="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary to-primary-deep px-6 py-12 text-center text-primary-foreground shadow-xl shadow-primary/20 sm:px-12"
+                class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-deep px-6 py-12 text-center text-primary-foreground shadow-xl shadow-primary/20 sm:px-12"
             >
                 <div
                     aria-hidden="true"
@@ -534,54 +585,70 @@ function searchCatalog(): void {
                 />
                 <div class="relative mx-auto max-w-2xl space-y-4">
                     <h2
-                        class="text-2xl font-semibold tracking-tight sm:text-3xl"
+                        class="text-2xl font-extrabold tracking-tight sm:text-3xl"
                     >
                         {{
                             isAuthenticated
-                                ? 'Pick up where you left off'
-                                : 'Start learning today'
+                                ? 'Lanjutkan dari terakhir kali Anda belajar'
+                                : banner.cta_title
                         }}
                     </h2>
                     <p class="text-primary-foreground/80">
                         {{
                             isStaff
-                                ? 'Head to your dashboard or find your next course in the catalog.'
+                                ? 'Buka dasbor Anda atau temukan kursus berikutnya di katalog.'
                                 : isAuthenticated
-                                  ? 'Continue your courses or find a new one in the catalog.'
-                                  : 'Create a free account, enroll in a course and take your first lesson in minutes.'
+                                  ? 'Lanjutkan kursus Anda atau temukan kursus baru di katalog.'
+                                  : banner.cta_description
                         }}
                     </p>
                     <div
                         class="flex flex-wrap items-center justify-center gap-3 pt-2"
                     >
                         <Link v-if="isStaff" :href="dashboard()">
-                            <Button variant="secondary" size="lg">
-                                Go to dashboard
+                            <Button
+                                variant="secondary"
+                                size="lg"
+                                class="rounded-xl font-bold"
+                            >
+                                Buka dasbor
                             </Button>
                         </Link>
                         <Link
                             v-else-if="isAuthenticated"
                             :href="myCourses.index()"
                         >
-                            <Button variant="secondary" size="lg">
-                                Go to My Courses
+                            <Button
+                                variant="secondary"
+                                size="lg"
+                                class="rounded-xl font-bold"
+                            >
+                                Buka Kursus Saya
                             </Button>
                         </Link>
                         <Link v-else-if="canRegister" :href="register()">
-                            <Button variant="secondary" size="lg">
-                                Create free account
+                            <Button
+                                variant="secondary"
+                                size="lg"
+                                class="rounded-xl font-bold"
+                            >
+                                Buat akun gratis
                             </Button>
                         </Link>
                         <Link v-else :href="login()">
-                            <Button variant="secondary" size="lg">
-                                Log in
+                            <Button
+                                variant="secondary"
+                                size="lg"
+                                class="rounded-xl font-bold"
+                            >
+                                Masuk
                             </Button>
                         </Link>
                         <Link
                             :href="catalogRoutes.index()"
-                            class="text-sm font-medium underline-offset-4 hover:underline"
+                            class="text-sm font-semibold underline-offset-4 hover:underline"
                         >
-                            Browse the catalog
+                            Jelajahi katalog
                         </Link>
                     </div>
                 </div>

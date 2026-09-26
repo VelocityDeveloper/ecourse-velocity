@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PublicFooter from '@/components/PublicFooter.vue';
 import PublicHeader from '@/components/PublicHeader.vue';
+import { setDarkModeAllowed } from '@/composables/useAppearance';
 import type { BreadcrumbItem } from '@/types';
 
 /**
@@ -10,6 +11,9 @@ import type { BreadcrumbItem } from '@/types';
 defineProps<{
     breadcrumbs?: BreadcrumbItem[];
 }>();
+
+// The public site is always light.
+setDarkModeAllowed(false);
 </script>
 
 <template>

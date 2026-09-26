@@ -4,6 +4,7 @@ import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import { Toaster } from '@/components/ui/sonner';
+import { setDarkModeAllowed } from '@/composables/useAppearance';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -13,6 +14,9 @@ type Props = {
 withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
+
+// Only the dashboard follows the Settings → Tampilan dark mode choice.
+setDarkModeAllowed(true);
 </script>
 
 <template>
@@ -20,7 +24,9 @@ withDefaults(defineProps<Props>(), {
         <AppSidebar />
         <AppContent variant="sidebar" class="min-w-0 overflow-x-clip">
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
-            <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col">
+            <div
+                class="mx-auto flex w-full max-w-7xl flex-1 flex-col p-4 sm:p-6"
+            >
                 <slot />
             </div>
         </AppContent>

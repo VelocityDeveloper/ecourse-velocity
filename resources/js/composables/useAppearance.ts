@@ -10,8 +10,21 @@ export type UseAppearanceReturn = {
     updateAppearance: (value: Appearance) => void;
 };
 
+// Dark mode only applies inside the staff dashboard: the public site is always
+// light. app.blade.php sets the scope for the first page; the layouts switch it
+// on client-side visits (see setDarkModeAllowed).
+let darkModeAllowed =
+    typeof document !== 'undefined' &&
+    document.documentElement.dataset.themeScope === 'app';
+
 export function updateTheme(value: Appearance): void {
     if (typeof window === 'undefined') {
+        return;
+    }
+
+    if (!darkModeAllowed) {
+        document.documentElement.classList.remove('dark');
+
         return;
     }
 
@@ -69,6 +82,19 @@ const handleSystemThemeChange = () => {
 
     updateTheme(currentAppearance || 'system');
 };
+
+/**
+ * Called by the layouts: the dashboard allows dark mode, public pages do not.
+ */
+export function setDarkModeAllowed(allowed: boolean): void {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    darkModeAllowed = allowed;
+    document.documentElement.dataset.themeScope = allowed ? 'app' : 'site';
+    updateTheme(getStoredAppearance() || 'system');
+}
 
 export function initializeTheme(): void {
     if (typeof window === 'undefined') {

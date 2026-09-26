@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Category;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
@@ -200,4 +201,37 @@ test('course managers get a link back to the dashboard from the catalog', functi
     $this->actingAs($instructor)
         ->get(route('catalog.show', $course))
         ->assertInertia(fn ($page) => $page->where('can.manage', true));
+});
+
+test('the catalogue can be sorted and shows lesson counts on each card', function () {
+    $cheap = Course::factory()->published()->create(['price' => '10000', 'title' => 'Murah']);
+    $pricey = Course::factory()->published()->create(['price' => '90000', 'title' => 'Mahal']);
+    Enrollment::factory()->count(3)->for($pricey)->create();
+
+    $this->get(route('catalog.index', ['sort' => 'termurah']))
+        ->assertInertia(fn ($page) => $page
+            ->where('filters.sort', 'termurah')
+            ->where('courses.data.0.title', 'Murah')
+            ->has('courses.data.0.lessons_count')
+            ->where('total', 2));
+
+    $this->get(route('catalog.index', ['sort' => 'populer']))
+        ->assertInertia(fn ($page) => $page->where('courses.data.0.title', 'Mahal'));
+
+    $this->get(route('catalog.index', ['sort' => 'sembarang']))
+        ->assertInertia(fn ($page) => $page->where('filters.sort', 'terbaru'));
+});
+
+test('a course page suggests other published courses from the same category', function () {
+    $category = Category::factory()->create();
+    $course = Course::factory()->published()->create(['category_id' => $category->id]);
+    $sibling = Course::factory()->published()->create(['category_id' => $category->id]);
+    Course::factory()->create(['category_id' => $category->id]);
+    Course::factory()->published()->create();
+
+    $this->get(route('catalog.show', $course))
+        ->assertInertia(fn ($page) => $page
+            ->has('related', 1)
+            ->where('related.0.id', $sibling->id)
+            ->has('course.total_minutes'));
 });

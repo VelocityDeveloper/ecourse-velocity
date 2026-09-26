@@ -18,9 +18,9 @@ import PasswordInput from '@/components/PasswordInput.vue';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Users', href: '/admin/users' },
-            { title: 'Create User', href: '/admin/users/create' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Pengguna', href: '/admin/users' },
+            { title: 'Buat Pengguna', href: '/admin/users/create' },
         ],
     },
 });
@@ -52,50 +52,50 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Create User" />
+    <Head title="Buat Pengguna" />
 
     <div class="flex flex-col space-y-6">
         <Heading
             variant="small"
-            title="Create User"
-            description="Add a new user to the system"
+            title="Buat Pengguna"
+            description="Tambahkan pengguna baru ke sistem"
         />
 
         <form @submit.prevent="submit" class="max-w-xl space-y-6">
             <div class="grid gap-2">
-                <Label for="name">Name</Label>
+                <Label for="name">Nama</Label>
                 <Input
                     id="name"
                     v-model="form.name"
                     required
                     autocomplete="name"
-                    placeholder="Full name"
+                    placeholder="Nama lengkap"
                 />
                 <InputError :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Alamat email</Label>
                 <Input
                     id="email"
                     v-model="form.email"
                     type="email"
                     required
                     autocomplete="email"
-                    placeholder="Email address"
+                    placeholder="Alamat email"
                 />
                 <InputError :message="errors.email" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="role">Role</Label>
+                <Label for="role">Peran</Label>
                 <Select v-model="form.role">
                     <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
+                        <SelectValue placeholder="Pilih peran" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="student">Student</SelectItem>
-                        <SelectItem value="instructor">Instructor</SelectItem>
+                        <SelectItem value="student">Siswa</SelectItem>
+                        <SelectItem value="instructor">Instruktur</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                 </Select>
@@ -103,32 +103,32 @@ function submit() {
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">Password</Label>
+                <Label for="password">Kata sandi</Label>
                 <PasswordInput
                     id="password"
                     v-model="form.password"
                     required
-                    placeholder="Password"
+                    placeholder="Kata sandi"
                 />
                 <InputError :message="errors.password" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password_confirmation">Confirm Password</Label>
+                <Label for="password_confirmation">Konfirmasi Kata Sandi</Label>
                 <PasswordInput
                     id="password_confirmation"
                     v-model="form.password_confirmation"
                     required
-                    placeholder="Confirm password"
+                    placeholder="Konfirmasi kata sandi"
                 />
             </div>
 
             <div class="flex items-center gap-4">
                 <Button :disabled="processing">
-                    {{ processing ? 'Creating...' : 'Create User' }}
+                    {{ processing ? 'Membuat...' : 'Buat Pengguna' }}
                 </Button>
                 <Link href="/admin/users">
-                    <Button type="button" variant="ghost">Cancel</Button>
+                    <Button type="button" variant="ghost">Batal</Button>
                 </Link>
             </div>
         </form>

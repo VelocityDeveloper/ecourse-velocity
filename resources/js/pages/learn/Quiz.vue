@@ -93,7 +93,7 @@ function formatDateTime(date: string | null): string {
                     <p class="text-2xl font-semibold tracking-tight">
                         {{ quiz.questions_count }}
                     </p>
-                    <p class="text-sm text-muted-foreground">Questions</p>
+                    <p class="text-sm text-muted-foreground">Soal</p>
                 </div>
             </div>
             <div class="flex items-center gap-3 rounded-lg border p-4">
@@ -110,7 +110,7 @@ function formatDateTime(date: string | null): string {
                                 : formatTimeLimit(quiz.time_limit_minutes)
                         }}
                     </p>
-                    <p class="text-sm text-muted-foreground">Time limit</p>
+                    <p class="text-sm text-muted-foreground">Batas waktu</p>
                 </div>
             </div>
             <div class="flex items-center gap-3 rounded-lg border p-4">
@@ -128,7 +128,7 @@ function formatDateTime(date: string | null): string {
                             / {{ quiz.max_score }}
                         </span>
                     </p>
-                    <p class="text-sm text-muted-foreground">Best score</p>
+                    <p class="text-sm text-muted-foreground">Nilai terbaik</p>
                 </div>
             </div>
         </div>
@@ -140,21 +140,21 @@ function formatDateTime(date: string | null): string {
                 <p class="font-medium">
                     {{
                         openAttemptId !== null
-                            ? 'You have an attempt in progress'
+                            ? 'Anda memiliki percobaan yang sedang berjalan'
                             : attempts.length > 0
-                              ? 'Want to improve your score?'
-                              : 'Ready when you are'
+                              ? 'Ingin meningkatkan nilai Anda?'
+                              : 'Mulai kapan pun Anda siap'
                     }}
                 </p>
                 <p class="text-sm text-muted-foreground">
                     <template v-if="quiz.time_limit_minutes !== null">
-                        The timer starts as soon as you begin and keeps running
-                        if you leave the page. Answers are submitted
-                        automatically when time is up.
+                        Waktu mulai berjalan begitu Anda memulai dan tetap
+                        berjalan meskipun Anda meninggalkan halaman. Jawaban
+                        dikirim otomatis saat waktu habis.
                     </template>
                     <template v-else>
-                        There is no time limit. You can retake this quiz as
-                        often as you like.
+                        Tidak ada batas waktu. Anda bisa mengulangi kuis ini
+                        sesering yang Anda mau.
                     </template>
                 </p>
             </div>
@@ -167,16 +167,16 @@ function formatDateTime(date: string | null): string {
                 <RotateCcw v-else class="mr-2 h-4 w-4" />
                 {{
                     openAttemptId !== null
-                        ? 'Resume attempt'
+                        ? 'Lanjutkan percobaan'
                         : attempts.length > 0
-                          ? 'Retake quiz'
-                          : 'Start quiz'
+                          ? 'Ulangi kuis'
+                          : 'Mulai kuis'
                 }}
             </Button>
         </div>
 
         <section v-if="attempts.length > 0" class="space-y-3">
-            <h2 class="text-lg font-semibold">Your attempts</h2>
+            <h2 class="text-lg font-semibold">Percobaan Anda</h2>
             <ul class="divide-y rounded-lg border">
                 <li v-for="(attempt, index) in attempts" :key="attempt.id">
                     <Link
@@ -191,7 +191,7 @@ function formatDateTime(date: string | null): string {
                                 formatDateTime(attempt.submitted_at)
                             }}</span>
                             <Badge v-if="attempt.is_late" variant="destructive">
-                                Time up
+                                Waktu habis
                             </Badge>
                         </span>
                         <span class="font-semibold">

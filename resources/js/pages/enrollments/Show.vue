@@ -25,8 +25,8 @@ import type { EnrollmentActor, EnrollmentDetail } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Enrollments', href: '/enrollments' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Pendaftaran', href: '/enrollments' },
             { title: 'Detail', href: '#' },
         ],
     },
@@ -53,21 +53,33 @@ function formatDateTime(date: string | null): string {
     });
 }
 
+function roleLabel(role: string): string {
+    const labels: Record<string, string> = {
+        admin: 'Admin',
+        instructor: 'Instruktur',
+        student: 'Siswa',
+    };
+
+    return labels[role] ?? role;
+}
+
 function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
-    return actor === null ? fallback : `${actor.name} (${actor.role})`;
+    return actor === null
+        ? fallback
+        : `${actor.name} (${roleLabel(actor.role)})`;
 }
 </script>
 
 <template>
     <div class="flex flex-col space-y-6">
-        <Head :title="`Enrollment #${enrollment.id}`" />
+        <Head :title="`Pendaftaran #${enrollment.id}`" />
 
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="flex items-start gap-3">
                 <Heading
                     variant="small"
-                    :title="`Enrollment #${enrollment.id}`"
-                    :description="`${enrollment.student.name} in ${enrollment.course.title}`"
+                    :title="`Pendaftaran #${enrollment.id}`"
+                    :description="`${enrollment.student.name} di ${enrollment.course.title}`"
                 />
                 <Badge :variant="enrollmentStatusVariant(enrollment.status)">
                     {{ enrollmentStatusLabel(enrollment.status) }}
@@ -77,7 +89,7 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
                 <Link :href="enrollmentRoutes.index()">
                     <Button variant="outline" size="sm">
                         <ArrowLeft class="mr-2 h-4 w-4" />
-                        Back
+                        Kembali
                     </Button>
                 </Link>
                 <Button
@@ -87,16 +99,14 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
                     @click="cancelDialogOpen = true"
                 >
                     <UserMinus class="mr-2 h-4 w-4" />
-                    Cancel enrollment
+                    Batalkan pendaftaran
                 </Button>
             </div>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2">
             <section class="flex flex-col gap-4 rounded-lg border p-4">
-                <h2 class="text-sm font-medium text-muted-foreground">
-                    Student
-                </h2>
+                <h2 class="text-sm font-medium text-muted-foreground">Siswa</h2>
                 <div class="flex items-center gap-4">
                     <Avatar class="size-14 overflow-hidden rounded-full">
                         <AvatarImage
@@ -128,7 +138,7 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
                 </div>
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between gap-4">
-                        <dt class="text-muted-foreground">Member since</dt>
+                        <dt class="text-muted-foreground">Anggota sejak</dt>
                         <dd>{{ formatDate(enrollment.student.joined_at) }}</dd>
                     </div>
                 </dl>
@@ -136,7 +146,7 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
 
             <section class="flex flex-col gap-4 rounded-lg border p-4">
                 <h2 class="text-sm font-medium text-muted-foreground">
-                    Course
+                    Kursus
                 </h2>
                 <div class="flex items-center gap-4">
                     <img
@@ -177,15 +187,15 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
                         </dd>
                     </div>
                     <div class="flex justify-between gap-4">
-                        <dt class="text-muted-foreground">Category</dt>
+                        <dt class="text-muted-foreground">Kategori</dt>
                         <dd>{{ enrollment.course.category?.name ?? '-' }}</dd>
                     </div>
                     <div class="flex justify-between gap-4">
-                        <dt class="text-muted-foreground">Level</dt>
+                        <dt class="text-muted-foreground">Tingkat</dt>
                         <dd>{{ levelLabel(enrollment.course.level) }}</dd>
                     </div>
                     <div class="flex justify-between gap-4">
-                        <dt class="text-muted-foreground">Price</dt>
+                        <dt class="text-muted-foreground">Harga</dt>
                         <dd>{{ formatPrice(enrollment.course.price) }}</dd>
                     </div>
                 </dl>
@@ -193,19 +203,19 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
         </div>
 
         <section class="flex flex-col gap-4 rounded-lg border p-4">
-            <h2 class="text-sm font-medium text-muted-foreground">History</h2>
+            <h2 class="text-sm font-medium text-muted-foreground">Riwayat</h2>
             <ol class="relative ml-2 space-y-5 border-l pl-6">
                 <li class="relative">
                     <span
                         class="absolute top-1 -left-[31px] size-3 rounded-full bg-primary"
                     />
-                    <p class="text-sm font-medium">Enrolled</p>
+                    <p class="text-sm font-medium">Terdaftar</p>
                     <p class="text-sm text-muted-foreground">
                         {{ formatDateTime(enrollment.enrolled_at) }} ·
                         {{
                             enrollment.is_self_enrolled
-                                ? 'Self-enrolled by the student'
-                                : `Added by ${actorLabel(enrollment.enrolled_by, 'a staff member')}`
+                                ? 'Mendaftar mandiri'
+                                : `Ditambahkan oleh ${actorLabel(enrollment.enrolled_by, 'staf')}`
                         }}
                     </p>
                 </li>
@@ -213,13 +223,13 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
                     <span
                         class="absolute top-1 -left-[31px] size-3 rounded-full bg-destructive"
                     />
-                    <p class="text-sm font-medium">Cancelled</p>
+                    <p class="text-sm font-medium">Dibatalkan</p>
                     <p class="text-sm text-muted-foreground">
-                        {{ formatDateTime(enrollment.cancelled_at) }} · by
+                        {{ formatDateTime(enrollment.cancelled_at) }} · oleh
                         {{
                             actorLabel(
                                 enrollment.cancelled_by,
-                                'a deleted user',
+                                'pengguna yang sudah dihapus',
                             )
                         }}
                     </p>
@@ -227,7 +237,8 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
                         class="mt-2 rounded-md bg-muted/50 p-3 text-sm whitespace-pre-line"
                     >
                         {{
-                            enrollment.cancellation_reason ?? 'No reason given.'
+                            enrollment.cancellation_reason ??
+                            'Tidak ada alasan.'
                         }}
                     </p>
                 </li>
@@ -237,7 +248,7 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
         <CancelEnrollmentDialog
             v-model:open="cancelDialogOpen"
             :enrollment-id="enrollment.id"
-            :description="`Cancel ${enrollment.student.name}'s enrollment in ${enrollment.course.title}? They will lose access to the course.`"
+            :description="`Batalkan pendaftaran ${enrollment.student.name} di ${enrollment.course.title}? Siswa akan kehilangan akses ke kursus.`"
         />
     </div>
 </template>

@@ -30,6 +30,12 @@
     --color-primary-foreground: var(--primary-foreground);
     --color-primary-deep: var(--primary-deep);
     --color-brand: var(--brand);
+    /* Public site width: 1200px of content plus the 24px side padding (px-6). */
+    --container-site: 78rem;
+    --color-rating: var(--rating);
+    --color-surface: var(--surface);
+    --color-surface-foreground: var(--surface-foreground);
+    --color-surface-muted: var(--surface-muted);
 
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
@@ -102,6 +108,12 @@
     --primary-foreground: hsl(0 0% 100%);
     --primary-deep: hsl(12 85% 34%);
     --brand: hsl(24 95% 53%);
+    /* Star ratings: the same gold in both themes (chart-4 turns purple in dark mode). */
+    --rating: hsl(40 92% 52%);
+    /* Dark band for the public header, hero and footer (Admin → Pengaturan Situs → Warna). */
+    --surface: hsl(223 53% 9%);
+    --surface-foreground: hsl(0 0% 100%);
+    --surface-muted: hsl(223 43% 17%);
     --secondary: hsl(0 0% 92.1%);
     --secondary-foreground: hsl(0 0% 9%);
     --muted: hsl(0 0% 96.1%);
@@ -141,6 +153,10 @@
     --primary-foreground: hsl(20 40% 8%);
     --primary-deep: hsl(15 85% 40%);
     --brand: hsl(24 95% 53%);
+    --rating: hsl(42 95% 58%);
+    --surface: hsl(223 53% 7%);
+    --surface-foreground: hsl(0 0% 100%);
+    --surface-muted: hsl(223 43% 15%);
     --secondary: hsl(0 0% 14.9%);
     --secondary-foreground: hsl(0 0% 98%);
     --muted: hsl(0 0% 16.08%);

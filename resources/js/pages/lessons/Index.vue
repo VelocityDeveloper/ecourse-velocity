@@ -20,9 +20,9 @@ import type { LessonContentType, Paginated } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Courses', href: '/courses' },
-            { title: 'Lessons', href: '/lessons' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kursus', href: '/courses' },
+            { title: 'Materi', href: '/lessons' },
         ],
     },
 });
@@ -79,13 +79,13 @@ function goToPage(page: number) {
 </script>
 
 <template>
-    <Head title="Lessons" />
+    <Head title="Materi" />
 
     <div class="flex flex-col space-y-6">
         <Heading
             variant="small"
-            title="Lessons"
-            description="Every lesson across the courses you manage"
+            title="Materi"
+            description="Semua materi dari kursus yang Anda kelola"
         />
 
         <div class="flex flex-wrap items-center gap-3">
@@ -95,7 +95,7 @@ function goToPage(page: number) {
                 />
                 <Input
                     v-model="search"
-                    placeholder="Search lesson title..."
+                    placeholder="Cari judul materi..."
                     class="pl-9"
                     @keyup.enter="applyFilters"
                 />
@@ -103,10 +103,10 @@ function goToPage(page: number) {
 
             <Select v-model="courseId" @update:model-value="applyFilters">
                 <SelectTrigger class="w-[220px]">
-                    <SelectValue placeholder="All Courses" />
+                    <SelectValue placeholder="Semua Kursus" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ANY">All Courses</SelectItem>
+                    <SelectItem :value="ANY">Semua Kursus</SelectItem>
                     <SelectItem
                         v-for="course in courses"
                         :key="course.id"
@@ -119,10 +119,10 @@ function goToPage(page: number) {
 
             <Select v-model="contentType" @update:model-value="applyFilters">
                 <SelectTrigger class="w-[160px]">
-                    <SelectValue placeholder="All Types" />
+                    <SelectValue placeholder="Semua Jenis" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ANY">All Types</SelectItem>
+                    <SelectItem :value="ANY">Semua Jenis</SelectItem>
                     <SelectItem
                         v-for="type in contentTypes"
                         :key="type"
@@ -133,7 +133,7 @@ function goToPage(page: number) {
                 </SelectContent>
             </Select>
 
-            <Button variant="outline" @click="applyFilters">Search</Button>
+            <Button variant="outline" @click="applyFilters">Cari</Button>
         </div>
 
         <div class="rounded-lg border">
@@ -144,27 +144,27 @@ function goToPage(page: number) {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Lesson
+                                Materi
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Type
+                                Jenis
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Duration
+                                Durasi
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Material
+                                Isi
                             </th>
                             <th
                                 class="h-12 px-4 text-right align-middle font-medium text-muted-foreground"
                             >
-                                Actions
+                                Aksi
                             </th>
                         </tr>
                     </thead>
@@ -174,7 +174,7 @@ function goToPage(page: number) {
                                 colspan="5"
                                 class="py-8 text-center text-muted-foreground"
                             >
-                                No lessons found.
+                                Tidak ada materi.
                             </td>
                         </tr>
                         <tr
@@ -213,7 +213,7 @@ function goToPage(page: number) {
                                         class="flex items-center gap-1"
                                     >
                                         <FileText class="h-3 w-3" />
-                                        Written
+                                        Tertulis
                                     </span>
                                     <span v-else>—</span>
                                     <span
@@ -240,9 +240,10 @@ function goToPage(page: number) {
                                 colspan="5"
                                 class="h-12 px-4 text-sm text-muted-foreground"
                             >
-                                Showing {{ lessons.from ?? 0 }} to
-                                {{ lessons.to ?? 0 }} of
-                                {{ lessons.total }} lessons
+                                Menampilkan {{ lessons.from ?? 0 }}–{{
+                                    lessons.to ?? 0
+                                }}
+                                dari {{ lessons.total }} materi
                             </td>
                         </tr>
                     </tfoot>
@@ -260,10 +261,10 @@ function goToPage(page: number) {
                 :disabled="lessons.current_page <= 1"
                 @click="goToPage(lessons.current_page - 1)"
             >
-                Previous
+                Sebelumnya
             </Button>
             <span class="text-sm text-muted-foreground">
-                Page {{ lessons.current_page }} of {{ lessons.last_page }}
+                Halaman {{ lessons.current_page }} dari {{ lessons.last_page }}
             </span>
             <Button
                 variant="outline"
@@ -271,7 +272,7 @@ function goToPage(page: number) {
                 :disabled="lessons.current_page >= lessons.last_page"
                 @click="goToPage(lessons.current_page + 1)"
             >
-                Next
+                Berikutnya
             </Button>
         </div>
     </div>

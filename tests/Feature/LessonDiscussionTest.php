@@ -108,3 +108,15 @@ test('deleting a question removes its replies', function () {
 
     expect(LessonReply::query()->count())->toBe(0);
 });
+
+test('the discussion reads like a chat, oldest question first and newest last', function () {
+    ['course' => $course, 'lesson' => $lesson, 'student' => $student] = discussionScenario();
+    LessonQuestion::factory()->for($lesson)->create(['body' => 'Pertanyaan lama', 'created_at' => now()->subDay()]);
+    LessonQuestion::factory()->for($lesson)->create(['body' => 'Pertanyaan baru', 'created_at' => now()]);
+
+    $this->actingAs($student)
+        ->get(route('learn.lessons.show', [$course, $lesson]))
+        ->assertInertia(fn ($page) => $page
+            ->where('discussion.0.body', 'Pertanyaan lama')
+            ->where('discussion.1.body', 'Pertanyaan baru'));
+});

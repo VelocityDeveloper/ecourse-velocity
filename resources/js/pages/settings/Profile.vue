@@ -18,7 +18,7 @@ defineOptions({
     layout: {
         breadcrumbs: [
             {
-                title: 'Profile settings',
+                title: 'Pengaturan profil',
                 href: edit(),
             },
         ],
@@ -79,22 +79,22 @@ onBeforeUnmount(clearAvatarPreview);
 </script>
 
 <template>
-    <Head title="Profile settings" />
+    <Head title="Pengaturan profil" />
 
-    <h1 class="sr-only">Profile settings</h1>
+    <h1 class="sr-only">Pengaturan profil</h1>
 
     <div class="flex flex-col space-y-6">
         <div class="flex items-start justify-between gap-4">
             <Heading
                 variant="small"
-                title="Profile"
-                description="Update your photo, name, email address and bio"
+                title="Profil"
+                description="Perbarui foto, nama, alamat email, dan bio Anda"
             />
             <Link
                 :href="users.show(user.id)"
                 class="shrink-0 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
-                View public profile
+                Lihat profil publik
             </Link>
         </div>
 
@@ -105,7 +105,7 @@ onBeforeUnmount(clearAvatarPreview);
             @success="onSaved"
         >
             <div class="grid gap-2">
-                <Label for="avatar">Photo</Label>
+                <Label for="avatar">Foto</Label>
                 <div class="flex items-center gap-4">
                     <Avatar class="size-16 overflow-hidden rounded-full">
                         <AvatarImage
@@ -128,7 +128,7 @@ onBeforeUnmount(clearAvatarPreview);
                         />
                         <div class="flex items-center gap-3">
                             <p class="text-xs text-muted-foreground">
-                                JPG, PNG or WebP, up to 2 MB.
+                                JPG, PNG, atau WebP, maksimal 2 MB.
                             </p>
                             <Button
                                 v-if="displayedAvatar"
@@ -138,7 +138,7 @@ onBeforeUnmount(clearAvatarPreview);
                                 class="h-auto p-0 text-xs text-destructive"
                                 @click="removeAvatar"
                             >
-                                Remove photo
+                                Hapus foto
                             </Button>
                         </div>
                     </div>
@@ -152,7 +152,7 @@ onBeforeUnmount(clearAvatarPreview);
             </div>
 
             <div class="grid gap-2">
-                <Label for="name">Name</Label>
+                <Label for="name">Nama</Label>
                 <Input
                     id="name"
                     class="mt-1 block w-full"
@@ -160,13 +160,13 @@ onBeforeUnmount(clearAvatarPreview);
                     :default-value="user.name"
                     required
                     autocomplete="name"
-                    placeholder="Full name"
+                    placeholder="Nama lengkap"
                 />
                 <InputError class="mt-2" :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Alamat email</Label>
                 <Input
                     id="email"
                     type="email"
@@ -175,20 +175,20 @@ onBeforeUnmount(clearAvatarPreview);
                     :default-value="user.email"
                     required
                     autocomplete="username"
-                    placeholder="Email address"
+                    placeholder="Alamat email"
                 />
                 <InputError class="mt-2" :message="errors.email" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="headline">Headline</Label>
+                <Label for="headline">Judul singkat</Label>
                 <Input
                     id="headline"
                     class="mt-1 block w-full"
                     name="headline"
                     :default-value="user.headline ?? ''"
                     maxlength="120"
-                    placeholder="e.g. Senior Laravel Developer"
+                    placeholder="mis. Senior Laravel Developer"
                 />
                 <InputError class="mt-2" :message="errors.headline" />
             </div>
@@ -202,14 +202,14 @@ onBeforeUnmount(clearAvatarPreview);
                     rows="5"
                     :default-value="user.bio ?? ''"
                     maxlength="2000"
-                    placeholder="Tell others a little about yourself"
+                    placeholder="Ceritakan sedikit tentang diri Anda"
                 />
                 <InputError class="mt-2" :message="errors.bio" />
             </div>
 
             <div class="flex items-center gap-4">
                 <Button :disabled="processing" data-test="update-profile-button"
-                    >Save</Button
+                    >Simpan</Button
                 >
             </div>
         </Form>

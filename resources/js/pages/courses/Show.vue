@@ -45,9 +45,9 @@ import type {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Courses', href: '/courses' },
-            { title: 'Course Detail', href: '/courses' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kursus', href: '/courses' },
+            { title: 'Detail Kursus', href: '/courses' },
         ],
     },
 });
@@ -99,31 +99,31 @@ function deleteCourse() {
                 <Link v-if="course.can.update" :href="courses.edit(course.id)">
                     <Button variant="outline" size="sm">
                         <Pencil class="mr-2 h-4 w-4" />
-                        Edit
+                        Ubah
                     </Button>
                 </Link>
                 <Dialog v-if="course.can.delete">
                     <DialogTrigger as-child>
                         <Button variant="outline" size="sm">
                             <Trash2 class="mr-2 h-4 w-4 text-destructive" />
-                            Delete
+                            Hapus
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Delete Course</DialogTitle>
+                            <DialogTitle>Hapus Kursus</DialogTitle>
                             <DialogDescription>
-                                Are you sure you want to delete
+                                Yakin ingin menghapus
                                 <strong>{{ course.title }}</strong
-                                >? This action cannot be undone.
+                                >? Tindakan ini tidak bisa dibatalkan.
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter class="gap-2">
                             <DialogClose as-child>
-                                <Button variant="secondary">Cancel</Button>
+                                <Button variant="secondary">Batal</Button>
                             </DialogClose>
                             <Button variant="destructive" @click="deleteCourse"
-                                >Delete</Button
+                                >Hapus</Button
                             >
                         </DialogFooter>
                     </DialogContent>
@@ -143,15 +143,15 @@ function deleteCourse() {
                     v-else
                     class="flex aspect-video w-full items-center justify-center rounded-lg border bg-muted text-sm text-muted-foreground"
                 >
-                    No thumbnail
+                    Tanpa gambar sampul
                 </div>
 
                 <div class="rounded-lg border p-4">
-                    <h3 class="mb-2 text-sm font-medium">Description</h3>
+                    <h3 class="mb-2 text-sm font-medium">Deskripsi</h3>
                     <p
                         class="text-sm whitespace-pre-line text-muted-foreground"
                     >
-                        {{ course.description || 'No description yet.' }}
+                        {{ course.description || 'Belum ada deskripsi.' }}
                     </p>
                 </div>
 
@@ -178,13 +178,13 @@ function deleteCourse() {
                     </div>
 
                     <div v-if="course.can.update" class="grid gap-2">
-                        <Label for="status">Change status</Label>
+                        <Label for="status">Ubah status</Label>
                         <Select
                             v-model="status"
                             @update:model-value="changeStatus(status)"
                         >
                             <SelectTrigger id="status">
-                                <SelectValue placeholder="Select status" />
+                                <SelectValue placeholder="Pilih status" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem
@@ -204,13 +204,13 @@ function deleteCourse() {
 
                 <dl class="space-y-3 rounded-lg border p-4 text-sm">
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Category</dt>
+                        <dt class="text-muted-foreground">Kategori</dt>
                         <dd class="text-right">
                             {{ course.category?.name ?? '-' }}
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Instructor</dt>
+                        <dt class="text-muted-foreground">Instruktur</dt>
                         <dd class="text-right">
                             <Link
                                 v-if="course.instructor"
@@ -232,7 +232,7 @@ function deleteCourse() {
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Students</dt>
+                        <dt class="text-muted-foreground">Siswa</dt>
                         <dd class="text-right">
                             <Link
                                 :href="
@@ -242,41 +242,41 @@ function deleteCourse() {
                                 "
                                 class="underline-offset-4 hover:underline"
                             >
-                                {{ course.students_count }} enrolled
+                                {{ course.students_count }} terdaftar
                             </Link>
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Progress</dt>
+                        <dt class="text-muted-foreground">Progres</dt>
                         <dd class="text-right">
                             <Link
                                 :href="courses.progress.index(course.id)"
                                 class="underline-offset-4 hover:underline"
                             >
-                                View student progress
+                                Lihat progres siswa
                             </Link>
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Level</dt>
+                        <dt class="text-muted-foreground">Tingkat</dt>
                         <dd class="text-right">
                             {{ levelLabel(course.level) }}
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Price</dt>
+                        <dt class="text-muted-foreground">Harga</dt>
                         <dd class="text-right">
                             {{ formatPrice(course.price) }}
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Created</dt>
+                        <dt class="text-muted-foreground">Dibuat</dt>
                         <dd class="text-right">
                             {{ formatDate(course.created_at) }}
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">Updated</dt>
+                        <dt class="text-muted-foreground">Diperbarui</dt>
                         <dd class="text-right">
                             {{ formatDate(course.updated_at) }}
                         </dd>
@@ -285,7 +285,7 @@ function deleteCourse() {
 
                 <Link :href="courses.index()">
                     <Button variant="ghost" class="w-full"
-                        >Back to courses</Button
+                        >Kembali ke kursus</Button
                     >
                 </Link>
             </div>

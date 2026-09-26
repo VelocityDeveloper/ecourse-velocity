@@ -126,7 +126,7 @@ function markIncomplete(): void {
                         class="mr-2 h-4 w-4 text-primary"
                     />
                     <Bookmark v-else class="mr-2 h-4 w-4" />
-                    {{ lesson.is_bookmarked ? 'Bookmarked' : 'Bookmark' }}
+                    {{ lesson.is_bookmarked ? 'Ditandai' : 'Tandai' }}
                 </Button>
             </div>
             <div class="flex flex-wrap items-center gap-2">
@@ -136,7 +136,7 @@ function markIncomplete(): void {
                         class="h-3 w-3"
                     />
                     <FileText v-else class="h-3 w-3" />
-                    {{ lesson.content_type === 'video' ? 'Video' : 'Article' }}
+                    {{ lesson.content_type === 'video' ? 'Video' : 'Artikel' }}
                 </Badge>
                 <span
                     v-if="lesson.duration_minutes"
@@ -146,7 +146,7 @@ function markIncomplete(): void {
                 </span>
                 <Badge v-if="lesson.is_completed">
                     <CircleCheck class="h-3 w-3" />
-                    Completed
+                    Selesai
                 </Badge>
             </div>
         </header>
@@ -184,7 +184,7 @@ function markIncomplete(): void {
                 <PlayCircle class="h-5 w-5" />
             </span>
             <span class="min-w-0 flex-1">
-                <span class="block font-medium">Watch the lesson video</span>
+                <span class="block font-medium">Tonton video materi</span>
                 <span class="block truncate text-sm text-muted-foreground">
                     {{ lesson.content_url }}
                 </span>
@@ -203,13 +203,13 @@ function markIncomplete(): void {
             v-if="!lesson.content && !lesson.content_url"
             class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground"
         >
-            This lesson has no material yet.
+            Materi ini belum memiliki isi.
         </p>
 
         <section v-if="lesson.attachments.length > 0" class="space-y-3">
             <h2 class="flex items-center gap-2 text-lg font-semibold">
                 <Paperclip class="h-4 w-4" />
-                Resources
+                Lampiran
             </h2>
             <ul class="divide-y rounded-lg border">
                 <li
@@ -240,8 +240,8 @@ function markIncomplete(): void {
             <p class="text-sm text-muted-foreground">
                 {{
                     lesson.is_completed
-                        ? 'You finished this lesson.'
-                        : 'Done with this lesson? Mark it complete to track your progress.'
+                        ? 'Anda telah menyelesaikan materi ini.'
+                        : 'Sudah selesai dengan materi ini? Tandai selesai untuk melacak progres Anda.'
                 }}
             </p>
             <Button
@@ -252,13 +252,11 @@ function markIncomplete(): void {
                 @click="markIncomplete"
             >
                 <RotateCcw class="mr-2 h-4 w-4" />
-                Mark as not complete
+                Tandai belum selesai
             </Button>
             <Button v-else :disabled="saving" @click="markComplete">
                 <CircleCheck class="mr-2 h-4 w-4" />
-                {{
-                    neighbours.next ? 'Complete & continue' : 'Mark as complete'
-                }}
+                {{ neighbours.next ? 'Selesai & lanjutkan' : 'Tandai selesai' }}
             </Button>
         </div>
 

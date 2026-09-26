@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
-import { MessageCircle, MessagesSquare, Trash2 } from '@lucide/vue';
-import { ref } from 'vue';
+import {
+    ChevronDown,
+    MessageCircle,
+    MessagesSquare,
+    SendHorizontal,
+    Trash2,
+} from '@lucide/vue';
+import { nextTick, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +34,28 @@ const props = defineProps<{
 const questionBody = ref('');
 const replyBodies = ref<Record<number, string>>({});
 const openReplyId = ref<number | null>(null);
+
+// Replies stay folded under "Lihat N balasan" so a long discussion stays scannable.
+const expandedIds = ref<number[]>([]);
+
+function isExpanded(questionId: number): boolean {
+    return expandedIds.value.includes(questionId);
+}
+
+function toggleReplies(questionId: number): void {
+    expandedIds.value = isExpanded(questionId)
+        ? expandedIds.value.filter((id) => id !== questionId)
+        : [...expandedIds.value, questionId];
+}
+
+// Replying opens the thread so the answer is written with its context in view.
+function openReply(questionId: number): void {
+    openReplyId.value = questionId;
+
+    if (!isExpanded(questionId)) {
+        expandedIds.value = [...expandedIds.value, questionId];
+    }
+}
 const errors = ref<Record<string, string>>({});
 const posting = ref(false);
 
@@ -44,7 +72,7 @@ function timeAgo(date: string | null): string {
         ['hour', 3600],
         ['minute', 60],
     ];
-    const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+    const formatter = new Intl.RelativeTimeFormat('id-ID', { numeric: 'auto' });
 
     for (const [unit, size] of units) {
         if (seconds >= size) {
@@ -52,10 +80,19 @@ function timeAgo(date: string | null): string {
         }
     }
 
-    return 'just now';
+    return 'baru saja';
 }
 
+// The question box under the conversation; kept in view after posting so the
+// new question (added at the bottom) shows right above it.
+const composer = ref<HTMLFormElement | null>(null);
+
 function ask(): void {
+    // Ctrl + Enter reaches here even while the button is disabled.
+    if (posting.value || questionBody.value.trim().length < 3) {
+        return;
+    }
+
     posting.value = true;
     errors.value = {};
 
@@ -67,8 +104,13 @@ function ask(): void {
         { body: questionBody.value },
         {
             preserveScroll: true,
-            onSuccess: () => {
+            onSuccess: async () => {
                 questionBody.value = '';
+                await nextTick();
+                composer.value?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'end',
+                });
             },
             onError: (err) => {
                 errors.value = { question: err.body };
@@ -136,7 +178,7 @@ function confirmDelete(): void {
 }
 
 function authorLabel(author: DiscussionAuthor): string {
-    return author.is_staff ? 'Instructor' : '';
+    return author.is_staff ? 'Instruktur' : '';
 }
 </script>
 
@@ -147,39 +189,17 @@ function authorLabel(author: DiscussionAuthor): string {
             class="flex items-center gap-2 text-lg font-semibold"
         >
             <MessagesSquare class="h-4 w-4" />
-            Discussion
+            Diskusi
             <span class="text-sm font-normal text-muted-foreground">
                 ({{ questions.length }})
             </span>
         </h2>
 
-        <form
-            class="space-y-2 rounded-lg border bg-card p-4 text-card-foreground"
-            @submit.prevent="ask"
-        >
-            <Textarea
-                v-model="questionBody"
-                rows="3"
-                maxlength="5000"
-                aria-label="Ask a question about this lesson"
-                placeholder="Stuck on something? Ask the instructor and your classmates."
-            />
-            <InputError :message="errors.question" />
-            <div class="flex justify-end">
-                <Button
-                    size="sm"
-                    :disabled="posting || questionBody.trim().length < 3"
-                >
-                    Post question
-                </Button>
-            </div>
-        </form>
-
         <p
             v-if="questions.length === 0"
             class="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground"
         >
-            No questions yet. Be the first to start the discussion.
+            Belum ada pertanyaan. Jadilah yang pertama memulai diskusi.
         </p>
 
         <article
@@ -222,15 +242,47 @@ function authorLabel(author: DiscussionAuthor): string {
                     variant="ghost"
                     size="icon"
                     class="size-8 shrink-0"
-                    aria-label="Delete question"
+                    aria-label="Hapus pertanyaan"
                     @click="removeQuestion(question.id)"
                 >
                     <Trash2 class="h-4 w-4 text-destructive" />
                 </Button>
             </div>
 
+            <div class="ml-11 flex flex-wrap items-center gap-1">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    class="h-auto px-2 py-1 text-muted-foreground"
+                    @click="openReply(question.id)"
+                >
+                    <MessageCircle class="mr-1.5 h-3.5 w-3.5" />
+                    Balas
+                </Button>
+                <Button
+                    v-if="question.replies.length > 0"
+                    variant="ghost"
+                    size="sm"
+                    class="h-auto px-2 py-1 font-semibold text-primary hover:text-primary"
+                    :aria-expanded="isExpanded(question.id)"
+                    :aria-controls="`replies-${question.id}`"
+                    @click="toggleReplies(question.id)"
+                >
+                    <ChevronDown
+                        class="mr-1 h-4 w-4 transition-transform"
+                        :class="isExpanded(question.id) ? 'rotate-180' : ''"
+                    />
+                    {{
+                        isExpanded(question.id)
+                            ? 'Sembunyikan balasan'
+                            : `Lihat ${question.replies.length} balasan`
+                    }}
+                </Button>
+            </div>
+
             <ul
-                v-if="question.replies.length > 0"
+                v-if="question.replies.length > 0 && isExpanded(question.id)"
+                :id="`replies-${question.id}`"
                 class="ml-11 space-y-3 border-l pl-4"
             >
                 <li
@@ -274,7 +326,7 @@ function authorLabel(author: DiscussionAuthor): string {
                         variant="ghost"
                         size="icon"
                         class="size-7 shrink-0"
-                        aria-label="Delete reply"
+                        aria-label="Hapus balasan"
                         @click="removeReply(replyItem.id)"
                     >
                         <Trash2 class="h-3.5 w-3.5 text-destructive" />
@@ -282,18 +334,14 @@ function authorLabel(author: DiscussionAuthor): string {
                 </li>
             </ul>
 
-            <div class="ml-11">
-                <form
-                    v-if="openReplyId === question.id"
-                    class="space-y-2"
-                    @submit.prevent="reply(question.id)"
-                >
+            <div v-if="openReplyId === question.id" class="ml-11">
+                <form class="space-y-2" @submit.prevent="reply(question.id)">
                     <Textarea
                         v-model="replyBodies[question.id]"
                         rows="2"
                         maxlength="5000"
-                        :aria-label="`Reply to ${question.author.name}`"
-                        placeholder="Write a reply..."
+                        :aria-label="`Balas ${question.author.name}`"
+                        placeholder="Tulis balasan..."
                     />
                     <InputError :message="errors[`reply-${question.id}`]" />
                     <div class="flex justify-end gap-2">
@@ -303,7 +351,7 @@ function authorLabel(author: DiscussionAuthor): string {
                             size="sm"
                             @click="openReplyId = null"
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button
                             size="sm"
@@ -313,22 +361,44 @@ function authorLabel(author: DiscussionAuthor): string {
                                     3
                             "
                         >
-                            Reply
+                            Balas
                         </Button>
                     </div>
                 </form>
-                <Button
-                    v-else
-                    variant="ghost"
-                    size="sm"
-                    class="h-auto px-2 py-1 text-muted-foreground"
-                    @click="openReplyId = question.id"
-                >
-                    <MessageCircle class="mr-1.5 h-3.5 w-3.5" />
-                    Reply
-                </Button>
             </div>
         </article>
+
+        <!-- The question box sits under the conversation, like a chat. -->
+        <form
+            ref="composer"
+            class="space-y-3 rounded-2xl border bg-card p-4 text-card-foreground shadow-sm"
+            @submit.prevent="ask"
+        >
+            <Textarea
+                v-model="questionBody"
+                rows="3"
+                maxlength="5000"
+                aria-label="Ajukan pertanyaan tentang materi ini"
+                class="resize-none"
+                @keydown.ctrl.enter.prevent="ask"
+                @keydown.meta.enter.prevent="ask"
+                placeholder="Ada yang membingungkan? Tanyakan kepada instruktur dan teman sekelas Anda."
+            />
+            <InputError :message="errors.question" />
+            <div class="flex items-center justify-between gap-3">
+                <p class="text-xs text-muted-foreground">
+                    Tekan Ctrl + Enter untuk mengirim.
+                </p>
+                <Button
+                    size="sm"
+                    class="rounded-xl font-bold"
+                    :disabled="posting || questionBody.trim().length < 3"
+                >
+                    <SendHorizontal class="mr-1.5 h-4 w-4" />
+                    Kirim pertanyaan
+                </Button>
+            </div>
+        </form>
 
         <Dialog
             :open="pendingDelete !== null"
@@ -343,24 +413,24 @@ function authorLabel(author: DiscussionAuthor): string {
                     <DialogTitle>
                         {{
                             pendingDelete?.kind === 'question'
-                                ? 'Delete question'
-                                : 'Delete reply'
+                                ? 'Hapus pertanyaan'
+                                : 'Hapus balasan'
                         }}
                     </DialogTitle>
                     <DialogDescription>
                         {{
                             pendingDelete?.kind === 'question'
-                                ? 'The question and all of its replies will be removed. This cannot be undone.'
-                                : 'This reply will be removed. This cannot be undone.'
+                                ? 'Pertanyaan beserta semua balasannya akan dihapus. Tindakan ini tidak bisa dibatalkan.'
+                                : 'Balasan ini akan dihapus. Tindakan ini tidak bisa dibatalkan.'
                         }}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter class="gap-2">
                     <Button variant="secondary" @click="pendingDelete = null">
-                        Cancel
+                        Batal
                     </Button>
                     <Button variant="destructive" @click="confirmDelete">
-                        Delete
+                        Hapus
                     </Button>
                 </DialogFooter>
             </DialogContent>

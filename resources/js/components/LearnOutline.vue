@@ -36,7 +36,7 @@ function isActive(item: OutlineItem): boolean {
 </script>
 
 <template>
-    <nav class="flex flex-col gap-5" aria-label="Course content">
+    <nav class="flex flex-col gap-5" aria-label="Isi kursus">
         <div class="space-y-3">
             <Link
                 :href="catalogRoutes.show(outline.course.id)"
@@ -51,7 +51,7 @@ function isActive(item: OutlineItem): boolean {
                     :aria-valuenow="outline.progress.percent"
                     aria-valuemin="0"
                     aria-valuemax="100"
-                    aria-label="Course progress"
+                    aria-label="Progres kursus"
                 >
                     <div
                         class="h-full rounded-full bg-primary transition-[width]"
@@ -59,8 +59,8 @@ function isActive(item: OutlineItem): boolean {
                     />
                 </div>
                 <p class="text-xs text-muted-foreground">
-                    {{ outline.progress.completed }} of
-                    {{ outline.progress.total }} complete ·
+                    {{ outline.progress.completed }} dari
+                    {{ outline.progress.total }} selesai ·
                     {{ outline.progress.percent }}%
                 </p>
             </div>
@@ -88,7 +88,7 @@ function isActive(item: OutlineItem): boolean {
                 <CircleCheck
                     v-if="item.is_done"
                     class="mt-0.5 h-4 w-4 shrink-0 text-primary"
-                    aria-label="Completed"
+                    aria-label="Selesai"
                 />
                 <ListChecks
                     v-else-if="item.type === 'quiz'"
@@ -107,7 +107,7 @@ function isActive(item: OutlineItem): boolean {
                     <span class="text-xs font-normal text-muted-foreground">
                         {{
                             item.type === 'quiz'
-                                ? `Quiz · ${formatTimeLimit(item.time_limit_minutes)}`
+                                ? `Kuis · ${formatTimeLimit(item.time_limit_minutes)}`
                                 : formatDuration(item.duration_minutes)
                         }}
                     </span>
@@ -115,7 +115,7 @@ function isActive(item: OutlineItem): boolean {
                 <BookmarkCheck
                     v-if="item.type === 'lesson' && item.is_bookmarked"
                     class="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                    aria-label="Bookmarked"
+                    aria-label="Ditandai"
                 />
             </Link>
         </div>

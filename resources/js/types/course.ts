@@ -51,6 +51,7 @@ export type Category = {
     name: string;
     slug: string;
     description: string | null;
+    image_url?: string | null;
     courses_count?: number;
 };
 

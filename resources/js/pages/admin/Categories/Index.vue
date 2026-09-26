@@ -14,15 +14,15 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Pencil, Plus, Search, Trash2 } from '@lucide/vue';
+import { ImageOff, Pencil, Plus, Search, Trash2 } from '@lucide/vue';
 import categoryRoutes from '@/routes/admin/categories';
 import type { Category, Paginated } from '@/types';
 
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Categories', href: '/admin/categories' },
+            { title: 'Dasbor', href: '/dashboard' },
+            { title: 'Kategori', href: '/admin/categories' },
         ],
     },
 });
@@ -56,19 +56,19 @@ function deleteCategory(id: number) {
 </script>
 
 <template>
-    <Head title="Course Categories" />
+    <Head title="Kategori Kursus" />
 
     <div class="flex flex-col space-y-6">
         <div class="flex items-center justify-between">
             <Heading
                 variant="small"
-                title="Course Categories"
-                description="Group courses so they are easier to browse"
+                title="Kategori Kursus"
+                description="Kelompokkan kursus agar lebih mudah dijelajahi"
             />
             <Link :href="categoryRoutes.create()">
                 <Button>
                     <Plus class="mr-2 h-4 w-4" />
-                    Add Category
+                    Tambah Kategori
                 </Button>
             </Link>
         </div>
@@ -80,12 +80,12 @@ function deleteCategory(id: number) {
                 />
                 <Input
                     v-model="search"
-                    placeholder="Search by name or slug..."
+                    placeholder="Cari nama atau slug..."
                     class="pl-9"
                     @keyup.enter="applyFilters"
                 />
             </div>
-            <Button variant="outline" @click="applyFilters">Search</Button>
+            <Button variant="outline" @click="applyFilters">Cari</Button>
         </div>
 
         <div class="rounded-lg border">
@@ -96,7 +96,7 @@ function deleteCategory(id: number) {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Name
+                                Nama
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
@@ -106,17 +106,17 @@ function deleteCategory(id: number) {
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Description
+                                Deskripsi
                             </th>
                             <th
                                 class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
                             >
-                                Courses
+                                Kursus
                             </th>
                             <th
                                 class="h-12 px-4 text-right align-middle font-medium text-muted-foreground"
                             >
-                                Actions
+                                Aksi
                             </th>
                         </tr>
                     </thead>
@@ -126,7 +126,7 @@ function deleteCategory(id: number) {
                                 colspan="5"
                                 class="py-8 text-center text-muted-foreground"
                             >
-                                No categories found.
+                                Kategori tidak ditemukan.
                             </td>
                         </tr>
                         <tr
@@ -135,7 +135,22 @@ function deleteCategory(id: number) {
                             class="border-b transition-colors hover:bg-muted/50"
                         >
                             <td class="p-4 align-middle font-medium">
-                                {{ category.name }}
+                                <div class="flex items-center gap-3">
+                                    <img
+                                        v-if="category.image_url"
+                                        :src="category.image_url"
+                                        alt=""
+                                        class="h-9 w-16 shrink-0 rounded-md border object-cover"
+                                    />
+                                    <span
+                                        v-else
+                                        class="flex h-9 w-16 shrink-0 items-center justify-center rounded-md border border-dashed text-muted-foreground"
+                                        title="Belum ada gambar"
+                                    >
+                                        <ImageOff class="h-4 w-4" />
+                                    </span>
+                                    {{ category.name }}
+                                </div>
                             </td>
                             <td class="p-4 align-middle text-muted-foreground">
                                 {{ category.slug }}
@@ -170,27 +185,27 @@ function deleteCategory(id: number) {
                                         <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle
-                                                    >Delete
-                                                    Category</DialogTitle
+                                                    >Hapus Kategori</DialogTitle
                                                 >
                                                 <DialogDescription>
-                                                    Delete
+                                                    Hapus
                                                     <strong>{{
                                                         category.name
                                                     }}</strong
-                                                    >? Its
+                                                    >? Sebanyak
                                                     {{
                                                         category.courses_count ??
                                                         0
                                                     }}
-                                                    course(s) will stay, but
-                                                    become uncategorised.
+                                                    kursus di dalamnya tetap
+                                                    ada, tetapi menjadi tanpa
+                                                    kategori.
                                                 </DialogDescription>
                                             </DialogHeader>
                                             <DialogFooter class="gap-2">
                                                 <DialogClose as-child>
                                                     <Button variant="secondary"
-                                                        >Cancel</Button
+                                                        >Batal</Button
                                                     >
                                                 </DialogClose>
                                                 <Button
@@ -201,7 +216,7 @@ function deleteCategory(id: number) {
                                                         )
                                                     "
                                                 >
-                                                    Delete
+                                                    Hapus
                                                 </Button>
                                             </DialogFooter>
                                         </DialogContent>
@@ -224,10 +239,11 @@ function deleteCategory(id: number) {
                 :disabled="categories.current_page <= 1"
                 @click="goToPage(categories.current_page - 1)"
             >
-                Previous
+                Sebelumnya
             </Button>
             <span class="text-sm text-muted-foreground">
-                Page {{ categories.current_page }} of {{ categories.last_page }}
+                Halaman {{ categories.current_page }} dari
+                {{ categories.last_page }}
             </span>
             <Button
                 variant="outline"
@@ -235,7 +251,7 @@ function deleteCategory(id: number) {
                 :disabled="categories.current_page >= categories.last_page"
                 @click="goToPage(categories.current_page + 1)"
             >
-                Next
+                Berikutnya
             </Button>
         </div>
     </div>

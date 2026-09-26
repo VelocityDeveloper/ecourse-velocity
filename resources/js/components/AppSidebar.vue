@@ -7,6 +7,7 @@ import {
     FolderGit2,
     GraduationCap,
     LayoutGrid,
+    Settings,
     Users,
 } from '@lucide/vue';
 import { computed } from 'vue';
@@ -26,6 +27,9 @@ import {
 import categories from '@/routes/admin/categories';
 import lessons from '@/routes/lessons';
 import quizzes from '@/routes/quizzes';
+import banners from '@/routes/admin/banners';
+import siteSettings from '@/routes/admin/settings';
+import testimonials from '@/routes/admin/testimonials';
 import users from '@/routes/admin/users';
 import catalog from '@/routes/catalog';
 import courses from '@/routes/courses';
@@ -43,7 +47,7 @@ const canManageCourses = computed(
 const mainNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: 'Dasbor',
             href: dashboard(),
             icon: LayoutGrid,
         },
@@ -51,20 +55,20 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     if (canManageCourses.value) {
         const courseChildren: NavItem[] = [
-            { title: 'All Courses', href: courses.index() },
-            { title: 'Lessons', href: lessons.index() },
-            { title: 'Quizzes', href: quizzes.index() },
+            { title: 'Semua Kursus', href: courses.index() },
+            { title: 'Materi', href: lessons.index() },
+            { title: 'Kuis', href: quizzes.index() },
         ];
 
         if (isAdmin.value) {
             courseChildren.push({
-                title: 'Categories',
+                title: 'Kategori',
                 href: categories.index(),
             });
         }
 
         items.push({
-            title: 'Courses',
+            title: 'Kursus',
             href: courses.index(),
             icon: GraduationCap,
             items: courseChildren,
@@ -73,23 +77,39 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     if (canManageCourses.value) {
         items.push({
-            title: 'Enrollments',
+            title: 'Pendaftaran',
             href: enrollments.index(),
             icon: ClipboardCheck,
         });
     }
 
     items.push({
-        title: 'View Site',
+        title: 'Lihat Situs',
         href: catalog.index(),
         icon: Compass,
     });
 
     if (isAdmin.value) {
         items.push({
-            title: 'Users',
+            title: 'Pengguna',
             href: users.index(),
             icon: Users,
+        });
+        items.push({
+            title: 'Pengaturan Situs',
+            href: siteSettings.edit('identitas'),
+            icon: Settings,
+            items: [
+                {
+                    title: 'Identitas & Logo',
+                    href: siteSettings.edit('identitas'),
+                },
+                { title: 'Warna', href: siteSettings.edit('warna') },
+                { title: 'Hero Beranda', href: siteSettings.edit('hero') },
+                { title: 'Banner Promo', href: banners.index() },
+                { title: 'Testimoni', href: testimonials.index() },
+                { title: 'Kontak & Footer', href: siteSettings.edit('kontak') },
+            ],
         });
     }
 
@@ -98,12 +118,12 @@ const mainNavItems = computed<NavItem[]>(() => {
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
+        title: 'Repositori',
         href: 'https://github.com/laravel/vue-starter-kit',
         icon: FolderGit2,
     },
     {
-        title: 'Documentation',
+        title: 'Dokumentasi',
         href: 'https://laravel.com/docs/starter-kits#vue',
         icon: BookOpen,
     },

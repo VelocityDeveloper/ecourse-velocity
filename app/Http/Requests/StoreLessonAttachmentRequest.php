@@ -34,7 +34,7 @@ class StoreLessonAttachmentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'files.*.mimes' => 'Only documents, archives and images can be attached.',
+            'files.*.mimes' => __('Only documents, archives and images can be attached.'),
         ];
     }
 }

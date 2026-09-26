@@ -104,7 +104,7 @@ const deleteTarget = ref<{
 } | null>(null);
 
 const deleteLabel = computed(() => {
-    const labels = { section: 'Section', lesson: 'Lesson', quiz: 'Quiz' };
+    const labels = { section: 'Bab', lesson: 'Materi', quiz: 'Kuis' };
 
     return deleteTarget.value === null ? '' : labels[deleteTarget.value.kind];
 });
@@ -362,16 +362,15 @@ function confirmDelete() {
         <div class="rounded-lg border">
             <div class="flex items-center justify-between gap-4 border-b p-4">
                 <div>
-                    <h3 class="text-sm font-medium">Curriculum</h3>
+                    <h3 class="text-sm font-medium">Kurikulum</h3>
                     <p class="text-xs text-muted-foreground">
-                        {{ sections.length }} section(s) ·
-                        {{ totalLessons }} lesson(s) ·
+                        {{ sections.length }} bab · {{ totalLessons }} materi ·
                         {{ formatDuration(totalMinutes) }}
                     </p>
                 </div>
                 <Button v-if="canEdit" size="sm" @click="openSectionDialog()">
                     <Plus class="mr-2 h-4 w-4" />
-                    Add Section
+                    Tambah Bab
                 </Button>
             </div>
 
@@ -379,9 +378,9 @@ function confirmDelete() {
                 v-if="sections.length === 0"
                 class="p-8 text-center text-sm text-muted-foreground"
             >
-                No sections yet.
+                Belum ada bab.
                 <span v-if="canEdit"
-                    >Add the first one to start the curriculum.</span
+                    >Tambahkan bab pertama untuk memulai kurikulum.</span
                 >
             </p>
 
@@ -403,7 +402,7 @@ function confirmDelete() {
                         </p>
                         <div class="mt-2 flex items-center gap-2">
                             <Badge variant="outline">
-                                {{ section.lessons.length }} lesson(s)
+                                {{ section.lessons.length }} materi
                             </Badge>
                             <span
                                 class="flex items-center gap-1 text-xs text-muted-foreground"
@@ -422,7 +421,7 @@ function confirmDelete() {
                             variant="ghost"
                             size="sm"
                             :disabled="sectionIndex === 0"
-                            aria-label="Move section up"
+                            aria-label="Pindahkan bab ke atas"
                             @click="moveSection(section, 'up')"
                         >
                             <ChevronUp class="h-4 w-4" />
@@ -431,7 +430,7 @@ function confirmDelete() {
                             variant="ghost"
                             size="sm"
                             :disabled="sectionIndex === sections.length - 1"
-                            aria-label="Move section down"
+                            aria-label="Pindahkan bab ke bawah"
                             @click="moveSection(section, 'down')"
                         >
                             <ChevronDown class="h-4 w-4" />
@@ -499,7 +498,7 @@ function confirmDelete() {
                                     variant="ghost"
                                     size="sm"
                                     :disabled="lessonIndex === 0"
-                                    aria-label="Move lesson up"
+                                    aria-label="Pindahkan materi ke atas"
                                     @click="moveLesson(lesson, 'up')"
                                 >
                                     <ChevronUp class="h-4 w-4" />
@@ -511,7 +510,7 @@ function confirmDelete() {
                                         lessonIndex ===
                                         section.lessons.length - 1
                                     "
-                                    aria-label="Move lesson down"
+                                    aria-label="Pindahkan materi ke bawah"
                                     @click="moveLesson(lesson, 'down')"
                                 >
                                     <ChevronDown class="h-4 w-4" />
@@ -520,7 +519,7 @@ function confirmDelete() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        aria-label="Edit material"
+                                        aria-label="Ubah isi materi"
                                     >
                                         <FileText class="h-4 w-4" />
                                     </Button>
@@ -558,14 +557,14 @@ function confirmDelete() {
                             @click="openLessonDialog(section.id)"
                         >
                             <Plus class="mr-2 h-4 w-4" />
-                            Add Lesson
+                            Tambah Materi
                         </Button>
                         <Button
                             variant="ghost"
                             size="sm"
                             @click="openPicker('lesson', section.id)"
                         >
-                            Add existing lesson
+                            Tambah materi yang sudah ada
                         </Button>
                     </li>
 
@@ -573,7 +572,7 @@ function confirmDelete() {
                         v-else-if="section.lessons.length === 0"
                         class="px-4 py-3 text-sm text-muted-foreground"
                     >
-                        No lessons in this section yet.
+                        Belum ada materi di bab ini.
                     </li>
                 </ul>
 
@@ -612,10 +611,10 @@ function confirmDelete() {
                                 {{ formatTimeLimit(quiz.time_limit_minutes) }}
                             </Badge>
                             <Badge variant="outline">
-                                {{ quiz.questions_count }} question(s)
+                                {{ quiz.questions_count }} soal
                             </Badge>
                             <Badge variant="secondary"
-                                >{{ quiz.total_points }} pts</Badge
+                                >{{ quiz.total_points }} poin</Badge
                             >
 
                             <template v-if="canEdit">
@@ -623,7 +622,7 @@ function confirmDelete() {
                                     variant="ghost"
                                     size="sm"
                                     :disabled="quizIndex === 0"
-                                    aria-label="Move quiz up"
+                                    aria-label="Pindahkan kuis ke atas"
                                     @click="moveQuiz(quiz, 'up')"
                                 >
                                     <ChevronUp class="h-4 w-4" />
@@ -634,7 +633,7 @@ function confirmDelete() {
                                     :disabled="
                                         quizIndex === section.quizzes.length - 1
                                     "
-                                    aria-label="Move quiz down"
+                                    aria-label="Pindahkan kuis ke bawah"
                                     @click="moveQuiz(quiz, 'down')"
                                 >
                                     <ChevronDown class="h-4 w-4" />
@@ -643,7 +642,7 @@ function confirmDelete() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        aria-label="Edit questions"
+                                        aria-label="Ubah soal"
                                     >
                                         <ListChecks class="h-4 w-4" />
                                     </Button>
@@ -651,7 +650,7 @@ function confirmDelete() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    aria-label="Rename quiz"
+                                    aria-label="Ganti nama kuis"
                                     @click="openQuizDialog(section.id, quiz)"
                                 >
                                     <Pencil class="h-4 w-4" />
@@ -680,14 +679,14 @@ function confirmDelete() {
                             @click="openQuizDialog(section.id)"
                         >
                             <Plus class="mr-2 h-4 w-4" />
-                            Add Quiz
+                            Tambah Kuis
                         </Button>
                         <Button
                             variant="ghost"
                             size="sm"
                             @click="openPicker('quiz', section.id)"
                         >
-                            Add existing quiz
+                            Tambah kuis yang sudah ada
                         </Button>
                     </li>
                 </ul>
@@ -700,18 +699,18 @@ function confirmDelete() {
                     <DialogTitle>
                         {{
                             editingSectionId === null
-                                ? 'Add Section'
-                                : 'Edit Section'
+                                ? 'Tambah Bab'
+                                : 'Ubah Bab'
                         }}
                     </DialogTitle>
                     <DialogDescription>
-                        A section groups related lessons together.
+                        Bab mengelompokkan materi yang saling berkaitan.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form @submit.prevent="submitSection" class="space-y-4">
                     <div class="grid gap-2">
-                        <Label for="section-title">Title</Label>
+                        <Label for="section-title">Judul</Label>
                         <Input
                             id="section-title"
                             v-model="sectionForm.title"
@@ -722,12 +721,12 @@ function confirmDelete() {
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="section-description">Description</Label>
+                        <Label for="section-description">Deskripsi</Label>
                         <Textarea
                             id="section-description"
                             v-model="sectionForm.description"
                             rows="3"
-                            placeholder="Optional summary of this section"
+                            placeholder="Ringkasan bab ini (opsional)"
                         />
                         <InputError :message="errors.description" />
                     </div>
@@ -738,10 +737,10 @@ function confirmDelete() {
                             variant="secondary"
                             @click="sectionDialogOpen = false"
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button :disabled="processing">
-                            {{ processing ? 'Saving...' : 'Save Section' }}
+                            {{ processing ? 'Menyimpan...' : 'Simpan Bab' }}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -754,18 +753,19 @@ function confirmDelete() {
                     <DialogTitle>
                         {{
                             editingLessonId === null
-                                ? 'Add Lesson'
-                                : 'Edit Lesson'
+                                ? 'Tambah Materi'
+                                : 'Ubah Materi'
                         }}
                     </DialogTitle>
                     <DialogDescription>
-                        Lessons are the individual items students work through.
+                        Materi adalah bagian-bagian yang dipelajari siswa satu
+                        per satu.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form @submit.prevent="submitLesson" class="space-y-4">
                     <div class="grid gap-2">
-                        <Label for="lesson-title">Title</Label>
+                        <Label for="lesson-title">Judul</Label>
                         <Input
                             id="lesson-title"
                             v-model="lessonForm.title"
@@ -776,10 +776,10 @@ function confirmDelete() {
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="lesson-type">Content type</Label>
+                        <Label for="lesson-type">Jenis konten</Label>
                         <Select v-model="lessonForm.content_type">
                             <SelectTrigger id="lesson-type">
-                                <SelectValue placeholder="Select type" />
+                                <SelectValue placeholder="Pilih jenis" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem
@@ -795,7 +795,7 @@ function confirmDelete() {
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="lesson-url">Content URL</Label>
+                        <Label for="lesson-url">URL konten</Label>
                         <Input
                             id="lesson-url"
                             v-model="lessonForm.content_url"
@@ -806,7 +806,7 @@ function confirmDelete() {
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="lesson-duration">Duration (minutes)</Label>
+                        <Label for="lesson-duration">Durasi (menit)</Label>
                         <Input
                             id="lesson-duration"
                             v-model="lessonForm.duration_minutes"
@@ -823,10 +823,10 @@ function confirmDelete() {
                             variant="secondary"
                             @click="lessonDialogOpen = false"
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button :disabled="processing">
-                            {{ processing ? 'Saving...' : 'Save Lesson' }}
+                            {{ processing ? 'Menyimpan...' : 'Simpan Materi' }}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -837,16 +837,18 @@ function confirmDelete() {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        {{ editingQuizId === null ? 'Add Quiz' : 'Edit Quiz' }}
+                        {{
+                            editingQuizId === null ? 'Tambah Kuis' : 'Ubah Kuis'
+                        }}
                     </DialogTitle>
                     <DialogDescription>
-                        A quiz holds its own questions, answer key and points.
+                        Kuis memiliki soal, kunci jawaban, dan poinnya sendiri.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form @submit.prevent="submitQuiz" class="space-y-4">
                     <div class="grid gap-2">
-                        <Label for="quiz-title">Title</Label>
+                        <Label for="quiz-title">Judul</Label>
                         <Input
                             id="quiz-title"
                             v-model="quizForm.title"
@@ -857,30 +859,28 @@ function confirmDelete() {
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="quiz-description">Description</Label>
+                        <Label for="quiz-description">Deskripsi</Label>
                         <Textarea
                             id="quiz-description"
                             v-model="quizForm.description"
                             rows="3"
-                            placeholder="Optional summary of this quiz"
+                            placeholder="Ringkasan kuis ini (opsional)"
                         />
                         <InputError :message="errors.description" />
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="quiz-time-limit"
-                            >Time limit (minutes)</Label
-                        >
+                        <Label for="quiz-time-limit">Batas waktu (menit)</Label>
                         <Input
                             id="quiz-time-limit"
                             v-model="quizForm.time_limit_minutes"
                             type="number"
                             min="1"
                             max="600"
-                            placeholder="No limit"
+                            placeholder="Tanpa batas"
                         />
                         <p class="text-xs text-muted-foreground">
-                            Leave empty for no time limit.
+                            Kosongkan jika tanpa batas waktu.
                         </p>
                         <InputError :message="errors.time_limit_minutes" />
                     </div>
@@ -891,10 +891,10 @@ function confirmDelete() {
                             variant="secondary"
                             @click="quizDialogOpen = false"
                         >
-                            Cancel
+                            Batal
                         </Button>
                         <Button :disabled="processing">
-                            {{ processing ? 'Saving...' : 'Save Quiz' }}
+                            {{ processing ? 'Menyimpan...' : 'Simpan Kuis' }}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -904,11 +904,15 @@ function confirmDelete() {
         <Dialog v-model:open="pickerOpen">
             <DialogContent class="sm:max-w-xl">
                 <DialogHeader>
-                    <DialogTitle> Add existing {{ pickerKind }} </DialogTitle>
+                    <DialogTitle>
+                        Tambah {{ pickerKind === 'lesson' ? 'materi' : 'kuis' }}
+                        yang sudah ada
+                    </DialogTitle>
                     <DialogDescription>
-                        Pick a {{ pickerKind }} from any course you manage. It
-                        is moved here, not copied, so it leaves the section it
-                        is in now.
+                        Pilih {{ pickerKind === 'lesson' ? 'materi' : 'kuis' }}
+                        dari kursus mana pun yang Anda kelola. Item ini
+                        dipindahkan ke sini, bukan disalin, sehingga keluar dari
+                        bab asalnya.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -919,7 +923,7 @@ function confirmDelete() {
                     <Input
                         v-model="pickerSearch"
                         class="pl-9"
-                        placeholder="Search by title, section or course..."
+                        placeholder="Cari menurut judul, bab, atau kursus..."
                     />
                 </div>
 
@@ -927,14 +931,14 @@ function confirmDelete() {
                     v-if="pickerLoading"
                     class="py-6 text-center text-sm text-muted-foreground"
                 >
-                    Loading...
+                    Memuat...
                 </p>
 
                 <p
                     v-else-if="pickerItems.length === 0"
                     class="py-6 text-center text-sm text-muted-foreground"
                 >
-                    Nothing available to move here.
+                    Tidak ada yang bisa dipindahkan ke sini.
                 </p>
 
                 <ul
@@ -960,14 +964,14 @@ function confirmDelete() {
                             variant="outline"
                             @click="moveIntoSection(item)"
                         >
-                            Move here
+                            Pindahkan ke sini
                         </Button>
                     </li>
                 </ul>
 
                 <DialogFooter>
                     <Button variant="secondary" @click="pickerOpen = false"
-                        >Close</Button
+                        >Tutup</Button
                     >
                 </DialogFooter>
             </DialogContent>
@@ -984,28 +988,28 @@ function confirmDelete() {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        Delete
+                        Hapus
                         {{ deleteLabel }}
                     </DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete
+                        Yakin ingin menghapus
                         <strong>{{ deleteTarget?.title }}</strong
                         >?
                         <template v-if="deleteTarget?.kind === 'section'">
-                            Every lesson and quiz inside it will be deleted too.
+                            Semua materi dan kuis di dalamnya juga akan dihapus.
                         </template>
                         <template v-else-if="deleteTarget?.kind === 'quiz'">
-                            Its questions and answer key will be deleted too.
+                            Soal dan kunci jawabannya juga akan dihapus.
                         </template>
-                        This action cannot be undone.
+                        Tindakan ini tidak bisa dibatalkan.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter class="gap-2">
                     <Button variant="secondary" @click="deleteTarget = null"
-                        >Cancel</Button
+                        >Batal</Button
                     >
                     <Button variant="destructive" @click="confirmDelete"
-                        >Delete</Button
+                        >Hapus</Button
                     >
                 </DialogFooter>
             </DialogContent>
