@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CourseGradeController;
 use App\Http\Controllers\CourseProgressController;
 use App\Http\Controllers\LessonAttachmentController;
 use App\Http\Controllers\LessonController;
@@ -20,6 +21,9 @@ Route::middleware(['auth', 'staff'])->group(function () {
     Route::delete('courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
     Route::get('courses/{course}/progress', [CourseProgressController::class, 'index'])->name('courses.progress.index');
     Route::get('courses/{course}/progress/{student}', [CourseProgressController::class, 'show'])->name('courses.progress.show');
+    Route::get('courses/{course}/grades', [CourseGradeController::class, 'index'])->name('courses.grades.index');
+    Route::get('courses/{course}/grades/export', [CourseGradeController::class, 'export'])->name('courses.grades.export');
+    Route::patch('courses/{course}/grading', [CourseGradeController::class, 'update'])->name('courses.grading.update');
 
     Route::post('courses/{course}/sections', [SectionController::class, 'store'])->name('sections.store');
     Route::put('sections/{section}', [SectionController::class, 'update'])->name('sections.update');

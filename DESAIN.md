@@ -129,6 +129,9 @@ Use one H1 per page and don't skip heading levels.
 - **Rating stars** (`StarRating`, `StarRatingInput`) are the only place a filled accent colour is allowed: `fill-current text-rating` (a gold `--rating` token, the same in both themes; `chart-4` turned purple in dark mode), empty stars `text-muted-foreground/40`. Show the rating as `4.5 ★★★★☆ (12)`; do not show stars when there are no reviews yet.
 - **Discussion** (`LessonDiscussion`): each question is a card with an `Avatar size-8`, name, `Instructor` badge (`secondary`) for course staff, and a relative time. Replies are indented `ml-11 border-l pl-4`. Deleting always goes through a `Dialog` confirmation (never `window.confirm`).
 - **Personal notes** (`LessonNotes`): a card with the label "Hanya Anda yang bisa melihatnya"; the save button stays disabled until something changes.
+- Gradebook (`courses/Grades`, "Buku Nilai"): quiz grade = best attempt %, final grade = weighted average (quiz `weight`, untaken = 0), letter from `App\Support\GradeScale`, pass = final ≥ course `passing_grade`; quiz KKM = `passing_score`. Pass/fail badges use `passStatusLabel` → **Lulus / Belum lulus** everywhere (dashboard, CSV and public site). Other dashboard statuses stay English; statuses students see on the public site are Indonesian. CSV export is `;`-separated with a UTF-8 BOM for Excel.
+- Certificates: earned at 100% progress + final grade ≥ course `passing_grade` (no final grade → progress alone). Students claim them on My Courses ("Ambil sertifikat" → `certificates/Show`, public verification page `/sertifikat/{code}`, PublicLayout); the PDF (`resources/views/certificates/pdf.blade.php`, dompdf, A4 landscape, site colours + QR to the verification page) downloads only for the owner and course staff. Name/course/grade are snapshotted at issue.
+- Payments (manual): paid courses (`Course::isPaid()`) are bought, not self-enrolled. "Beli kursus" → checkout page (`orders/Checkout`, pick bank transfer or QRIS; nothing is created yet) → "Buat pesanan" creates the invoice (`Order`, number `INV-YYYYMMDD-XXXXX`, total = price, no unique code, deadline from Pengaturan Pembayaran) → invoice page (`orders/Show`, printable) → separate proof page (`orders/Proof`, `/orders/{number}/konfirmasi-pembayaran`, file on the private `local` disk) → admin confirms in Penjualan → Pesanan (creates a `Transaction`, enrolls the student) or rejects with a reason (back to pending). Unpaid orders expire (`orders:expire`, every 15 min + lazily on read). Order statuses: English on the dashboard (`orderStatusLabel`), Indonesian on the public site (`publicOrderStatusLabel`).
 - Staff monitoring pages (`courses/Progress`, `courses/ProgressStudent`) stay in the dashboard (`AppLayout` + `<Heading variant="small">`), with progress per student shown as an `h-2` bar + a `tabular-nums` percentage.
 
 ### Public header
@@ -205,7 +208,7 @@ On a `bg-primary` background use `currentColor` + `opacity-20`. Do not use image
 - **Numbers:** format with `Intl.NumberFormat('id-ID')`; prices with `formatPrice` (0 → "Free").
 - **Illustrations** built from UI (such as the "Lanjutkan belajar" card in the hero) must be `aria-hidden="true"`.
 - **UI copy is in Indonesian** (`APP_LOCALE=id`): address the user as **"Anda"**, keep it short and action-oriented ("Lihat semua kursus", "Daftar sekarang"), and use no "(s)" plurals ("3 kursus"). Use the glossary in section 6 so the same thing always has the same name.
-- Shared labels live in `@/lib/course` (`levelLabel` → Pemula/Menengah/Lanjutan, `statusLabel`, `formatPrice` → "Gratis", `optionLabel` for the stored True/False options); don't repeat them in pages.
+- Shared labels live in `@/lib/course` (`levelLabel` → Pemula/Menengah/Lanjutan, `statusLabel` + `enrollmentStatusLabel` (status badges stay **English**: Draft, Published, Active, Cancelled…), `formatPrice` → "Gratis", `optionLabel` for the stored True/False options); don't repeat them in pages.
 - Server messages (flash toasts, validation, auth, emails) go through `__()` with the Indonesian line in `lang/id.json`, or in `lang/id/*.php` for framework groups. `tests/Feature/IndonesianTranslationTest.php` fails when a `__()` string has no Indonesian line. Tests run with `APP_LOCALE=en` (see `phpunit.xml`), so assertions stay on the English keys.
 
 ## 5. Accessibility & responsiveness
@@ -258,7 +261,7 @@ The fixed Indonesian names for UI terms. The same concept always uses the same w
 | Price                                         | Harga                                          |
 | Level                                         | Tingkat                                        |
 | Beginner / Intermediate / Advanced            | Pemula / Menengah / Lanjutan                   |
-| Draft / Pending Review / Published / Archived | Draf / Menunggu Tinjauan / Terbit / Diarsipkan |
+| Draft / Pending Review / Published / Archived | Draft / Pending Review / Published / Archived (status badges stay English) |
 | Status                                        | Status                                         |
 | Actions                                       | Aksi                                           |
 | Users                                         | Pengguna                                       |

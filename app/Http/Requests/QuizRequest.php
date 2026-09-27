@@ -19,6 +19,8 @@ class QuizRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'time_limit_minutes' => ['nullable', 'integer', 'min:1', 'max:'.Quiz::MAX_TIME_LIMIT_MINUTES],
+            'passing_score' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:100'],
+            'weight' => ['sometimes', 'integer', 'min:0', 'max:'.Quiz::MAX_WEIGHT],
         ];
     }
 }

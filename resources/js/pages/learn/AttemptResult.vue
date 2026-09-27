@@ -4,7 +4,7 @@ import { ArrowLeft, Check, CircleAlert, X } from '@lucide/vue';
 import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { optionLabel } from '@/lib/course';
+import { optionLabel, passStatusVariant, passStatusLabel } from '@/lib/course';
 import learn from '@/routes/learn';
 import type { AttemptContext, ResultQuestion } from '@/types';
 
@@ -20,6 +20,12 @@ const percent = computed(() =>
         : Math.round(
               ((props.attempt.score ?? 0) / props.attempt.max_score) * 100,
           ),
+);
+
+const passed = computed(() =>
+    props.quiz.passing_score === null
+        ? null
+        : !props.attempt.is_late && percent.value >= props.quiz.passing_score,
 );
 
 const correctCount = computed(
@@ -65,6 +71,15 @@ const quizHref = computed(() =>
                     {{ questions.length }} benar sepenuhnya
                 </p>
             </div>
+            <div
+                v-if="passed !== null"
+                class="flex items-center gap-2 text-sm text-muted-foreground"
+            >
+                <Badge :variant="passStatusVariant(passed)">
+                    {{ passStatusLabel(passed) }}
+                </Badge>
+                KKM {{ quiz.passing_score }}%
+            </div>
             <p
                 v-if="attempt.is_late"
                 class="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
@@ -104,7 +119,51 @@ const quizHref = computed(() =>
                         {{ question.points }} / {{ question.max_points }} poin
                     </Badge>
                 </div>
-                <ul class="space-y-2">
+                <div
+                    v-if="question.answer_mode === 'short_answer'"
+                    class="space-y-2 text-sm"
+                >
+                    <div
+                        class="flex items-start gap-3 rounded-md border p-3"
+                        :class="
+                            question.is_correct
+                                ? 'border-primary bg-primary/5'
+                                : 'border-destructive bg-destructive/5'
+                        "
+                    >
+                        <Check
+                            v-if="question.is_correct"
+                            class="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                            aria-label="Jawaban benar"
+                        />
+                        <X
+                            v-else
+                            class="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+                            aria-label="Jawaban salah"
+                        />
+                        <span
+                            class="flex-1 break-words whitespace-pre-line"
+                            :class="{
+                                'text-muted-foreground italic':
+                                    !question.text_answer,
+                            }"
+                        >
+                            {{ question.text_answer || 'Tidak dijawab' }}
+                        </span>
+                        <span class="shrink-0 text-xs text-muted-foreground">
+                            Jawaban Anda
+                        </span>
+                    </div>
+                    <p class="text-muted-foreground">
+                        Jawaban yang diterima:
+                        <span class="font-medium text-foreground">{{
+                            question.options
+                                .map((option) => option.text)
+                                .join(' · ')
+                        }}</span>
+                    </p>
+                </div>
+                <ul v-else class="space-y-2">
                     <li
                         v-for="option in question.options"
                         :key="option.id"

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\CalculateCourseProgress;
+use App\Actions\CheckCertificateEligibility;
 use App\Models\Enrollment;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -15,19 +16,25 @@ class MyCourseController extends Controller
     /**
      * List the courses the current user is actively enrolled in, with their progress.
      */
-    public function index(Request $request, CalculateCourseProgress $calculateProgress): Response
+    public function index(Request $request, CalculateCourseProgress $calculateProgress, CheckCertificateEligibility $checkEligibility): Response
     {
         $actor = $request->user();
 
         assert($actor instanceof User);
+
+        $certificates = $actor->certificates()->pluck('code', 'course_id');
 
         $enrollments = $actor->enrollments()
             ->active()
             ->with(['course.category:id,name', 'course.instructor:id,name,avatar_path'])
             ->latest('enrolled_at')
             ->get()
-            ->map(function (Enrollment $enrollment) use ($actor, $calculateProgress): array {
+            ->map(function (Enrollment $enrollment) use ($actor, $calculateProgress, $checkEligibility, $certificates): array {
                 $progress = $calculateProgress($actor, $enrollment->course);
+                $certificateCode = $certificates[$enrollment->course_id] ?? null;
+                $eligibility = $certificateCode === null && $progress['percent'] === 100
+                    ? $checkEligibility($actor, $enrollment->course)
+                    : null;
 
                 return [
                     'id' => $enrollment->id,
@@ -37,6 +44,12 @@ class MyCourseController extends Controller
                         'completed' => $progress['completed'],
                         'total' => $progress['total'],
                         'percent' => $progress['percent'],
+                    ],
+                    'certificate' => [
+                        'code' => $certificateCode,
+                        'eligible' => $certificateCode !== null || ($eligibility['eligible'] ?? false),
+                        'final_percent' => $eligibility['final_percent'] ?? null,
+                        'passing_grade' => $eligibility['passing_grade'] ?? null,
                     ],
                     'course' => [
                         'id' => $enrollment->course->id,

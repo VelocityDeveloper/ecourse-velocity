@@ -13,6 +13,7 @@ import {
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import BannerSlider from '@/components/BannerSlider.vue';
+import CardCarousel from '@/components/CardCarousel.vue';
 import CourseCard from '@/components/CourseCard.vue';
 import SectionHeading from '@/components/SectionHeading.vue';
 import TestimonialCarousel from '@/components/TestimonialCarousel.vue';
@@ -537,41 +538,46 @@ function searchCatalog(): void {
                 description="Materi disusun dan diajarkan langsung oleh instruktur yang berpengalaman."
             />
 
-            <div class="flex flex-wrap justify-center gap-5">
-                <Link
-                    v-for="instructor in instructors"
-                    :key="instructor.id"
-                    :href="users.show(instructor.id)"
-                    class="flex w-full flex-col items-center gap-3 rounded-2xl border bg-card p-6 text-center text-card-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-3.75rem)/4)]"
-                >
-                    <Avatar class="size-20 overflow-hidden rounded-full">
-                        <AvatarImage
-                            v-if="instructor.avatar"
-                            :src="instructor.avatar"
-                            :alt="instructor.name"
-                        />
-                        <AvatarFallback
-                            class="bg-primary/10 text-xl font-semibold text-primary"
-                        >
-                            {{ getInitials(instructor.name) }}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div class="space-y-1">
-                        <h3 class="font-bold">
-                            {{ instructor.name }}
-                        </h3>
-                        <p
-                            v-if="instructor.headline"
-                            class="line-clamp-2 text-sm text-muted-foreground"
-                        >
-                            {{ instructor.headline }}
-                        </p>
-                    </div>
-                    <Badge variant="secondary">
-                        {{ instructor.courses_count }} kursus
-                    </Badge>
-                </Link>
-            </div>
+            <CardCarousel
+                :items="instructors"
+                :per-view-large="4"
+                label="Instruktur"
+                item-name="Instruktur"
+            >
+                <template #default="{ item: instructor }">
+                    <Link
+                        :href="users.show(instructor.id)"
+                        class="flex w-full flex-col items-center gap-3 rounded-2xl border bg-card p-6 text-center text-card-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10"
+                    >
+                        <Avatar class="size-20 overflow-hidden rounded-full">
+                            <AvatarImage
+                                v-if="instructor.avatar"
+                                :src="instructor.avatar"
+                                :alt="instructor.name"
+                            />
+                            <AvatarFallback
+                                class="bg-primary/10 text-xl font-semibold text-primary"
+                            >
+                                {{ getInitials(instructor.name) }}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div class="space-y-1">
+                            <h3 class="font-bold">
+                                {{ instructor.name }}
+                            </h3>
+                            <p
+                                v-if="instructor.headline"
+                                class="line-clamp-2 text-sm text-muted-foreground"
+                            >
+                                {{ instructor.headline }}
+                            </p>
+                        </div>
+                        <Badge variant="secondary" class="mt-auto">
+                            {{ instructor.courses_count }} kursus
+                        </Badge>
+                    </Link>
+                </template>
+            </CardCarousel>
         </section>
 
         <!-- Call to action -->

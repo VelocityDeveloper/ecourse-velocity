@@ -64,6 +64,7 @@ export type LearnQuiz = {
     title: string;
     description: string | null;
     time_limit_minutes: number | null;
+    passing_score: number | null;
     questions_count: number;
     max_score: number;
     section_title: string;
@@ -88,7 +89,12 @@ export type AttemptContext = {
         max_score: number;
         is_late: boolean;
     };
-    quiz: { id: number; title: string; time_limit_minutes: number | null };
+    quiz: {
+        id: number;
+        title: string;
+        time_limit_minutes: number | null;
+        passing_score: number | null;
+    };
     course: { id: number; title: string };
 };
 
@@ -107,6 +113,8 @@ export type ResultQuestion = {
     points: number;
     max_points: number;
     is_correct: boolean;
+    /** The typed answer of a short answer question, otherwise null. */
+    text_answer: string | null;
     options: Array<{
         id: number;
         text: string;

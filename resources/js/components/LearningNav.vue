@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookMarked, Bookmark, LayoutGrid, NotebookPen } from '@lucide/vue';
+import {
+    BookMarked,
+    Bookmark,
+    LayoutGrid,
+    NotebookPen,
+    Receipt,
+} from '@lucide/vue';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import learning from '@/routes/learning';
 import myCourses from '@/routes/my-courses';
+import orders from '@/routes/orders';
 
 const { isCurrentUrl } = useCurrentUrl();
 
@@ -12,6 +19,7 @@ const tabs = [
     { label: 'Kursus Saya', href: myCourses.index(), Icon: BookMarked },
     { label: 'Catatan', href: learning.notes(), Icon: NotebookPen },
     { label: 'Markah', href: learning.bookmarks(), Icon: Bookmark },
+    { label: 'Pesanan', href: orders.index(), Icon: Receipt },
 ];
 </script>
 

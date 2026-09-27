@@ -11,10 +11,22 @@ use Illuminate\Validation\Validator;
 class QuizQuestionRequest extends FormRequest
 {
     /**
-     * Pin a true or false question to its two fixed options, keeping the chosen answer.
+     * Pin a true or false question to its two fixed options, keeping the chosen answer,
+     * and mark every accepted answer of a short answer question as correct.
      */
     protected function prepareForValidation(): void
     {
+        if ($this->input('answer_mode') === QuizQuestion::MODE_SHORT_ANSWER) {
+            $this->merge([
+                'options' => array_map(fn (mixed $option): array => [
+                    'text' => is_array($option) ? ($option['text'] ?? null) : null,
+                    'is_correct' => true,
+                ], array_values($this->array('options'))),
+            ]);
+
+            return;
+        }
+
         if ($this->input('answer_mode') !== QuizQuestion::MODE_TRUE_FALSE) {
             return;
         }
@@ -41,7 +53,7 @@ class QuizQuestionRequest extends FormRequest
             'question' => ['required', 'string', 'max:1000'],
             'answer_mode' => ['required', 'string', Rule::in(QuizQuestion::ANSWER_MODES)],
             'points' => ['required_unless:answer_mode,'.QuizQuestion::MODE_MULTIPLE, 'integer', 'min:0', 'max:10000'],
-            'options' => ['required', 'array', 'min:2', 'max:'.QuizQuestion::MAX_OPTIONS],
+            'options' => ['required', 'array', 'min:'.$this->minimumOptions(), 'max:'.QuizQuestion::MAX_OPTIONS],
             'options.*.text' => ['required', 'string', 'max:500'],
             'options.*.is_correct' => ['boolean'],
             'scores' => ['required_if:answer_mode,'.QuizQuestion::MODE_MULTIPLE, 'array', 'max:'.QuizQuestion::MAX_OPTIONS],
@@ -63,6 +75,19 @@ class QuizQuestionRequest extends FormRequest
                 }
 
                 $correct = $this->correctOptionCount();
+
+                if ($this->input('answer_mode') === QuizQuestion::MODE_SHORT_ANSWER) {
+                    foreach (array_values($this->array('options')) as $index => $option) {
+                        if (QuizQuestion::normalizeShortAnswer((string) ($option['text'] ?? '')) === '') {
+                            $validator->errors()->add(
+                                "options.{$index}.text",
+                                __('An accepted answer needs at least one letter or number.'),
+                            );
+                        }
+                    }
+
+                    return;
+                }
 
                 if ($this->input('answer_mode') === QuizQuestion::MODE_SINGLE) {
                     if ($correct !== 1) {
@@ -103,6 +128,14 @@ class QuizQuestionRequest extends FormRequest
                 }
             },
         ];
+    }
+
+    /**
+     * A short answer question needs one accepted answer; the others need a choice.
+     */
+    private function minimumOptions(): int
+    {
+        return $this->input('answer_mode') === QuizQuestion::MODE_SHORT_ANSWER ? 1 : 2;
     }
 
     /**

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SiteSettingsNav from '@/components/site-settings/SiteSettingsNav.vue';
 import { Head } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import ContactSettings from '@/components/site-settings/ContactSettings.vue';
@@ -23,6 +24,8 @@ defineProps<{
     <Head title="Kontak & Footer · Pengaturan Situs" />
 
     <div class="flex flex-col space-y-6">
+        <SiteSettingsNav />
+
         <Heading
             variant="small"
             title="Kontak & Footer"

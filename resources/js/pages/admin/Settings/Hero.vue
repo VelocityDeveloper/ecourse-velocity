@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SiteSettingsNav from '@/components/site-settings/SiteSettingsNav.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import banners from '@/routes/admin/banners';
@@ -24,6 +25,8 @@ defineProps<{
     <Head title="Hero Beranda · Pengaturan Situs" />
 
     <div class="flex flex-col space-y-6">
+        <SiteSettingsNav />
+
         <Heading
             variant="small"
             title="Hero Beranda"

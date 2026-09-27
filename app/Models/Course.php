@@ -26,13 +26,14 @@ use Illuminate\Support\Facades\Storage;
  * @property string $level
  * @property string|null $thumbnail_path
  * @property string $status
+ * @property int $passing_grade
  * @property-read string|null $thumbnail_url
  * @property-read Category|null $category
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[Appends(['thumbnail_url'])]
-#[Fillable(['title', 'slug', 'description', 'category_id', 'instructor_id', 'price', 'level', 'thumbnail_path', 'status'])]
+#[Fillable(['title', 'slug', 'description', 'category_id', 'instructor_id', 'price', 'level', 'thumbnail_path', 'status', 'passing_grade'])]
 class Course extends Model
 {
     /** @use HasFactory<CourseFactory> */
@@ -96,6 +97,7 @@ class Course extends Model
             'price' => 'decimal:2',
             'category_id' => 'integer',
             'instructor_id' => 'integer',
+            'passing_grade' => 'integer',
         ];
     }
 
@@ -178,6 +180,14 @@ class Course extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(CourseReview::class);
+    }
+
+    /**
+     * Determine whether students have to buy the course before they can learn.
+     */
+    public function isPaid(): bool
+    {
+        return (float) $this->price > 0;
     }
 
     /**

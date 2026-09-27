@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, MessageCircleQuestion, Search } from '@lucide/vue';
+import {
+    ArrowLeft,
+    GraduationCap,
+    MessageCircleQuestion,
+    Search,
+} from '@lucide/vue';
 import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -71,12 +76,20 @@ function applySearch(): void {
                 title="Progres Siswa"
                 :description="course.title"
             />
-            <Link :href="courses.show(course.id)">
-                <Button variant="outline" size="sm">
-                    <ArrowLeft class="mr-2 h-4 w-4" />
-                    Kembali ke kursus
-                </Button>
-            </Link>
+            <div class="flex flex-wrap items-center gap-2">
+                <Link :href="courses.grades.index(course.id)">
+                    <Button variant="outline" size="sm">
+                        <GraduationCap class="mr-2 h-4 w-4" />
+                        Buku nilai
+                    </Button>
+                </Link>
+                <Link :href="courses.show(course.id)">
+                    <Button variant="outline" size="sm">
+                        <ArrowLeft class="mr-2 h-4 w-4" />
+                        Kembali ke kursus
+                    </Button>
+                </Link>
+            </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">

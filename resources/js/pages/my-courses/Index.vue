@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import { BookOpen, Compass, PlayCircle } from '@lucide/vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { Award, BookOpen, Compass, PlayCircle } from '@lucide/vue';
 import { ref } from 'vue';
 import CancelEnrollmentDialog from '@/components/CancelEnrollmentDialog.vue';
 import LearningHeader from '@/components/LearningHeader.vue';
 import { Button } from '@/components/ui/button';
 import { formatDate, levelLabel } from '@/lib/course';
 import catalogRoutes from '@/routes/catalog';
+import certificateRoutes from '@/routes/certificates';
 import learn from '@/routes/learn';
 import type { MyCourseEnrollment } from '@/types';
 
@@ -16,6 +17,22 @@ defineProps<{
 
 const cancelTarget = ref<MyCourseEnrollment | null>(null);
 const cancelDialogOpen = ref(false);
+
+const claiming = ref<number | null>(null);
+
+function claimCertificate(enrollment: MyCourseEnrollment): void {
+    claiming.value = enrollment.id;
+
+    router.post(
+        certificateRoutes.store(enrollment.course.id).url,
+        {},
+        {
+            onFinish: () => {
+                claiming.value = null;
+            },
+        },
+    );
+}
 
 function askCancel(enrollment: MyCourseEnrollment): void {
     cancelTarget.value = enrollment;
@@ -151,6 +168,49 @@ function askCancel(enrollment: MyCourseEnrollment): void {
                                 }}
                             </Button>
                         </Link>
+
+                        <Link
+                            v-if="enrollment.certificate.code"
+                            :href="
+                                certificateRoutes.show(
+                                    enrollment.certificate.code,
+                                )
+                            "
+                        >
+                            <Button
+                                variant="outline"
+                                class="w-full rounded-xl border-primary/40 font-bold text-primary"
+                            >
+                                <Award class="mr-2 h-4 w-4" />
+                                Lihat sertifikat
+                            </Button>
+                        </Link>
+                        <Button
+                            v-else-if="enrollment.certificate.eligible"
+                            variant="outline"
+                            class="w-full rounded-xl border-primary/40 font-bold text-primary"
+                            :disabled="claiming === enrollment.id"
+                            @click="claimCertificate(enrollment)"
+                        >
+                            <Award class="mr-2 h-4 w-4" />
+                            {{
+                                claiming === enrollment.id
+                                    ? 'Menyiapkan...'
+                                    : 'Ambil sertifikat'
+                            }}
+                        </Button>
+                        <p
+                            v-else-if="
+                                enrollment.progress.percent === 100 &&
+                                enrollment.certificate.final_percent !== null
+                            "
+                            class="rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground"
+                        >
+                            Nilai akhir Anda
+                            {{ enrollment.certificate.final_percent }}%. Butuh
+                            minimal {{ enrollment.certificate.passing_grade }}%
+                            untuk sertifikat. Ulangi kuis untuk menaikkan nilai.
+                        </p>
 
                         <div class="flex items-center justify-between gap-2">
                             <span class="text-xs text-muted-foreground">

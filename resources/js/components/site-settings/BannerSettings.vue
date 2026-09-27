@@ -142,33 +142,39 @@ onBeforeUnmount(clearPreview);
                     {{ group.description }}
                 </p>
 
-                <div
-                    v-for="field in group.fields"
-                    :key="field.key"
-                    class="grid gap-2"
-                >
-                    <Label :for="field.key">{{ field.label }}</Label>
-                    <Textarea
-                        v-if="field.multiline"
-                        :id="field.key"
-                        :name="field.key"
-                        :default-value="texts[field.key] ?? ''"
-                        :placeholder="defaults[field.key]"
-                        :maxlength="field.max"
-                        rows="3"
-                    />
-                    <Input
-                        v-else
-                        :id="field.key"
-                        :name="field.key"
-                        :default-value="texts[field.key] ?? ''"
-                        :placeholder="defaults[field.key]"
-                        :maxlength="field.max"
-                    />
-                    <p v-if="field.hint" class="text-xs text-muted-foreground">
-                        {{ field.hint }}
-                    </p>
-                    <InputError :message="errors[field.key]" />
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div
+                        v-for="field in group.fields"
+                        :key="field.key"
+                        class="grid content-start gap-2"
+                        :class="{ 'sm:col-span-2': field.multiline }"
+                    >
+                        <Label :for="field.key">{{ field.label }}</Label>
+                        <Textarea
+                            v-if="field.multiline"
+                            :id="field.key"
+                            :name="field.key"
+                            :default-value="texts[field.key] ?? ''"
+                            :placeholder="defaults[field.key]"
+                            :maxlength="field.max"
+                            rows="3"
+                        />
+                        <Input
+                            v-else
+                            :id="field.key"
+                            :name="field.key"
+                            :default-value="texts[field.key] ?? ''"
+                            :placeholder="defaults[field.key]"
+                            :maxlength="field.max"
+                        />
+                        <p
+                            v-if="field.hint"
+                            class="text-xs text-muted-foreground"
+                        >
+                            {{ field.hint }}
+                        </p>
+                        <InputError :message="errors[field.key]" />
+                    </div>
                 </div>
 
                 <div v-if="group.title === 'Hero'" class="grid gap-2">

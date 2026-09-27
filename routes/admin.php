@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PaymentSettingController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\TestimonialController;
+use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,4 +42,16 @@ Route::middleware(['auth', 'staff', 'admin'])->prefix('admin')->name('admin.')->
     Route::post('testimonials/{testimonial}', [TestimonialController::class, 'update'])->name('testimonials.update');
     Route::post('testimonials/{testimonial}/move', [TestimonialController::class, 'move'])->name('testimonials.move');
     Route::delete('testimonials/{testimonial}', [TestimonialController::class, 'destroy'])->name('testimonials.destroy');
+
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('orders/{order}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
+    Route::post('orders/{order}/reject', [OrderController::class, 'reject'])->name('orders.reject');
+    Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+
+    Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('transactions/export', [TransactionController::class, 'export'])->name('transactions.export');
+
+    Route::get('payment-settings', [PaymentSettingController::class, 'edit'])->name('payment-settings.edit');
+    Route::post('payment-settings', [PaymentSettingController::class, 'update'])->name('payment-settings.update');
 });

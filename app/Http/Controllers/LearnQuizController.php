@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildCourseGradebook;
 use App\Actions\BuildLearningOutline;
 use App\Actions\GradeQuizAttempt;
 use App\Models\Course;
@@ -47,6 +48,7 @@ class LearnQuizController extends Controller
                 'title' => $quiz->title,
                 'description' => $quiz->description,
                 'time_limit_minutes' => $quiz->time_limit_minutes,
+                'passing_score' => $quiz->passing_score,
                 'questions_count' => $quiz->questions->count(),
                 'max_score' => $quiz->questions->sum(fn (QuizQuestion $question): int => $question->maxPoints()),
                 'section_title' => $quiz->section->title,
@@ -62,6 +64,9 @@ class LearnQuizController extends Controller
                 ->values()
                 ->all(),
             'bestScore' => $submitted->max('score'),
+            'bestPercent' => $submitted->isEmpty()
+                ? null
+                : (int) round($submitted->max(fn (QuizAttempt $attempt): float => BuildCourseGradebook::percentOf($attempt))),
             'openAttemptId' => $openAttempt?->id,
             'neighbours' => BuildLearningOutline::neighbours($outline['items'], 'quiz', $quiz->id),
         ]);

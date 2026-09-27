@@ -93,6 +93,8 @@ class QuizController extends Controller
                 'title' => $quiz->title,
                 'description' => $quiz->description,
                 'time_limit_minutes' => $quiz->time_limit_minutes,
+                'passing_score' => $quiz->passing_score,
+                'weight' => $quiz->weight,
                 'total_points' => $this->totalPoints($quiz),
                 'questions' => $quiz->questions
                     ->map(fn (QuizQuestion $question): array => [
@@ -118,6 +120,7 @@ class QuizController extends Controller
             'answerModes' => QuizQuestion::ANSWER_MODES,
             'maxOptions' => QuizQuestion::MAX_OPTIONS,
             'maxTimeLimitMinutes' => Quiz::MAX_TIME_LIMIT_MINUTES,
+            'maxWeight' => Quiz::MAX_WEIGHT,
         ]);
     }
 

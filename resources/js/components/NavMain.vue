@@ -77,7 +77,12 @@ function isGroupOpen(item: NavItem): boolean {
                 <SidebarMenuItem v-else>
                     <SidebarMenuButton
                         as-child
-                        :is-active="isCurrentUrl(item.href)"
+                        :is-active="
+                            isCurrentUrl(item.href) ||
+                            (item.activeFor ?? []).some((href) =>
+                                isCurrentOrParentUrl(href),
+                            )
+                        "
                         :tooltip="item.title"
                     >
                         <Link :href="item.href">

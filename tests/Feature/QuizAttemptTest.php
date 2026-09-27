@@ -220,3 +220,98 @@ test('a submitted quiz counts towards course progress', function () {
             ->where('enrollments.0.progress.percent', 100)
         );
 });
+
+/**
+ * Add a short answer question worth 6 points to the quiz.
+ */
+function shortAnswerQuestion(Quiz $quiz, array $accepted = ['Jakarta', 'DKI Jakarta']): QuizQuestion
+{
+    $question = $quiz->questions()->create([
+        'question' => 'Ibu kota Indonesia?',
+        'answer_mode' => QuizQuestion::MODE_SHORT_ANSWER,
+        'points' => 6,
+        'position' => $quiz->questions()->count() + 1,
+    ]);
+
+    foreach ($accepted as $index => $text) {
+        $question->options()->create(['text' => $text, 'is_correct' => true, 'position' => $index + 1]);
+    }
+
+    return $question->load('options');
+}
+
+test('an open attempt hides the accepted answers of a short answer question', function () {
+    ['quiz' => $quiz, 'student' => $student] = quizForLearner();
+    shortAnswerQuestion($quiz);
+    $attempt = QuizAttempt::start($student, $quiz);
+
+    $this->actingAs($student)
+        ->get(route('learn.attempts.show', $attempt))
+        ->assertInertia(fn ($page) => $page
+            ->component('learn/Attempt')
+            ->where('questions.3.answer_mode', QuizQuestion::MODE_SHORT_ANSWER)
+            ->where('questions.3.options', [])
+        );
+});
+
+test('a short answer matches an accepted answer regardless of case, spacing and end punctuation', function (string $typed, bool $isCorrect) {
+    ['quiz' => $quiz, 'student' => $student] = quizForLearner();
+    $question = shortAnswerQuestion($quiz);
+    $attempt = QuizAttempt::start($student, $quiz);
+
+    $this->actingAs($student)
+        ->post(route('learn.attempts.submit', $attempt), ['answers' => [$question->id => $typed]])
+        ->assertSessionHasNoErrors();
+
+    $attempt->refresh();
+
+    expect($attempt->score)->toBe($isCorrect ? 6 : 0)
+        ->and($attempt->max_score)->toBe(31)
+        ->and($attempt->answers[(string) $question->id])->toBe(trim($typed));
+
+    $this->actingAs($student)
+        ->get(route('learn.attempts.show', $attempt))
+        ->assertInertia(fn ($page) => $page
+            ->component('learn/AttemptResult')
+            ->where('questions.3.is_correct', $isCorrect)
+            ->where('questions.3.text_answer', trim($typed))
+            ->where('questions.3.options.1.text', 'DKI Jakarta')
+        );
+})->with([
+    'exact' => ['Jakarta', true],
+    'case and spacing' => ['  dki   JAKARTA ', true],
+    'end punctuation' => ['Jakarta.', true],
+    'different answer' => ['Bandung', false],
+    'partial answer' => ['Jak', false],
+    'blank' => ['   ', false],
+]);
+
+test('a short answer longer than the limit is rejected', function () {
+    ['quiz' => $quiz, 'student' => $student] = quizForLearner();
+    $question = shortAnswerQuestion($quiz);
+    $attempt = QuizAttempt::start($student, $quiz);
+
+    $this->actingAs($student)
+        ->post(route('learn.attempts.submit', $attempt), [
+            'answers' => [$question->id => str_repeat('a', QuizQuestion::MAX_SHORT_ANSWER_LENGTH + 1)],
+        ])
+        ->assertSessionHasErrors("answers.{$question->id}");
+
+    expect($attempt->refresh()->isSubmitted())->toBeFalse();
+});
+
+test('option ids sent for a short answer question and text sent for a choice question score nothing', function () {
+    ['quiz' => $quiz, 'student' => $student, 'single' => $single] = quizForLearner();
+    $question = shortAnswerQuestion($quiz);
+    $attempt = QuizAttempt::start($student, $quiz);
+
+    $this->actingAs($student)
+        ->post(route('learn.attempts.submit', $attempt), [
+            'answers' => [
+                $question->id => [$question->options->first()->id],
+                $single->id => 'B',
+            ],
+        ]);
+
+    expect($attempt->refresh()->score)->toBe(0);
+});

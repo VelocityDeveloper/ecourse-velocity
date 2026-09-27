@@ -18,10 +18,10 @@ setDarkModeAllowed(false);
 
 <template>
     <div class="flex min-h-screen flex-col bg-background text-foreground">
-        <PublicHeader />
+        <PublicHeader class="print:hidden" />
         <main class="flex-1">
             <slot />
         </main>
-        <PublicFooter />
+        <PublicFooter class="print:hidden" />
     </div>
 </template>

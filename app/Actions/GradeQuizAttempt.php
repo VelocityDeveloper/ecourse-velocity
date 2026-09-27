@@ -14,12 +14,14 @@ class GradeQuizAttempt
      * Single answer and true/false questions award their flat points only when
      * exactly the correct option is chosen. Multiple answer questions count the
      * correct options picked, minus one for every wrong pick, and award the
-     * score tier for that count.
+     * score tier for that count. Short answer questions award their flat points
+     * when the typed text matches one of the accepted answers, ignoring case,
+     * surrounding punctuation and repeated whitespace.
      *
      * The quiz must be loaded with `questions.options` and `questions.scores`.
      *
-     * @param  array<int|string, mixed>  $answers  Selected option ids keyed by question id.
-     * @return array{score: int, max_score: int, answers: array<string, list<int>>, questions: array<int, array{points: int, max_points: int, is_correct: bool}>}
+     * @param  array<int|string, mixed>  $answers  Selected option ids (or the typed text) keyed by question id.
+     * @return array{score: int, max_score: int, answers: array<int, list<int>|string>, questions: array<int, array{points: int, max_points: int, is_correct: bool}>}
      */
     public function __invoke(Quiz $quiz, array $answers): array
     {
@@ -29,12 +31,20 @@ class GradeQuizAttempt
         $questions = [];
 
         foreach ($quiz->questions as $question) {
-            $selected = $this->selectedOptionIds($question, $answers[$question->id] ?? []);
-            $cleanAnswers[(string) $question->id] = $selected;
+            $submitted = $answers[$question->id] ?? null;
 
-            $result = $question->isMultipleAnswer()
-                ? $this->gradeMultiple($question, $selected)
-                : $this->gradeSingle($question, $selected);
+            if ($question->isShortAnswer()) {
+                $text = $this->typedAnswer($submitted);
+                $cleanAnswers[$question->id] = $text;
+                $result = $this->gradeShortAnswer($question, $text);
+            } else {
+                $selected = $this->selectedOptionIds($question, $submitted ?? []);
+                $cleanAnswers[$question->id] = $selected;
+
+                $result = $question->isMultipleAnswer()
+                    ? $this->gradeMultiple($question, $selected)
+                    : $this->gradeSingle($question, $selected);
+            }
 
             $questions[$question->id] = $result;
             $score += $result['points'];
@@ -46,6 +56,37 @@ class GradeQuizAttempt
             'max_score' => $maxScore,
             'answers' => $cleanAnswers,
             'questions' => $questions,
+        ];
+    }
+
+    /**
+     * Get the typed text of a short answer, trimmed to the allowed length.
+     */
+    private function typedAnswer(mixed $submitted): string
+    {
+        if (! is_string($submitted)) {
+            return '';
+        }
+
+        return mb_substr(trim($submitted), 0, QuizQuestion::MAX_SHORT_ANSWER_LENGTH);
+    }
+
+    /**
+     * Grade a typed answer against the accepted answers of the question.
+     *
+     * @return array{points: int, max_points: int, is_correct: bool}
+     */
+    private function gradeShortAnswer(QuizQuestion $question, string $text): array
+    {
+        $given = QuizQuestion::normalizeShortAnswer($text);
+        $isCorrect = $given !== '' && $question->options->contains(
+            fn (QuizOption $option): bool => QuizQuestion::normalizeShortAnswer($option->text) === $given,
+        );
+
+        return [
+            'points' => $isCorrect ? $question->points : 0,
+            'max_points' => $question->maxPoints(),
+            'is_correct' => $isCorrect,
         ];
     }
 

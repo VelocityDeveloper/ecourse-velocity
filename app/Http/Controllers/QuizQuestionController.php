@@ -107,7 +107,7 @@ class QuizQuestionController extends Controller
     }
 
     /**
-     * Get the flat score, which only a single answer question carries.
+     * Get the flat score, which every question but a multiple answer one carries.
      */
     private function flatPoints(QuizQuestionRequest $request): int
     {

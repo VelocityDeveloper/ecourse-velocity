@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CourseReviewController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\LearnController;
@@ -11,11 +12,13 @@ use App\Http\Controllers\LessonNoteController;
 use App\Http\Controllers\LessonQuestionController;
 use App\Http\Controllers\LessonReplyController;
 use App\Http\Controllers\MyCourseController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\QuizAttemptController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('catalog', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('catalog/{course}', [CatalogController::class, 'show'])->name('catalog.show');
+Route::get('sertifikat/{certificate}', [CertificateController::class, 'show'])->name('certificates.show');
 
 Route::middleware(['auth'])->group(function () {
     Route::post('catalog/{course}/enroll', [CatalogController::class, 'enroll'])->name('catalog.enroll');
@@ -30,6 +33,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('learning/bookmarks', [LessonBookmarkController::class, 'index'])->name('learning.bookmarks');
 
     Route::patch('enrollments/{enrollment}/cancel', [EnrollmentController::class, 'cancel'])->name('enrollments.cancel');
+
+    Route::get('checkout/{course}', [OrderController::class, 'checkout'])->name('orders.checkout');
+    Route::post('checkout/{course}', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('orders/{order}/konfirmasi-pembayaran', [OrderController::class, 'createProof'])->name('orders.proof.create');
+    Route::post('orders/{order}/proof', [OrderController::class, 'submitProof'])->name('orders.proof.store');
+    Route::get('orders/{order}/proof', [OrderController::class, 'proof'])->name('orders.proof.show');
+    Route::patch('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+
+    Route::post('learn/{course}/certificate', [CertificateController::class, 'store'])->name('certificates.store');
+    Route::get('sertifikat/{certificate}/pdf', [CertificateController::class, 'download'])->name('certificates.download');
 });
 
 Route::middleware(['auth', 'staff'])->group(function () {

@@ -44,6 +44,7 @@ class QuizAttemptController extends Controller
                 'id' => $quiz->id,
                 'title' => $quiz->title,
                 'time_limit_minutes' => $quiz->time_limit_minutes,
+                'passing_score' => $quiz->passing_score,
             ],
             'course' => [
                 'id' => $quiz->section->course->id,
@@ -60,7 +61,8 @@ class QuizAttemptController extends Controller
                         'question' => $question->question,
                         'answer_mode' => $question->answer_mode,
                         'max_points' => $question->maxPoints(),
-                        'options' => $question->options
+                        // The accepted answers of a short answer question are its answer key.
+                        'options' => $question->isShortAnswer() ? [] : $question->options
                             ->map(fn (QuizOption $option): array => ['id' => $option->id, 'text' => $option->text])
                             ->all(),
                     ])
@@ -75,7 +77,8 @@ class QuizAttemptController extends Controller
             ...$context,
             'questions' => $quiz->questions
                 ->map(function (QuizQuestion $question) use ($answers, $breakdown): array {
-                    $selected = $answers[(string) $question->id] ?? [];
+                    $given = $answers[$question->id] ?? [];
+                    $selected = is_array($given) ? $given : [];
 
                     return [
                         'id' => $question->id,
@@ -84,6 +87,7 @@ class QuizAttemptController extends Controller
                         'points' => $breakdown[$question->id]['points'] ?? 0,
                         'max_points' => $question->maxPoints(),
                         'is_correct' => $breakdown[$question->id]['is_correct'] ?? false,
+                        'text_answer' => $question->isShortAnswer() && is_string($given) ? $given : null,
                         'options' => $question->options
                             ->map(fn (QuizOption $option): array => [
                                 'id' => $option->id,

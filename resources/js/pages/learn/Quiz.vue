@@ -6,7 +6,11 @@ import LearnPager from '@/components/LearnPager.vue';
 import LearnShell from '@/components/LearnShell.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatTimeLimit } from '@/lib/course';
+import {
+    formatTimeLimit,
+    passStatusLabel,
+    passStatusVariant,
+} from '@/lib/course';
 import learn from '@/routes/learn';
 import type {
     LearningOutline,
@@ -20,6 +24,7 @@ const props = defineProps<{
     quiz: LearnQuiz;
     attempts: QuizAttemptSummary[];
     bestScore: number | null;
+    bestPercent: number | null;
     openAttemptId: number | null;
     neighbours: OutlineNeighbours;
 }>();
@@ -132,6 +137,26 @@ function formatDateTime(date: string | null): string {
                 </div>
             </div>
         </div>
+
+        <p
+            v-if="quiz.passing_score !== null"
+            class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
+        >
+            Nilai minimum lulus (KKM):
+            <span class="font-medium text-foreground"
+                >{{ quiz.passing_score }}%</span
+            >
+            <template v-if="bestPercent !== null">
+                · nilai terbaik Anda {{ bestPercent }}%
+                <Badge
+                    :variant="
+                        passStatusVariant(bestPercent >= quiz.passing_score)
+                    "
+                >
+                    {{ passStatusLabel(bestPercent >= quiz.passing_score) }}
+                </Badge>
+            </template>
+        </p>
 
         <div
             class="flex flex-col items-start gap-4 rounded-lg border bg-muted/30 p-6 sm:flex-row sm:items-center sm:justify-between"

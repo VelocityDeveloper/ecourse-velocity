@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SiteSettingsNav from '@/components/site-settings/SiteSettingsNav.vue';
 import { Head, router } from '@inertiajs/vue3';
 import {
     ArrowDown,
@@ -95,6 +96,8 @@ function destroy(): void {
     <Head title="Banner Promo · Pengaturan Situs" />
 
     <div class="flex flex-col space-y-6">
+        <SiteSettingsNav />
+
         <div class="flex flex-wrap items-start justify-between gap-4">
             <Heading
                 variant="small"
@@ -146,7 +149,7 @@ function destroy(): void {
                         <Badge
                             :variant="banner.is_active ? 'default' : 'outline'"
                         >
-                            {{ banner.is_active ? 'Aktif' : 'Disembunyikan' }}
+                            {{ banner.is_active ? 'Active' : 'Hidden' }}
                         </Badge>
                     </div>
                     <p class="truncate text-sm text-muted-foreground">

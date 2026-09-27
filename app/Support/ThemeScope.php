@@ -21,7 +21,7 @@ final class ThemeScope
      *
      * @var list<string>
      */
-    private const array SITE_PAGES = ['Welcome', 'catalog/*', 'my-courses/*', 'learn/*', 'learning/*', 'users/Show', 'auth/*'];
+    private const array SITE_PAGES = ['Welcome', 'catalog/*', 'my-courses/*', 'learn/*', 'learning/*', 'users/Show', 'certificates/*', 'orders/*', 'auth/*'];
 
     public static function for(string $component, ?User $user): string
     {

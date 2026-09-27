@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SiteSettingsNav from '@/components/site-settings/SiteSettingsNav.vue';
 import { Head } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import ColorSettings from '@/components/site-settings/ColorSettings.vue';
@@ -45,6 +46,8 @@ const SURFACE_PRESETS = [
     <Head title="Warna · Pengaturan Situs" />
 
     <div class="flex flex-col space-y-6">
+        <SiteSettingsNav />
+
         <Heading
             variant="small"
             title="Warna"

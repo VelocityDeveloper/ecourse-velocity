@@ -20,6 +20,8 @@ import {
     TrendingUp,
     Users,
     Video,
+    Receipt,
+    ShoppingCart,
 } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import CancelEnrollmentDialog from '@/components/CancelEnrollmentDialog.vue';
@@ -40,11 +42,13 @@ import {
     formatPrice,
     formatTimeLimit,
     levelLabel,
+    publicOrderStatusLabel,
 } from '@/lib/course';
 import { home, login, register } from '@/routes';
 import catalogRoutes from '@/routes/catalog';
 import courses from '@/routes/courses';
 import learn from '@/routes/learn';
+import orderRoutes from '@/routes/orders';
 import users from '@/routes/users';
 import type {
     CatalogCourse,
@@ -52,6 +56,7 @@ import type {
     CatalogSection,
     CourseReviewEntry,
     OwnEnrollment,
+    OrderStatus,
     RatingSummary,
 } from '@/types';
 
@@ -60,6 +65,10 @@ const props = defineProps<{
     sections: CatalogSection[];
     related: CatalogCourse[];
     enrollment: OwnEnrollment | null;
+    purchase: {
+        paid: boolean;
+        open_order: { number: string; status: OrderStatus } | null;
+    } | null;
     rating: RatingSummary;
     reviews: CourseReviewEntry[];
     myReview: { id: number; rating: number; comment: string | null } | null;
@@ -81,6 +90,8 @@ const canRegister = computed(() => page.props.canRegister);
 
 const isEnrolled = computed(() => props.enrollment?.status === 'active');
 const isFree = computed(() => Number(props.course.price) === 0);
+// A paid course is bought first, unless the student already paid for it before.
+const mustBuy = computed(() => !isFree.value && !props.purchase?.paid);
 
 const lessonCount = computed(() =>
     props.sections.reduce(
@@ -461,8 +472,68 @@ function enroll(): void {
                                 Pendaftaran Anda sebelumnya dibatalkan pada
                                 {{ formatDate(enrollment.cancelled_at) }}.
                             </p>
+                            <template v-if="can.enroll && mustBuy">
+                                <template v-if="purchase?.open_order">
+                                    <p
+                                        class="flex items-center gap-2 rounded-xl bg-primary/10 p-3 text-sm"
+                                    >
+                                        <Receipt
+                                            class="h-4 w-4 shrink-0 text-primary"
+                                        />
+                                        <span>
+                                            Pesanan
+                                            <span class="font-mono">{{
+                                                purchase.open_order.number
+                                            }}</span>
+                                            ·
+                                            {{
+                                                publicOrderStatusLabel(
+                                                    purchase.open_order.status,
+                                                )
+                                            }}
+                                        </span>
+                                    </p>
+                                    <Link
+                                        :href="
+                                            orderRoutes.show(
+                                                purchase.open_order.number,
+                                            )
+                                        "
+                                    >
+                                        <Button
+                                            size="lg"
+                                            class="h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
+                                        >
+                                            {{
+                                                purchase.open_order.status ===
+                                                'pending'
+                                                    ? 'Lanjutkan pembayaran'
+                                                    : 'Lihat status pembayaran'
+                                            }}
+                                        </Button>
+                                    </Link>
+                                </template>
+                                <Link
+                                    v-else
+                                    :href="orderRoutes.checkout(course.id)"
+                                >
+                                    <Button
+                                        size="lg"
+                                        class="h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
+                                    >
+                                        <ShoppingCart class="mr-2 h-5 w-5" />
+                                        Beli kursus
+                                    </Button>
+                                </Link>
+                                <p
+                                    class="text-center text-xs text-muted-foreground"
+                                >
+                                    Bayar via transfer bank atau QRIS, akses
+                                    terbuka setelah pembayaran dikonfirmasi.
+                                </p>
+                            </template>
                             <Button
-                                v-if="can.enroll"
+                                v-else-if="can.enroll"
                                 size="lg"
                                 class="h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
                                 :disabled="enrolling"
@@ -482,7 +553,11 @@ function enroll(): void {
                                         size="lg"
                                         class="h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
                                     >
-                                        Masuk untuk mendaftar
+                                        {{
+                                            isFree
+                                                ? 'Masuk untuk mendaftar'
+                                                : 'Masuk untuk membeli'
+                                        }}
                                     </Button>
                                 </Link>
                                 <p

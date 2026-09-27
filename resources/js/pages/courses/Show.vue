@@ -22,7 +22,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Pencil, Trash2 } from '@lucide/vue';
+import { Link2, Pencil, Trash2 } from '@lucide/vue';
 import CourseCurriculum from '@/components/CourseCurriculum.vue';
 import courses from '@/routes/courses';
 import enrollmentRoutes from '@/routes/enrollments';
@@ -215,8 +215,12 @@ function deleteCourse() {
                             <Link
                                 v-if="course.instructor"
                                 :href="users.show(course.instructor.id)"
-                                class="underline-offset-4 hover:underline"
+                                class="inline-flex items-center gap-1.5 font-medium text-primary underline-offset-4 hover:underline"
                             >
+                                <Link2
+                                    class="size-3.5 shrink-0"
+                                    aria-hidden="true"
+                                />
                                 {{ course.instructor.name }}
                             </Link>
                             <template v-else>-</template>
@@ -240,8 +244,12 @@ function deleteCourse() {
                                         query: { course_id: course.id },
                                     })
                                 "
-                                class="underline-offset-4 hover:underline"
+                                class="inline-flex items-center gap-1.5 font-medium text-primary underline-offset-4 hover:underline"
                             >
+                                <Link2
+                                    class="size-3.5 shrink-0"
+                                    aria-hidden="true"
+                                />
                                 {{ course.students_count }} terdaftar
                             </Link>
                         </dd>
@@ -251,9 +259,28 @@ function deleteCourse() {
                         <dd class="text-right">
                             <Link
                                 :href="courses.progress.index(course.id)"
-                                class="underline-offset-4 hover:underline"
+                                class="inline-flex items-center gap-1.5 font-medium text-primary underline-offset-4 hover:underline"
                             >
+                                <Link2
+                                    class="size-3.5 shrink-0"
+                                    aria-hidden="true"
+                                />
                                 Lihat progres siswa
+                            </Link>
+                        </dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
+                        <dt class="text-muted-foreground">Nilai</dt>
+                        <dd class="text-right">
+                            <Link
+                                :href="courses.grades.index(course.id)"
+                                class="inline-flex items-center gap-1.5 font-medium text-primary underline-offset-4 hover:underline"
+                            >
+                                <Link2
+                                    class="size-3.5 shrink-0"
+                                    aria-hidden="true"
+                                />
+                                Buku nilai
                             </Link>
                         </dd>
                     </div>

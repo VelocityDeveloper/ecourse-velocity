@@ -18,11 +18,13 @@ use Illuminate\Support\Carbon;
  * @property string $title
  * @property string|null $description
  * @property int|null $time_limit_minutes
+ * @property int|null $passing_score Minimum percentage to pass, or null when the quiz has none.
+ * @property int $weight How much the quiz counts towards the final course grade.
  * @property int $position
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['section_id', 'title', 'description', 'time_limit_minutes', 'position'])]
+#[Fillable(['section_id', 'title', 'description', 'time_limit_minutes', 'passing_score', 'weight', 'position'])]
 class Quiz extends Model
 {
     /** @use HasFactory<QuizFactory> */
@@ -34,6 +36,11 @@ class Quiz extends Model
     public const int MAX_TIME_LIMIT_MINUTES = 600;
 
     /**
+     * The largest weight a quiz may carry in the final course grade.
+     */
+    public const int MAX_WEIGHT = 100;
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -43,8 +50,20 @@ class Quiz extends Model
         return [
             'section_id' => 'integer',
             'time_limit_minutes' => 'integer',
+            'passing_score' => 'integer',
+            'weight' => 'integer',
             'position' => 'integer',
         ];
+    }
+
+    /**
+     * Determine whether a score percentage meets the passing score.
+     *
+     * Returns null when the quiz has no passing score.
+     */
+    public function isPassingPercent(int $percent): ?bool
+    {
+        return $this->passing_score === null ? null : $percent >= $this->passing_score;
     }
 
     /**

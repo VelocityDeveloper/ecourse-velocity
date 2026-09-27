@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $started_at
  * @property Carbon|null $expires_at
  * @property Carbon|null $submitted_at
- * @property array<string, list<int>>|null $answers
+ * @property array<int, list<int>|string>|null $answers
  * @property int|null $score
  * @property int $max_score
  * @property bool $is_late
@@ -81,7 +81,7 @@ class QuizAttempt extends Model
      * Answers that arrive after the deadline (plus grace) are discarded, so a
      * late attempt is closed with no answers and scores zero.
      *
-     * @param  array<int|string, mixed>  $answers  Selected option ids keyed by question id.
+     * @param  array<int|string, mixed>  $answers  Selected option ids (or the typed text) keyed by question id.
      */
     public function handIn(array $answers, GradeQuizAttempt $grade): void
     {

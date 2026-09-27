@@ -62,6 +62,7 @@ const props = defineProps<{
     answerModes: AnswerMode[];
     maxOptions: number;
     maxTimeLimitMinutes: number;
+    maxWeight: number;
 }>();
 
 const errors = ref<Record<string, string>>({});
@@ -71,6 +72,8 @@ const quizForm = reactive({
     title: props.quiz.title,
     description: props.quiz.description ?? '',
     time_limit_minutes: props.quiz.time_limit_minutes?.toString() ?? '',
+    passing_score: props.quiz.passing_score?.toString() ?? '',
+    weight: props.quiz.weight.toString(),
 });
 
 const questionDialogOpen = ref(false);
@@ -145,11 +148,11 @@ function addOption() {
         return;
     }
 
-    questionForm.options.push({ text: '', is_correct: false });
+    questionForm.options.push({ text: '', is_correct: isShortAnswer.value });
 }
 
 function removeOption(index: number) {
-    if (questionForm.options.length <= 2) {
+    if (questionForm.options.length <= minOptions.value) {
         return;
     }
 
@@ -170,8 +173,49 @@ const TRUE_FALSE_OPTIONS = ['True', 'False'];
 
 const isTrueFalse = computed(() => questionForm.answer_mode === 'true_false');
 
+// A short answer question lists the answers it accepts, all of them correct.
+const isShortAnswer = computed(
+    () => questionForm.answer_mode === 'short_answer',
+);
+
+const minOptions = computed(() => (isShortAnswer.value ? 1 : 2));
+
+function padOptions() {
+    while (questionForm.options.length < minOptions.value) {
+        questionForm.options.push({ text: '', is_correct: false });
+    }
+}
+
+function withoutTrueFalseOptions() {
+    const isTrueFalseSet =
+        questionForm.options.length === TRUE_FALSE_OPTIONS.length &&
+        questionForm.options.every(
+            (option, index) => option.text === TRUE_FALSE_OPTIONS[index],
+        );
+
+    if (isTrueFalseSet) {
+        questionForm.options = [];
+    }
+}
+
 function onModeChange() {
+    if (questionForm.answer_mode === 'short_answer') {
+        withoutTrueFalseOptions();
+        questionForm.options = questionForm.options
+            .filter((option) => option.is_correct)
+            .map((option) => ({ text: option.text, is_correct: true }));
+        padOptions();
+        questionForm.options.forEach((option) => {
+            option.is_correct = true;
+        });
+        questionForm.scores = [];
+
+        return;
+    }
+
     if (questionForm.answer_mode === 'multiple') {
+        padOptions();
+
         return;
     }
 
@@ -201,7 +245,9 @@ function onModeChange() {
         option.is_correct = false;
     });
 
-    if (!kept && questionForm.options.length > 0) {
+    padOptions();
+
+    if (!kept) {
         questionForm.options[0].is_correct = true;
     }
 
@@ -295,6 +341,10 @@ function confirmDelete() {
                 <Badge variant="secondary"
                     >Total {{ quiz.total_points }} poin</Badge
                 >
+                <Badge v-if="quiz.passing_score !== null" variant="outline">
+                    KKM {{ quiz.passing_score }}%
+                </Badge>
+                <Badge variant="outline">Bobot {{ quiz.weight }}</Badge>
                 <Link :href="courseRoutes.show(course.id)">
                     <Button variant="outline" size="sm"
                         >Kembali ke kursus</Button
@@ -339,6 +389,43 @@ function confirmDelete() {
                     Kosongkan jika tanpa batas waktu.
                 </p>
                 <InputError :message="errors.time_limit_minutes" />
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="grid content-start gap-2">
+                    <Label for="quiz-passing-score"
+                        >Nilai minimum lulus / KKM (%)</Label
+                    >
+                    <Input
+                        id="quiz-passing-score"
+                        v-model="quizForm.passing_score"
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="Tanpa KKM"
+                    />
+                    <p class="text-xs text-muted-foreground">
+                        Siswa lulus kuis bila nilai terbaiknya mencapai
+                        persentase ini. Kosongkan jika tanpa KKM.
+                    </p>
+                    <InputError :message="errors.passing_score" />
+                </div>
+                <div class="grid content-start gap-2">
+                    <Label for="quiz-weight">Bobot di nilai akhir</Label>
+                    <Input
+                        id="quiz-weight"
+                        v-model="quizForm.weight"
+                        type="number"
+                        min="0"
+                        :max="maxWeight"
+                        required
+                    />
+                    <p class="text-xs text-muted-foreground">
+                        Kuis berbobot 2 dihitung dua kali lipat kuis berbobot 1.
+                        Isi 0 agar kuis tidak ikut nilai akhir.
+                    </p>
+                    <InputError :message="errors.weight" />
+                </div>
             </div>
 
             <Button size="sm" :disabled="processing">
@@ -530,7 +617,11 @@ function confirmDelete() {
                     <div class="grid gap-2">
                         <div class="flex items-center justify-between">
                             <Label>{{
-                                isTrueFalse ? 'Jawaban benar' : 'Pilihan'
+                                isTrueFalse
+                                    ? 'Jawaban benar'
+                                    : isShortAnswer
+                                      ? 'Jawaban yang diterima'
+                                      : 'Pilihan'
                             }}</Label>
                             <Button
                                 v-if="!isTrueFalse"
@@ -543,9 +634,22 @@ function confirmDelete() {
                                 @click="addOption"
                             >
                                 <Plus class="mr-2 h-4 w-4" />
-                                Tambah pilihan
+                                {{
+                                    isShortAnswer
+                                        ? 'Tambah jawaban'
+                                        : 'Tambah pilihan'
+                                }}
                             </Button>
                         </div>
+                        <p
+                            v-if="isShortAnswer"
+                            class="text-xs text-muted-foreground"
+                        >
+                            Jawaban siswa dianggap benar bila sama dengan salah
+                            satu jawaban ini. Huruf besar/kecil, spasi berlebih,
+                            dan tanda baca di ujung diabaikan. Tambahkan variasi
+                            ejaan yang juga benar.
+                        </p>
 
                         <div
                             v-if="isTrueFalse"
@@ -578,41 +682,66 @@ function confirmDelete() {
                             <div
                                 v-for="(option, index) in questionForm.options"
                                 :key="index"
-                                class="flex items-center gap-2"
+                                class="grid gap-1"
                             >
-                                <input
-                                    v-if="questionForm.answer_mode === 'single'"
-                                    type="radio"
-                                    name="correct-option"
-                                    class="h-4 w-4 shrink-0 accent-primary"
-                                    :checked="option.is_correct"
-                                    :aria-label="`Tandai pilihan ${index + 1} sebagai benar`"
-                                    @change="markCorrect(index)"
+                                <div class="flex items-center gap-2">
+                                    <input
+                                        v-if="
+                                            questionForm.answer_mode ===
+                                            'single'
+                                        "
+                                        type="radio"
+                                        name="correct-option"
+                                        class="h-4 w-4 shrink-0 accent-primary"
+                                        :checked="option.is_correct"
+                                        :aria-label="`Tandai pilihan ${index + 1} sebagai benar`"
+                                        @change="markCorrect(index)"
+                                    />
+                                    <Checkbox
+                                        v-else-if="!isShortAnswer"
+                                        :model-value="option.is_correct"
+                                        :aria-label="`Tandai pilihan ${index + 1} sebagai benar`"
+                                        @update:model-value="
+                                            (value) =>
+                                                toggleCorrect(
+                                                    index,
+                                                    value === true,
+                                                )
+                                        "
+                                    />
+                                    <Input
+                                        v-model="option.text"
+                                        required
+                                        :maxlength="500"
+                                        :placeholder="
+                                            isShortAnswer
+                                                ? `Jawaban ${index + 1}`
+                                                : `Pilihan ${index + 1}`
+                                        "
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        :disabled="
+                                            questionForm.options.length <=
+                                            minOptions
+                                        "
+                                        :aria-label="
+                                            isShortAnswer
+                                                ? 'Hapus jawaban'
+                                                : 'Hapus pilihan'
+                                        "
+                                        @click="removeOption(index)"
+                                    >
+                                        <Trash2
+                                            class="h-4 w-4 text-destructive"
+                                        />
+                                    </Button>
+                                </div>
+                                <InputError
+                                    :message="errors[`options.${index}.text`]"
                                 />
-                                <Checkbox
-                                    v-else
-                                    :model-value="option.is_correct"
-                                    :aria-label="`Tandai pilihan ${index + 1} sebagai benar`"
-                                    @update:model-value="
-                                        (value) =>
-                                            toggleCorrect(index, value === true)
-                                    "
-                                />
-                                <Input
-                                    v-model="option.text"
-                                    required
-                                    :placeholder="`Pilihan ${index + 1}`"
-                                />
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    :disabled="questionForm.options.length <= 2"
-                                    aria-label="Hapus pilihan"
-                                    @click="removeOption(index)"
-                                >
-                                    <Trash2 class="h-4 w-4 text-destructive" />
-                                </Button>
                             </div>
                         </template>
                         <InputError :message="errors.options" />

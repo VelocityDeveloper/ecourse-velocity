@@ -73,7 +73,7 @@ test('an enrolled student keeps seeing a course after it is archived', function 
 
 test('a student can enroll in a published course', function () {
     $student = User::factory()->student()->create();
-    $course = Course::factory()->published()->create();
+    $course = Course::factory()->published()->create(['price' => 0]);
 
     $this->actingAs($student)
         ->post(route('catalog.enroll', $course))
@@ -89,7 +89,7 @@ test('a student can enroll in a published course', function () {
 
 test('enrolling twice keeps a single enrollment', function () {
     $student = User::factory()->student()->create();
-    $course = Course::factory()->published()->create();
+    $course = Course::factory()->published()->create(['price' => 0]);
 
     $this->actingAs($student)->post(route('catalog.enroll', $course));
     $this->actingAs($student)->post(route('catalog.enroll', $course));
@@ -99,7 +99,7 @@ test('enrolling twice keeps a single enrollment', function () {
 
 test('enrolling again reactivates a cancelled enrollment', function () {
     $student = User::factory()->student()->create();
-    $course = Course::factory()->published()->create();
+    $course = Course::factory()->published()->create(['price' => 0]);
     $enrollment = Enrollment::factory()->for($student)->for($course)->cancelled('Sibuk')->create();
 
     $this->actingAs($student)

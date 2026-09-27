@@ -44,11 +44,22 @@ class QuizQuestion extends Model
     public const string MODE_TRUE_FALSE = 'true_false';
 
     /**
+     * The student types a short answer that is matched against the accepted
+     * answers (stored as options, all correct) and the question is worth a flat score.
+     */
+    public const string MODE_SHORT_ANSWER = 'short_answer';
+
+    /**
      * Every answer mode a question may use.
      *
      * @var list<string>
      */
-    public const array ANSWER_MODES = [self::MODE_SINGLE, self::MODE_MULTIPLE, self::MODE_TRUE_FALSE];
+    public const array ANSWER_MODES = [self::MODE_SINGLE, self::MODE_MULTIPLE, self::MODE_TRUE_FALSE, self::MODE_SHORT_ANSWER];
+
+    /**
+     * The longest short answer a student may type.
+     */
+    public const int MAX_SHORT_ANSWER_LENGTH = 500;
 
     /**
      * The fixed options of a true or false question, in the order they are shown.
@@ -112,6 +123,26 @@ class QuizQuestion extends Model
     public function isMultipleAnswer(): bool
     {
         return $this->answer_mode === self::MODE_MULTIPLE;
+    }
+
+    /**
+     * Determine whether the student types the answer instead of picking options.
+     */
+    public function isShortAnswer(): bool
+    {
+        return $this->answer_mode === self::MODE_SHORT_ANSWER;
+    }
+
+    /**
+     * Reduce an answer to the form it is compared in: case, surrounding
+     * punctuation and repeated whitespace do not matter.
+     */
+    public static function normalizeShortAnswer(string $text): string
+    {
+        $text = mb_strtolower(trim($text));
+        $text = (string) preg_replace('/\s+/u', ' ', $text);
+
+        return trim($text, " \t\n\r\0\x0B.,;:!?\"'`");
     }
 
     /**

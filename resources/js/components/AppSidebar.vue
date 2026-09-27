@@ -4,11 +4,11 @@ import {
     BookOpen,
     ClipboardCheck,
     Compass,
-    FolderGit2,
     GraduationCap,
     LayoutGrid,
     Settings,
     Users,
+    Wallet,
 } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
@@ -28,8 +28,11 @@ import categories from '@/routes/admin/categories';
 import lessons from '@/routes/lessons';
 import quizzes from '@/routes/quizzes';
 import banners from '@/routes/admin/banners';
+import adminOrders from '@/routes/admin/orders';
+import paymentSettings from '@/routes/admin/payment-settings';
 import siteSettings from '@/routes/admin/settings';
 import testimonials from '@/routes/admin/testimonials';
+import transactions from '@/routes/admin/transactions';
 import users from '@/routes/admin/users';
 import catalog from '@/routes/catalog';
 import courses from '@/routes/courses';
@@ -83,12 +86,6 @@ const mainNavItems = computed<NavItem[]>(() => {
         });
     }
 
-    items.push({
-        title: 'Lihat Situs',
-        href: catalog.index(),
-        icon: Compass,
-    });
-
     if (isAdmin.value) {
         items.push({
             title: 'Pengguna',
@@ -96,19 +93,26 @@ const mainNavItems = computed<NavItem[]>(() => {
             icon: Users,
         });
         items.push({
+            title: 'Penjualan',
+            href: adminOrders.index(),
+            icon: Wallet,
+            items: [
+                { title: 'Pesanan', href: adminOrders.index() },
+                { title: 'Transaksi', href: transactions.index() },
+                {
+                    title: 'Pengaturan Pembayaran',
+                    href: paymentSettings.edit(),
+                },
+            ],
+        });
+        items.push({
             title: 'Pengaturan Situs',
             href: siteSettings.edit('identitas'),
             icon: Settings,
-            items: [
-                {
-                    title: 'Identitas & Logo',
-                    href: siteSettings.edit('identitas'),
-                },
-                { title: 'Warna', href: siteSettings.edit('warna') },
-                { title: 'Hero Beranda', href: siteSettings.edit('hero') },
-                { title: 'Banner Promo', href: banners.index() },
-                { title: 'Testimoni', href: testimonials.index() },
-                { title: 'Kontak & Footer', href: siteSettings.edit('kontak') },
+            activeFor: [
+                '/admin/settings',
+                banners.index(),
+                testimonials.index(),
             ],
         });
     }
@@ -118,9 +122,9 @@ const mainNavItems = computed<NavItem[]>(() => {
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repositori',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
+        title: 'Lihat Situs',
+        href: catalog.index(),
+        icon: Compass,
     },
     {
         title: 'Dokumentasi',

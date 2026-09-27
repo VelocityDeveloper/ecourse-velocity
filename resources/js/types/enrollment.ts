@@ -75,6 +75,13 @@ export type MyCourseEnrollment = {
     enrolled_at: string;
     can_cancel: boolean;
     progress: { completed: number; total: number; percent: number };
+    certificate: {
+        /** The code of the issued certificate, or null before it is claimed. */
+        code: string | null;
+        eligible: boolean;
+        final_percent: number | null;
+        passing_grade: number | null;
+    };
     course: {
         id: number;
         title: string;

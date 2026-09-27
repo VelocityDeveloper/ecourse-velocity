@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\CourseReview;
 use App\Models\Enrollment;
 use App\Models\Lesson;
+use App\Models\Order;
 use App\Models\Quiz;
 use App\Models\Section;
 use App\Models\User;
@@ -157,6 +158,7 @@ class CatalogController extends Controller
                         ->all(),
                 ])
                 ->all(),
+            'purchase' => $viewer === null || ! $course->isPaid() ? null : $this->purchase($viewer, $course),
             'enrollment' => $enrollment === null ? null : [
                 'id' => $enrollment->id,
                 'status' => $enrollment->status,
@@ -235,11 +237,34 @@ class CatalogController extends Controller
             return to_route('catalog.show', $course);
         }
 
+        if ($course->isPaid() && ! $actor->orders()->where('course_id', $course->id)->where('status', Order::STATUS_PAID)->exists()) {
+            Inertia::flash('toast', ['type' => 'info', 'message' => __('This is a paid course. Buy it to start learning.')]);
+
+            return to_route('catalog.show', $course);
+        }
+
         Enrollment::enroll($actor, $course);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('You are now enrolled in :course.', ['course' => $course->title])]);
 
         return to_route('catalog.show', $course);
+    }
+
+    /**
+     * The viewer's purchase state of a paid course: whether it is paid and any order still open.
+     *
+     * @return array{paid: bool, open_order: array{number: string, status: string}|null}
+     */
+    private function purchase(User $viewer, Course $course): array
+    {
+        Order::expireOverdue();
+
+        $open = $viewer->orders()->open()->where('course_id', $course->id)->latest('id')->first();
+
+        return [
+            'paid' => $viewer->orders()->where('course_id', $course->id)->where('status', Order::STATUS_PAID)->exists(),
+            'open_order' => $open === null ? null : ['number' => $open->number, 'status' => $open->status],
+        ];
     }
 
     /**

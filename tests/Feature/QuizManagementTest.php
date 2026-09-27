@@ -424,3 +424,62 @@ test('a quiz time limit must be within range', function (int $minutes) {
     'zero' => [0],
     'too long' => [Quiz::MAX_TIME_LIMIT_MINUTES + 1],
 ]);
+
+test('a short answer question stores every accepted answer as correct', function () {
+    $instructor = User::factory()->instructor()->create();
+    $quiz = quizFor($instructor);
+
+    $this->actingAs($instructor)
+        ->post(route('quiz-questions.store', $quiz), [
+            'question' => 'Perintah Artisan untuk menjalankan migrasi?',
+            'answer_mode' => QuizQuestion::MODE_SHORT_ANSWER,
+            'points' => 8,
+            'options' => [
+                ['text' => 'php artisan migrate', 'is_correct' => false],
+                ['text' => 'artisan migrate'],
+            ],
+            'scores' => [3, 4],
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    $question = QuizQuestion::sole();
+
+    expect($question->answer_mode)->toBe(QuizQuestion::MODE_SHORT_ANSWER)
+        ->and($question->isShortAnswer())->toBeTrue()
+        ->and($question->points)->toBe(8)
+        ->and($question->maxPoints())->toBe(8)
+        ->and($question->scores()->count())->toBe(0)
+        ->and($question->options()->where('is_correct', true)->pluck('text')->all())
+        ->toBe(['php artisan migrate', 'artisan migrate']);
+});
+
+test('a short answer question needs one accepted answer with a letter or number', function (array $options, string $errorKey) {
+    $instructor = User::factory()->instructor()->create();
+    $quiz = quizFor($instructor);
+
+    $this->actingAs($instructor)
+        ->post(route('quiz-questions.store', $quiz), [
+            'question' => 'Ibu kota Indonesia?',
+            'answer_mode' => QuizQuestion::MODE_SHORT_ANSWER,
+            'points' => 5,
+            'options' => $options,
+        ])
+        ->assertSessionHasErrors($errorKey);
+
+    expect(QuizQuestion::query()->count())->toBe(0);
+})->with([
+    'no answers' => [[], 'options'],
+    'only punctuation' => [[['text' => ' ?! ']], 'options.0.text'],
+]);
+
+test('the quiz editor offers the short answer mode', function () {
+    $instructor = User::factory()->instructor()->create();
+    $quiz = quizFor($instructor);
+
+    $this->actingAs($instructor)
+        ->get(route('quizzes.edit', $quiz))
+        ->assertInertia(fn ($page) => $page
+            ->where('answerModes', fn ($modes) => collect($modes)->contains(QuizQuestion::MODE_SHORT_ANSWER))
+        );
+});

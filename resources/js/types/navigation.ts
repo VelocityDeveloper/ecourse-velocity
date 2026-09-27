@@ -12,4 +12,6 @@ export type NavItem = {
     icon?: LucideIcon;
     isActive?: boolean;
     items?: NavItem[];
+    /** Other pages (or URL prefixes) that should also highlight this item. */
+    activeFor?: NonNullable<InertiaLinkProps['href']>[];
 };

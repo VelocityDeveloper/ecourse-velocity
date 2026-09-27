@@ -13,6 +13,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { answerModeLabel, optionLabel } from '@/lib/course';
 import learn from '@/routes/learn';
 import type { AttemptContext, AttemptQuestion } from '@/types';
@@ -25,10 +26,15 @@ const props = defineProps<
 
 const storageKey = `quiz-attempt-${props.attempt.id}`;
 
+const MAX_SHORT_ANSWER_LENGTH = 500;
+
+// Chosen option ids, or the typed text of a short answer question.
+type Answer = number[] | string;
+
 /**
  * Answers are kept in the browser as well, so a refresh does not lose them.
  */
-function restoreAnswers(): Record<number, number[]> {
+function restoreAnswers(): Record<number, Answer> {
     if (typeof window === 'undefined') {
         return {};
     }
@@ -36,13 +42,13 @@ function restoreAnswers(): Record<number, number[]> {
     try {
         const saved = window.localStorage.getItem(storageKey);
 
-        return saved ? (JSON.parse(saved) as Record<number, number[]>) : {};
+        return saved ? (JSON.parse(saved) as Record<number, Answer>) : {};
     } catch {
         return {};
     }
 }
 
-const answers = reactive<Record<number, number[]>>(restoreAnswers());
+const answers = reactive<Record<number, Answer>>(restoreAnswers());
 const submitting = ref(false);
 const confirmOpen = ref(false);
 
@@ -62,8 +68,45 @@ function forgetAnswers(): void {
     }
 }
 
+function selectedIds(questionId: number): number[] {
+    const answer = answers[questionId];
+
+    return Array.isArray(answer) ? answer : [];
+}
+
 function isSelected(questionId: number, optionId: number): boolean {
-    return (answers[questionId] ?? []).includes(optionId);
+    return selectedIds(questionId).includes(optionId);
+}
+
+function typedAnswer(questionId: number): string {
+    const answer = answers[questionId];
+
+    return typeof answer === 'string' ? answer : '';
+}
+
+function typeAnswer(questionId: number, text: string | number): void {
+    answers[questionId] = String(text);
+    persistAnswers();
+}
+
+function isAnswered(questionId: number): boolean {
+    const answer = answers[questionId];
+
+    return typeof answer === 'string'
+        ? answer.trim() !== ''
+        : (answer ?? []).length > 0;
+}
+
+function hint(question: AttemptQuestion): string {
+    if (question.answer_mode === 'multiple') {
+        return 'Pilih semua jawaban yang benar. Pilihan salah mengurangi nilai pilihan benar.';
+    }
+
+    if (question.answer_mode === 'short_answer') {
+        return 'Ketik jawaban singkat. Huruf besar/kecil dan tanda baca di ujung tidak berpengaruh.';
+    }
+
+    return answerModeLabel(question.answer_mode);
 }
 
 function chooseSingle(questionId: number, optionId: number): void {
@@ -76,7 +119,7 @@ function toggleMultiple(
     optionId: number,
     checked: boolean,
 ): void {
-    const current = new Set(answers[questionId] ?? []);
+    const current = new Set(selectedIds(questionId));
 
     if (checked) {
         current.add(optionId);
@@ -89,10 +132,7 @@ function toggleMultiple(
 }
 
 const answeredCount = computed(
-    () =>
-        props.questions.filter(
-            (question) => (answers[question.id] ?? []).length > 0,
-        ).length,
+    () => props.questions.filter((question) => isAnswered(question.id)).length,
 );
 
 const unansweredCount = computed(
@@ -240,14 +280,24 @@ function submit(): void {
                     </Badge>
                 </div>
                 <p class="text-xs text-muted-foreground">
-                    {{
-                        question.answer_mode === 'multiple'
-                            ? 'Pilih semua jawaban yang benar. Pilihan salah mengurangi nilai pilihan benar.'
-                            : answerModeLabel(question.answer_mode)
-                    }}
+                    {{ hint(question) }}
                 </p>
 
+                <div v-if="question.answer_mode === 'short_answer'">
+                    <Textarea
+                        :id="`question-${question.id}-answer`"
+                        :model-value="typedAnswer(question.id)"
+                        :maxlength="MAX_SHORT_ANSWER_LENGTH"
+                        rows="2"
+                        placeholder="Tulis jawaban Anda..."
+                        :aria-label="`Jawaban soal ${index + 1}`"
+                        @update:model-value="
+                            (text) => typeAnswer(question.id, text)
+                        "
+                    />
+                </div>
                 <div
+                    v-else
                     :class="
                         question.answer_mode === 'true_false'
                             ? 'grid grid-cols-2 gap-2'

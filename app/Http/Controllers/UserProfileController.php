@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\User;
+use App\Support\CatalogCourseCard;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,17 +22,15 @@ class UserProfileController extends Controller
         abort_if($request->user() === null && ! $user->isInstructor(), 404);
 
         $courses = $user->isInstructor()
-            ? $user->courses()
+            ? Course::query()
                 ->published()
+                ->where('instructor_id', $user->id)
+                ->forCatalogCard($request->user()?->id)
                 ->latest()
                 ->get()
-                ->map(fn (Course $course): array => [
-                    'id' => $course->id,
-                    'title' => $course->title,
-                    'level' => $course->level,
-                    'thumbnail_url' => $course->thumbnail_url,
-                ])
             : collect();
+
+        $reviews = (int) $courses->sum('reviews_count');
 
         return Inertia::render('users/Show', [
             'profile' => [
@@ -43,7 +42,16 @@ class UserProfileController extends Controller
                 'bio' => $user->bio,
                 'joined_at' => $user->created_at?->toIso8601String(),
             ],
-            'courses' => $courses,
+            'courses' => $courses->map(fn (Course $course): array => CatalogCourseCard::from($course))->values()->all(),
+            'stats' => [
+                'courses' => $courses->count(),
+                'students' => (int) $courses->sum('students_count'),
+                'reviews' => $reviews,
+                'rating' => $reviews === 0 ? null : round(
+                    $courses->sum(fn (Course $course): float => (float) $course->getAttribute('reviews_avg_rating') * (int) $course->getAttribute('reviews_count')) / $reviews,
+                    1,
+                ),
+            ],
         ]);
     }
 }

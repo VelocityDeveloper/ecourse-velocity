@@ -1,5 +1,3 @@
-import type { CourseLevel } from './course';
-
 export type UserRole = 'admin' | 'instructor' | 'student';
 
 export type User = {
@@ -24,13 +22,6 @@ export type PublicProfile = {
     headline: string | null;
     bio: string | null;
     joined_at: string | null;
-};
-
-export type ProfileCourse = {
-    id: number;
-    title: string;
-    level: CourseLevel;
-    thumbnail_url: string | null;
 };
 
 export type Auth = {

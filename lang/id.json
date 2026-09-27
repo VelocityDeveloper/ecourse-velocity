@@ -58,5 +58,21 @@
     "Whoops!": "Ups!",
     "You are already enrolled in this course.": "Anda sudah terdaftar di kursus ini.",
     "You are now enrolled in :course.": "Anda sekarang terdaftar di :course.",
-    "You are receiving this email because we received a password reset request for your account.": "Anda menerima email ini karena kami menerima permintaan atur ulang kata sandi untuk akun Anda."
+    "You are receiving this email because we received a password reset request for your account.": "Anda menerima email ini karena kami menerima permintaan atur ulang kata sandi untuk akun Anda.",
+    "An accepted answer needs at least one letter or number.": "Jawaban yang diterima harus berisi minimal satu huruf atau angka.",
+    "answer": "jawaban",
+    "Passing grade saved.": "Nilai minimum lulus disimpan.",
+    "An active enrollment in the course": "Terdaftar aktif di kursus ini",
+    "Finish every lesson and quiz (now :percent%)": "Selesaikan semua materi dan kuis (saat ini :percent%)",
+    "A final grade of at least :min% (now :percent%)": "Nilai akhir minimal :min% (saat ini :percent%)",
+    "Not eligible for a certificate yet: :missing.": "Belum memenuhi syarat sertifikat: :missing.",
+    "This is a paid course. Buy it to start learning.": "Kursus ini berbayar. Beli kursus untuk mulai belajar.",
+    "This order can no longer be paid.": "Pesanan ini sudah tidak bisa dibayar.",
+    "Payment proof sent. We will confirm it soon.": "Bukti pembayaran terkirim. Kami akan segera mengonfirmasinya.",
+    "Order cancelled.": "Pesanan dibatalkan.",
+    "Only an open order can be confirmed.": "Hanya pesanan yang masih berjalan yang bisa dikonfirmasi.",
+    "Payment confirmed. The student is now enrolled.": "Pembayaran dikonfirmasi. Siswa sudah terdaftar di kursus.",
+    "Only an order waiting for confirmation can be rejected.": "Hanya pesanan yang menunggu konfirmasi yang bisa ditolak.",
+    "Payment rejected. The student can upload a new proof.": "Pembayaran ditolak. Siswa bisa mengunggah bukti baru.",
+    "Payment settings saved.": "Pengaturan pembayaran disimpan."
 }

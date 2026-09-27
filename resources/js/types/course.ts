@@ -88,7 +88,7 @@ export type Section = {
 
 export type MoveDirection = 'up' | 'down';
 
-export type AnswerMode = 'single' | 'multiple' | 'true_false';
+export type AnswerMode = 'single' | 'multiple' | 'true_false' | 'short_answer';
 
 export type QuizOption = {
     id?: number;
@@ -122,6 +122,8 @@ export type QuizDetail = {
     title: string;
     description: string | null;
     time_limit_minutes: number | null;
+    passing_score: number | null;
+    weight: number;
     total_points: number;
     questions: QuizQuestion[];
 };
@@ -132,4 +134,32 @@ export type MovableItem = {
     section_id: number;
     section_title: string;
     course_title: string;
+};
+
+export type GradebookQuiz = {
+    id: number;
+    title: string;
+    section_title: string;
+    weight: number;
+    passing_score: number | null;
+    max_score: number;
+};
+
+export type GradebookQuizGrade = {
+    percent: number | null;
+    score: number | null;
+    max_score: number | null;
+    attempts: number;
+    passed: boolean | null;
+};
+
+export type GradebookRow = {
+    enrollment_id: number;
+    student: { id: number; name: string; email: string; avatar: string | null };
+    grades: Record<number, GradebookQuizGrade>;
+    quizzes_taken: number;
+    final_percent: number | null;
+    letter: string | null;
+    passed: boolean | null;
+    certificate_code: string | null;
 };

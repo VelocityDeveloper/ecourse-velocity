@@ -128,6 +128,26 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the course orders this student has placed.
+     *
+     * @return HasMany<Order, $this>
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get the certificates issued to this student.
+     *
+     * @return HasMany<Certificate, $this>
+     */
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
+    /**
      * Get the lessons this student has marked as complete.
      *
      * @return BelongsToMany<Lesson, $this>

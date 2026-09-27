@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SiteSettingsNav from '@/components/site-settings/SiteSettingsNav.vue';
 import { Head } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import LogoSettings from '@/components/site-settings/LogoSettings.vue';
@@ -22,6 +23,8 @@ defineProps<{
     <Head title="Identitas & Logo · Pengaturan Situs" />
 
     <div class="flex flex-col space-y-6">
+        <SiteSettingsNav />
+
         <Heading
             variant="small"
             title="Identitas & Logo"

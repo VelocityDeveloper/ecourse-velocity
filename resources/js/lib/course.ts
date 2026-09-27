@@ -5,13 +5,17 @@ import type {
     CourseStatus,
     EnrollmentStatus,
     LessonContentType,
+    OrderStatus,
+    PaymentMethod,
 } from '@/types';
 
+// Dashboard status labels stay in English on purpose, even in the Indonesian UI.
+// Statuses shown on the public site (students) and pass/fail are in Indonesian instead.
 const STATUS_LABELS: Record<CourseStatus, string> = {
-    draft: 'Draf',
-    pending: 'Menunggu Tinjauan',
-    published: 'Terbit',
-    archived: 'Diarsipkan',
+    draft: 'Draft',
+    pending: 'Pending Review',
+    published: 'Published',
+    archived: 'Archived',
 };
 
 const STATUS_VARIANTS: Record<CourseStatus, BadgeVariants['variant']> = {
@@ -99,6 +103,7 @@ const ANSWER_MODE_LABELS: Record<AnswerMode, string> = {
     single: 'Satu jawaban benar',
     multiple: 'Beberapa jawaban benar',
     true_false: 'Benar atau salah',
+    short_answer: 'Isian singkat',
 };
 
 // True/false questions store their fixed options in English (QuizQuestion::TRUE_FALSE_OPTIONS),
@@ -132,8 +137,8 @@ export function formatTimeLimit(minutes: number | null): string {
 }
 
 const ENROLLMENT_STATUS_LABELS: Record<EnrollmentStatus, string> = {
-    active: 'Aktif',
-    cancelled: 'Dibatalkan',
+    active: 'Active',
+    cancelled: 'Cancelled',
 };
 
 const ENROLLMENT_STATUS_VARIANTS: Record<
@@ -143,6 +148,16 @@ const ENROLLMENT_STATUS_VARIANTS: Record<
     active: 'default',
     cancelled: 'outline',
 };
+
+// Pass/fail is the exception to English statuses: it reads in Indonesian
+// everywhere, on the dashboard as well as on the public site.
+export function passStatusLabel(passed: boolean): string {
+    return passed ? 'Lulus' : 'Belum lulus';
+}
+
+export function passStatusVariant(passed: boolean): BadgeVariants['variant'] {
+    return passed ? 'default' : 'destructive';
+}
 
 export function enrollmentStatusLabel(status: EnrollmentStatus): string {
     return ENROLLMENT_STATUS_LABELS[status] ?? status;
@@ -164,4 +179,74 @@ export function formatBytes(size: number): string {
     }
 
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// Order statuses: English on the dashboard, Indonesian on the public site.
+const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+    pending: 'Pending Payment',
+    awaiting_confirmation: 'Awaiting Confirmation',
+    paid: 'Paid',
+    expired: 'Expired',
+    cancelled: 'Cancelled',
+};
+
+const PUBLIC_ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+    pending: 'Menunggu Pembayaran',
+    awaiting_confirmation: 'Menunggu Konfirmasi',
+    paid: 'Lunas',
+    expired: 'Kedaluwarsa',
+    cancelled: 'Dibatalkan',
+};
+
+const ORDER_STATUS_VARIANTS: Record<OrderStatus, BadgeVariants['variant']> = {
+    pending: 'outline',
+    awaiting_confirmation: 'secondary',
+    paid: 'default',
+    expired: 'outline',
+    cancelled: 'destructive',
+};
+
+export function orderStatusLabel(status: OrderStatus): string {
+    return ORDER_STATUS_LABELS[status] ?? status;
+}
+
+export function publicOrderStatusLabel(status: OrderStatus): string {
+    return PUBLIC_ORDER_STATUS_LABELS[status] ?? status;
+}
+
+export function orderStatusVariant(
+    status: OrderStatus,
+): BadgeVariants['variant'] {
+    return ORDER_STATUS_VARIANTS[status] ?? 'outline';
+}
+
+export function paymentMethodLabel(method: PaymentMethod | null): string {
+    if (method === null) {
+        return '-';
+    }
+
+    return method === 'qris' ? 'QRIS' : 'Transfer bank';
+}
+
+/** Whole rupiah, always as a number ("Rp150.123"), never "Gratis". */
+export function formatRupiah(amount: number): string {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0,
+    }).format(amount);
+}
+
+export function formatDateTime(date: string | null): string {
+    if (date === null) {
+        return '-';
+    }
+
+    return new Date(date).toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 }

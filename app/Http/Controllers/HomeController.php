@@ -31,6 +31,11 @@ class HomeController extends Controller
     private const int TESTIMONIAL_MIN_RATING = 4;
 
     /**
+     * How many instructors the homepage slider shows (four per view on large screens).
+     */
+    private const int INSTRUCTOR_LIMIT = 12;
+
+    /**
      * Show the public homepage.
      */
     public function __invoke(Request $request): Response
@@ -79,7 +84,7 @@ class HomeController extends Controller
                 ->withCount(['courses' => fn (Builder $query) => $query->published()])
                 ->whereHas('courses', fn (Builder $query) => $query->published())
                 ->orderByDesc('courses_count')
-                ->limit(4)
+                ->limit(self::INSTRUCTOR_LIMIT)
                 ->get()
                 ->map(fn (User $instructor): array => [
                     'id' => $instructor->id,
