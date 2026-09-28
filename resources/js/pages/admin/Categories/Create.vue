@@ -13,9 +13,9 @@ import categories from '@/routes/admin/categories';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Kategori', href: '/admin/categories' },
-            { title: 'Buat Kategori', href: '/admin/categories/create' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Kategori', href: '/dasbor/kategori' },
+            { title: 'Buat Kategori', href: '/dasbor/kategori/tambah' },
         ],
     },
 });

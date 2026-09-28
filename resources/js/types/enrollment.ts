@@ -6,11 +6,14 @@ export type EnrollmentStatus = 'active' | 'cancelled';
 export type PersonSummary = {
     id: number;
     name: string;
+    slug: string;
     avatar?: string | null;
 };
 
 export type CatalogCourse = {
     id: number;
+    slug: string;
+    url: string;
     title: string;
     summary: string;
     level: CourseLevel;
@@ -27,6 +30,7 @@ export type CatalogCourse = {
 
 export type CatalogCourseDetail = {
     id: number;
+    slug: string;
     title: string;
     description: string | null;
     level: CourseLevel;
@@ -51,12 +55,14 @@ export type CatalogSection = {
     title: string;
     lessons: Array<{
         id: number;
+        slug: string;
         title: string;
         content_type: 'video' | 'article';
         duration_minutes: number | null;
     }>;
     quizzes: Array<{
         id: number;
+        slug: string;
         title: string;
         time_limit_minutes: number | null;
         questions_count: number;
@@ -84,6 +90,8 @@ export type MyCourseEnrollment = {
     };
     course: {
         id: number;
+        slug: string;
+        url: string;
         title: string;
         level: CourseLevel;
         thumbnail_url: string | null;
@@ -100,7 +108,7 @@ export type EnrollmentRow = {
     is_self_enrolled: boolean;
     enrolled_by: { id: number; name: string } | null;
     student: PersonSummary & { email: string };
-    course: { id: number; title: string };
+    course: { id: number; slug: string; title: string };
     can_cancel: boolean;
 };
 
@@ -122,6 +130,7 @@ export type EnrollmentDetail = {
     };
     course: {
         id: number;
+        slug: string;
         title: string;
         status: CourseStatus;
         level: CourseLevel;
@@ -133,3 +142,7 @@ export type EnrollmentDetail = {
 };
 
 export type StudentOption = { id: number; name: string; email: string };
+
+export type WishlistCourse = CatalogCourse & {
+    wishlisted_at: string | null;
+};

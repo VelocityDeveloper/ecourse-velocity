@@ -30,11 +30,13 @@ class OrderController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
         ]);
 
+        $actor = $this->actor($request);
         $status = $request->string('status')->toString();
         $search = $request->string('search')->toString();
 
         $orders = Order::query()
-            ->with('user:id,name,email,avatar_path')
+            ->manageableBy($actor)
+            ->with(['user:id,name,email,avatar_path', 'course:id,slug'])
             ->when($status !== '', fn (Builder $query) => $query->where('status', $status))
             ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $inner) => $inner
                 ->where('number', 'like', "%{$search}%")
@@ -54,29 +56,38 @@ class OrderController extends Controller
 
         return Inertia::render('admin/Orders/Index', [
             'orders' => $orders,
-            'counts' => Order::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
+            'counts' => Order::query()->manageableBy($actor)->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
             'statuses' => Order::STATUSES,
             'filters' => $request->only(['status', 'search']),
             'paymentReady' => PaymentSettings::availableMethods() !== [],
+            'canManage' => $actor->isAdmin(),
         ]);
     }
 
     /**
      * Show one order with its payment proof.
+     *
+     * Instructors may look at the orders of their own courses. Only admins
+     * handle the payment, so only they get the actions and the student's
+     * payment proof, sender name and note.
      */
-    public function show(Order $order): Response
+    public function show(Request $request, Order $order): Response
     {
-        $order->load(['user:id,name,email,avatar_path', 'handler:id,name', 'transaction.confirmer:id,name']);
+        $actor = $this->actor($request);
+
+        abort_unless(Order::query()->manageableBy($actor)->whereKey($order->id)->exists(), 403);
+
+        $order->load(['user:id,name,email,avatar_path', 'course:id,slug', 'handler:id,name', 'transaction.confirmer:id,name']);
 
         return Inertia::render('admin/Orders/Show', [
             'order' => [
                 ...StudentOrderController::summary($order),
                 'price' => $order->price,
                 'payment_details' => $order->payment_details,
-                'payer_name' => $order->payer_name,
-                'payer_note' => $order->payer_note,
+                'payer_name' => $actor->isAdmin() ? $order->payer_name : null,
+                'payer_note' => $actor->isAdmin() ? $order->payer_note : null,
                 'proof_uploaded_at' => $order->proof_uploaded_at?->toIso8601String(),
-                'proof_url' => $order->proof_path === null ? null : route('orders.proof.show', $order),
+                'proof_url' => $order->proof_path === null || ! $actor->isAdmin() ? null : route('orders.proof.show', $order),
                 'proof_is_pdf' => $order->proof_path !== null && str_ends_with(strtolower($order->proof_path), '.pdf'),
                 'rejection_reason' => $order->rejection_reason,
                 'cancelled_at' => $order->cancelled_at?->toIso8601String(),
@@ -90,6 +101,7 @@ class OrderController extends Controller
                     'confirmer' => $order->transaction->confirmer?->only(['id', 'name']),
                 ],
             ],
+            'canManage' => $actor->isAdmin(),
         ]);
     }
 

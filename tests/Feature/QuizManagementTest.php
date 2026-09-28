@@ -478,7 +478,7 @@ test('the quiz editor offers the short answer mode', function () {
     $quiz = quizFor($instructor);
 
     $this->actingAs($instructor)
-        ->get(route('quizzes.edit', $quiz))
+        ->get(route('quizzes.edit', ['course' => $quiz->section->course, 'quiz' => $quiz]))
         ->assertInertia(fn ($page) => $page
             ->where('answerModes', fn ($modes) => collect($modes)->contains(QuizQuestion::MODE_SHORT_ANSWER))
         );

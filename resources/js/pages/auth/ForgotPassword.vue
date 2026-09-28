@@ -13,7 +13,7 @@ defineOptions({
     layout: {
         title: 'Lupa kata sandi',
         description:
-            'Masukkan email Anda untuk menerima tautan atur ulang kata sandi',
+            'Masukkan email akun Anda, kami kirimkan tautan untuk mengatur ulang kata sandi.',
     },
 });
 
@@ -27,7 +27,7 @@ defineProps<{
 
     <div
         v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        class="rounded-xl bg-primary/10 p-3 text-center text-sm font-medium"
     >
         {{ status }}
     </div>
@@ -43,13 +43,14 @@ defineProps<{
                     autocomplete="off"
                     v-focus
                     placeholder="email@example.com"
+                    class="h-11 rounded-xl"
                 />
                 <InputError :message="errors.email" />
             </div>
 
             <div class="my-6 flex items-center justify-start">
                 <Button
-                    class="w-full"
+                    class="h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
                     :disabled="processing"
                     data-test="email-password-reset-link-button"
                 >

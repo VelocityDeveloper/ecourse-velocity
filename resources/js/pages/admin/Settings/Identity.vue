@@ -7,9 +7,15 @@ import LogoSettings from '@/components/site-settings/LogoSettings.vue';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pengaturan Situs', href: '/admin/settings/identitas' },
-            { title: 'Identitas & Logo', href: '/admin/settings/identitas' },
+            { title: 'Dasbor', href: '/dasbor' },
+            {
+                title: 'Pengaturan Situs',
+                href: '/dasbor/pengaturan-situs/identitas',
+            },
+            {
+                title: 'Identitas & Logo',
+                href: '/dasbor/pengaturan-situs/identitas',
+            },
         ],
     },
 });

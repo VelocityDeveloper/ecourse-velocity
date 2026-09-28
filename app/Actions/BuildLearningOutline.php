@@ -20,14 +20,14 @@ class BuildLearningOutline
      * @return array{
      *     course: array{id: int, title: string},
      *     sections: list<array{id: int, title: string, items: list<array<string, mixed>>}>,
-     *     items: list<array{type: string, id: int, title: string}>,
+     *     items: list<array{type: string, id: int, slug: string, title: string}>,
      *     progress: array{completed: int, total: int, percent: int}
      * }
      */
     public function __invoke(User $student, Course $course): array
     {
         $course->loadMissing([
-            'sections.lessons:id,section_id,title,content_type,duration_minutes,position',
+            'sections.lessons:id,section_id,title,slug,content_type,duration_minutes,position',
             'sections.quizzes' => fn ($query) => $query->withCount('questions'),
         ]);
 
@@ -42,6 +42,7 @@ class BuildLearningOutline
                 ...$section->lessons->map(fn (Lesson $lesson): array => [
                     'type' => 'lesson',
                     'id' => $lesson->id,
+                    'slug' => $lesson->slug,
                     'title' => $lesson->title,
                     'content_type' => $lesson->content_type,
                     'duration_minutes' => $lesson->duration_minutes,
@@ -51,6 +52,7 @@ class BuildLearningOutline
                 ...$section->quizzes->map(fn (Quiz $quiz): array => [
                     'type' => 'quiz',
                     'id' => $quiz->id,
+                    'slug' => $quiz->slug,
                     'title' => $quiz->title,
                     'time_limit_minutes' => $quiz->time_limit_minutes,
                     'questions_count' => (int) $quiz->questions_count,
@@ -61,12 +63,12 @@ class BuildLearningOutline
             $sections[] = $this->section($section, $sectionItems);
 
             foreach ($sectionItems as $item) {
-                $items[] = ['type' => $item['type'], 'id' => $item['id'], 'title' => $item['title']];
+                $items[] = ['type' => $item['type'], 'id' => $item['id'], 'slug' => $item['slug'], 'title' => $item['title']];
             }
         }
 
         return [
-            'course' => ['id' => $course->id, 'title' => $course->title],
+            'course' => ['id' => $course->id, 'slug' => $course->slug, 'url' => $course->permalink(), 'title' => $course->title],
             'sections' => $sections,
             'items' => $items,
             'progress' => [
@@ -95,8 +97,8 @@ class BuildLearningOutline
     /**
      * Find the items directly before and after the given one in the outline.
      *
-     * @param  list<array{type: string, id: int, title: string}>  $items
-     * @return array{previous: array{type: string, id: int, title: string}|null, next: array{type: string, id: int, title: string}|null}
+     * @param  list<array{type: string, id: int, slug: string, title: string}>  $items
+     * @return array{previous: array{type: string, id: int, slug: string, title: string}|null, next: array{type: string, id: int, slug: string, title: string}|null}
      */
     public static function neighbours(array $items, string $type, int $id): array
     {

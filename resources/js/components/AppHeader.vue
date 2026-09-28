@@ -67,11 +67,6 @@ const rightNavItems: NavItem[] = [
         href: 'https://github.com/laravel/vue-starter-kit',
         icon: Folder,
     },
-    {
-        title: 'Dokumentasi',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
 ];
 </script>
 

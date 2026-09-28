@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\TestimonialRequest;
 use App\Http\Requests\MoveRequest;
+use App\Models\SiteSetting;
 use App\Models\Testimonial;
+use App\Support\HomeTestimonials;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,7 +24,44 @@ class TestimonialController extends Controller
     {
         return Inertia::render('admin/Testimonials/Index', [
             'testimonials' => Testimonial::query()->ordered()->get(),
+            'source' => HomeTestimonials::source(),
+            'reviews' => HomeTestimonials::reviews(),
+            'minRating' => HomeTestimonials::MIN_RATING,
+            'limit' => HomeTestimonials::limit(),
+            'limitRange' => ['min' => HomeTestimonials::MIN_LIMIT, 'max' => HomeTestimonials::MAX_LIMIT],
         ]);
+    }
+
+    /**
+     * Choose whether the homepage shows the latest course reviews or the testimonials written here.
+     */
+    public function updateSource(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'source' => ['required', Rule::in(HomeTestimonials::SOURCES)],
+        ]);
+
+        SiteSetting::put(SiteSetting::TESTIMONIAL_SOURCE, $validated['source']);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Testimonial source saved.')]);
+
+        return to_route('admin.testimonials.index');
+    }
+
+    /**
+     * Set how many testimonials the homepage shows.
+     */
+    public function updateLimit(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'limit' => ['required', 'integer', 'min:'.HomeTestimonials::MIN_LIMIT, 'max:'.HomeTestimonials::MAX_LIMIT],
+        ]);
+
+        SiteSetting::put(SiteSetting::TESTIMONIAL_LIMIT, (string) $validated['limit']);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Testimonial count saved.')]);
+
+        return to_route('admin.testimonials.index');
     }
 
     /**

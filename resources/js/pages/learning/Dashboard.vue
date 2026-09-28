@@ -71,18 +71,18 @@ const statItems = computed(() => [
 function resumeHref(card: LearningCourseCard) {
     return card.last_lesson
         ? learn.lessons.show({
-              course: card.course.id,
-              lesson: card.last_lesson.id,
+              course: card.course.slug,
+              lesson: card.last_lesson.slug,
           })
-        : learn.show(card.course.id);
+        : learn.show(card.course.slug);
 }
 
 function activityHref(item: LearningActivity) {
     return item.type === 'quiz'
         ? learn.attempts.show(item.target_id)
         : learn.lessons.show({
-              course: item.course.id,
-              lesson: item.target_id,
+              course: item.course.slug,
+              lesson: item.target_slug,
           });
 }
 </script>

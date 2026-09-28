@@ -3,21 +3,22 @@ import SiteSettingsNav from '@/components/site-settings/SiteSettingsNav.vue';
 import { Head } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import ColorSettings from '@/components/site-settings/ColorSettings.vue';
-import { Separator } from '@/components/ui/separator';
 
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pengaturan Situs', href: '/admin/settings/identitas' },
-            { title: 'Warna', href: '/admin/settings/warna' },
+            { title: 'Dasbor', href: '/dasbor' },
+            {
+                title: 'Pengaturan Situs',
+                href: '/dasbor/pengaturan-situs/identitas',
+            },
+            { title: 'Warna', href: '/dasbor/pengaturan-situs/warna' },
         ],
     },
 });
 
 defineProps<{
     primaryColor: string | null;
-    surfaceColor: string | null;
 }>();
 
 // Swatch colours only: the picked value is stored as data, not used as a class.
@@ -31,15 +32,6 @@ const PRIMARY_PRESETS = [
     { name: 'Merah', value: '#dc2626' },
     { name: 'Biru tua', value: '#1e3a8a' },
 ];
-
-const SURFACE_PRESETS = [
-    { name: 'Navy (bawaan)', value: '#0b1223' },
-    { name: 'Hitam', value: '#111111' },
-    { name: 'Biru gelap', value: '#0f1e4a' },
-    { name: 'Hijau gelap', value: '#0b2a1f' },
-    { name: 'Ungu gelap', value: '#1e1036' },
-    { name: 'Cokelat gelap', value: '#2a160b' },
-];
 </script>
 
 <template>
@@ -51,7 +43,7 @@ const SURFACE_PRESETS = [
         <Heading
             variant="small"
             title="Warna"
-            description="Warna utama dan warna latar gelap yang dipakai di seluruh situs"
+            description="Warna utama yang dipakai di seluruh situs"
         />
 
         <div class="max-w-2xl space-y-8">
@@ -62,17 +54,6 @@ const SURFACE_PRESETS = [
                 :value="primaryColor"
                 default-color="#cb450b"
                 :presets="PRIMARY_PRESETS"
-                preview="button"
-            />
-            <Separator />
-            <ColorSettings
-                name="surface_color"
-                title="Warna latar gelap"
-                description="Latar header, hero beranda, kartu jalur belajar, dan footer. Teks di atasnya selalu putih, jadi warna yang terlalu terang akan digelapkan otomatis."
-                :value="surfaceColor"
-                default-color="#0b1223"
-                :presets="SURFACE_PRESETS"
-                preview="surface"
             />
         </div>
     </div>

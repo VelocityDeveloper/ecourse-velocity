@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Concerns\CourseValidationRules;
 use App\Models\Course;
 use App\Models\User;
+use App\Support\Slug;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -19,7 +20,7 @@ class StoreCourseRequest extends FormRequest
     {
         $this->merge([
             'slug' => $this->filled('slug')
-                ? $this->string('slug')->toString()
+                ? Slug::from($this->string('slug')->toString(), '')
                 : $this->uniqueCourseSlug($this->string('title')->toString()),
             'status' => $this->filled('status')
                 ? $this->string('status')->toString()

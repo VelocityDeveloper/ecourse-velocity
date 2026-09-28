@@ -39,7 +39,7 @@ test('a paid course cannot be enrolled in for free', function () {
     $course = paidCourse();
     $student = User::factory()->student()->create();
 
-    $this->actingAs($student)->post(route('catalog.enroll', $course))->assertRedirect(route('catalog.show', $course));
+    $this->actingAs($student)->post(route('catalog.enroll', $course))->assertRedirect(route('catalog.show', $course->permalinkParameters()));
 
     expect($course->enrollments()->count())->toBe(0);
 });
@@ -104,7 +104,7 @@ test('the checkout page shows the course and creates no invoice until the order 
         ->assertInertia(fn ($page) => $page->component('orders/Proof')->has('bankAccounts', 2));
 
     $this->actingAs($student)
-        ->get(route('catalog.show', $course))
+        ->get(route('catalog.show', $course->permalinkParameters()))
         ->assertInertia(fn ($page) => $page->where('purchase.open_order.number', $order->number));
 });
 
@@ -228,7 +228,8 @@ test('orders are private to their student and admins', function () {
 
     $this->actingAs($other)->get(route('orders.show', $order))->assertForbidden();
     $this->actingAs($other)->get(route('orders.proof.show', $order))->assertForbidden();
-    $this->actingAs($instructor)->get(route('admin.orders.index'))->assertForbidden();
+    $this->actingAs($instructor)->get(route('admin.orders.index'))->assertInertia(fn ($page) => $page->has('orders.data', 0));
+    $this->actingAs($instructor)->get(route('admin.orders.show', $order))->assertForbidden();
     $this->actingAs($instructor)->post(route('admin.orders.confirm', $order))->assertForbidden();
 
     expect($order->refresh()->status)->toBe(Order::STATUS_AWAITING_CONFIRMATION);
@@ -267,4 +268,51 @@ test('the admin saves bank accounts, a QRIS image and the deadline', function ()
         ->assertSessionHasNoErrors();
 
     expect(PaymentSettings::availableMethods())->toBe([]);
+});
+
+test('instructors see only the orders and sales of their own courses, without actions', function () {
+    $instructor = User::factory()->instructor()->create();
+    $own = Course::factory()->ownedBy($instructor)->published()->create(['price' => 150000]);
+    $ownOrder = Order::factory()->for($own)->awaitingConfirmation()->create();
+    $otherOrder = Order::factory()->for(paidCourse())->awaitingConfirmation()->create();
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)->post(route('admin.orders.confirm', $ownOrder))->assertRedirect();
+    $this->actingAs($admin)->post(route('admin.orders.confirm', $otherOrder))->assertRedirect();
+
+    $this->actingAs($instructor)
+        ->get(route('admin.orders.index'))
+        ->assertInertia(fn ($page) => $page
+            ->has('orders.data', 1)
+            ->where('orders.data.0.number', $ownOrder->number)
+            ->where('canManage', false));
+
+    $this->actingAs($instructor)
+        ->get(route('admin.orders.show', $ownOrder))
+        ->assertInertia(fn ($page) => $page
+            ->where('canManage', false));
+
+    $this->actingAs($instructor)
+        ->get(route('admin.transactions.index'))
+        ->assertInertia(fn ($page) => $page
+            ->has('transactions.data', 1)
+            ->where('transactions.data.0.order.number', $ownOrder->number)
+            ->where('summary.all_time', $ownOrder->refresh()->total));
+
+    $this->actingAs($instructor)->post(route('admin.orders.cancel', $ownOrder))->assertForbidden();
+
+    Storage::fake(Order::PROOF_DISK);
+    Storage::disk(Order::PROOF_DISK)->put('bukti/milik.jpg', 'x');
+    Storage::disk(Order::PROOF_DISK)->put('bukti/lain.jpg', 'x');
+    $ownOrder->update(['proof_path' => 'bukti/milik.jpg']);
+    $otherOrder->update(['proof_path' => 'bukti/lain.jpg']);
+
+    $this->actingAs($instructor)
+        ->get(route('admin.orders.show', $ownOrder))
+        ->assertInertia(fn ($page) => $page
+            ->where('order.proof_url', null)
+            ->where('order.payer_name', null));
+    $this->actingAs($instructor)->get(route('orders.proof.show', $ownOrder))->assertForbidden();
+    $this->actingAs($instructor)->get(route('orders.proof.show', $otherOrder))->assertForbidden();
+    $this->actingAs($instructor)->get(route('admin.payment-settings.edit'))->assertForbidden();
 });

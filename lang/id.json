@@ -74,5 +74,10 @@
     "Payment confirmed. The student is now enrolled.": "Pembayaran dikonfirmasi. Siswa sudah terdaftar di kursus.",
     "Only an order waiting for confirmation can be rejected.": "Hanya pesanan yang menunggu konfirmasi yang bisa ditolak.",
     "Payment rejected. The student can upload a new proof.": "Pembayaran ditolak. Siswa bisa mengunggah bukti baru.",
-    "Payment settings saved.": "Pengaturan pembayaran disimpan."
+    "Payment settings saved.": "Pengaturan pembayaran disimpan.",
+    "This slug is already used by another page of the site.": "Slug ini sudah dipakai halaman lain di situs.",
+    "Article saved.": "Artikel disimpan.",
+    "Article deleted.": "Artikel dihapus.",
+    "Testimonial source saved.": "Sumber testimoni disimpan.",
+    "Testimonial count saved.": "Jumlah testimoni disimpan."
 }

@@ -8,17 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-// One colour setting (main colour or dark surface): swatches, a picker and a preview.
+// The main colour setting: swatches, a picker and a preview.
 const props = defineProps<{
-    name: 'primary_color' | 'surface_color';
+    name: 'primary_color';
     title: string;
     description: string;
     value: string | null;
     // The built-in colour; saving it stores nothing so app.css keeps applying.
     defaultColor: string;
     presets: { name: string; value: string }[];
-    // How the preview shows the colour: as a button, or as a dark band with white text.
-    preview: 'button' | 'surface';
 }>();
 
 const color = ref(props.value ?? props.defaultColor);
@@ -108,7 +106,6 @@ async function resetColor(submit: () => void): Promise<void> {
                 </div>
 
                 <div
-                    v-if="preview === 'button'"
                     class="flex items-center gap-3 rounded-lg border px-4 py-2"
                     aria-hidden="true"
                 >
@@ -125,14 +122,6 @@ async function resetColor(submit: () => void): Promise<void> {
                         :style="{ color: isValid ? color : undefined }"
                         >Lihat semua</span
                     >
-                </div>
-                <div
-                    v-else
-                    class="flex h-[42px] min-w-56 items-center gap-3 rounded-lg px-4 text-sm font-semibold text-white"
-                    :style="{ backgroundColor: isValid ? color : undefined }"
-                    aria-hidden="true"
-                >
-                    Beranda · Kursus · Instruktur
                 </div>
             </div>
 

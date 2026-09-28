@@ -40,8 +40,8 @@ import type {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Kursus', href: '/courses' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Kursus', href: '/dasbor/kursus' },
         ],
     },
 });
@@ -91,8 +91,19 @@ function goToPage(page: number) {
     });
 }
 
-function deleteCourse(id: number) {
-    router.delete(courseRoutes.destroy(id).url, { preserveScroll: true });
+function deleteCourse(slug: string) {
+    router.delete(courseRoutes.destroy(slug).url, { preserveScroll: true });
+}
+
+// The pencil sticks to the title's last word so it never wraps onto a line of its own.
+function titleHead(title: string): string {
+    const cut = title.lastIndexOf(' ');
+
+    return cut === -1 ? '' : title.slice(0, cut + 1);
+}
+
+function titleTail(title: string): string {
+    return title.slice(title.lastIndexOf(' ') + 1);
 }
 </script>
 
@@ -253,10 +264,23 @@ function deleteCourse(id: number) {
                                     />
                                     <div class="min-w-0">
                                         <Link
-                                            :href="courseRoutes.show(course.id)"
-                                            class="font-medium hover:underline"
+                                            :href="
+                                                courseRoutes.show(course.slug, {
+                                                    query: course.can.update
+                                                        ? { tab: 'informasi' }
+                                                        : {},
+                                                })
+                                            "
+                                            class="group font-medium hover:underline"
                                         >
-                                            {{ course.title }}
+                                            {{ titleHead(course.title) }}
+                                            <span class="whitespace-nowrap"
+                                                >{{ titleTail(course.title)
+                                                }}<Pencil
+                                                    v-if="course.can.update"
+                                                    class="ml-1 inline-block size-3.5 -translate-y-px text-muted-foreground transition-colors group-hover:text-primary"
+                                                    aria-hidden="true"
+                                            /></span>
                                         </Link>
                                         <p
                                             class="truncate text-xs text-muted-foreground"
@@ -292,14 +316,6 @@ function deleteCourse(id: number) {
                                 <div
                                     class="flex items-center justify-end gap-2"
                                 >
-                                    <Link
-                                        v-if="course.can.update"
-                                        :href="courseRoutes.edit(course.id)"
-                                    >
-                                        <Button variant="ghost" size="sm">
-                                            <Pencil class="h-4 w-4" />
-                                        </Button>
-                                    </Link>
                                     <Dialog v-if="course.can.delete">
                                         <DialogTrigger as-child>
                                             <Button variant="ghost" size="sm">
@@ -331,7 +347,9 @@ function deleteCourse(id: number) {
                                                 <Button
                                                     variant="destructive"
                                                     @click="
-                                                        deleteCourse(course.id)
+                                                        deleteCourse(
+                                                            course.slug,
+                                                        )
                                                     "
                                                 >
                                                     Hapus

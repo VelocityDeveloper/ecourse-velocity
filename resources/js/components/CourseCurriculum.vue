@@ -53,7 +53,7 @@ import type {
 } from '@/types';
 
 const props = defineProps<{
-    courseId: number;
+    courseSlug: string;
     sections: Section[];
     contentTypes: LessonContentType[];
     canEdit: boolean;
@@ -145,7 +145,7 @@ function submitSection() {
 
     if (editingSectionId.value === null) {
         router.post(
-            sectionRoutes.store(props.courseId).url,
+            sectionRoutes.store(props.courseSlug).url,
             { ...sectionForm },
             options,
         );
@@ -515,7 +515,14 @@ function confirmDelete() {
                                 >
                                     <ChevronDown class="h-4 w-4" />
                                 </Button>
-                                <Link :href="lessonRoutes.edit(lesson.id)">
+                                <Link
+                                    :href="
+                                        lessonRoutes.edit({
+                                            course: courseSlug,
+                                            lesson: lesson.slug,
+                                        })
+                                    "
+                                >
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -588,7 +595,12 @@ function confirmDelete() {
                             />
                             <div class="min-w-0">
                                 <Link
-                                    :href="quizRoutes.edit(quiz.id)"
+                                    :href="
+                                        quizRoutes.edit({
+                                            course: courseSlug,
+                                            quiz: quiz.slug,
+                                        })
+                                    "
                                     class="truncate text-sm hover:underline"
                                 >
                                     {{ quiz.title }}
@@ -638,7 +650,14 @@ function confirmDelete() {
                                 >
                                     <ChevronDown class="h-4 w-4" />
                                 </Button>
-                                <Link :href="quizRoutes.edit(quiz.id)">
+                                <Link
+                                    :href="
+                                        quizRoutes.edit({
+                                            course: courseSlug,
+                                            quiz: quiz.slug,
+                                        })
+                                    "
+                                >
                                     <Button
                                         variant="ghost"
                                         size="sm"

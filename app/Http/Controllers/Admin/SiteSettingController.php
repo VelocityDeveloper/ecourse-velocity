@@ -37,7 +37,6 @@ class SiteSettingController extends Controller
             ],
             'warna' => [
                 'primaryColor' => SiteSetting::get(SiteSetting::PRIMARY_COLOR),
-                'surfaceColor' => SiteSetting::get(SiteSetting::SURFACE_COLOR),
             ],
             'hero' => [
                 'banner' => [
@@ -64,11 +63,9 @@ class SiteSettingController extends Controller
         $this->replaceFile($request, SiteSetting::LOGO, 'logo', 'remove_logo');
         $this->replaceFile($request, SiteSetting::HERO_IMAGE, 'hero_image', 'remove_hero_image');
 
-        foreach ([SiteSetting::PRIMARY_COLOR, SiteSetting::SURFACE_COLOR] as $key) {
-            if ($request->has($key)) {
-                $color = $request->string($key)->lower()->toString();
-                SiteSetting::put($key, $color === '' ? null : $color);
-            }
+        if ($request->has(SiteSetting::PRIMARY_COLOR)) {
+            $color = $request->string(SiteSetting::PRIMARY_COLOR)->lower()->toString();
+            SiteSetting::put(SiteSetting::PRIMARY_COLOR, $color === '' ? null : $color);
         }
 
         $textKeys = [

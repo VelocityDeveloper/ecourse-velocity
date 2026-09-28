@@ -15,7 +15,7 @@ import reviewRoutes from '@/routes/reviews';
 import type { CourseReviewEntry, RatingSummary } from '@/types';
 
 const props = defineProps<{
-    courseId: number;
+    courseSlug: string;
     rating: RatingSummary;
     reviews: CourseReviewEntry[];
     myReview: { id: number; rating: number; comment: string | null } | null;
@@ -56,7 +56,7 @@ function submit(): void {
     errors.value = {};
 
     router.put(
-        catalogRoutes.review.update(props.courseId).url,
+        catalogRoutes.review.update(props.courseSlug).url,
         { ...form.value },
         {
             preserveScroll: true,

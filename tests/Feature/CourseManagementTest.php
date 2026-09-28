@@ -109,7 +109,7 @@ test('an instructor can update their own course', function () {
 
     $this->actingAs($instructor)
         ->put(route('courses.update', $course), coursePayload(['title' => 'Revised Title']))
-        ->assertRedirect(route('courses.show', $course));
+        ->assertRedirect(route('courses.show', 'revised-title'));
 
     expect($course->refresh()->title)->toBe('Revised Title');
 });
@@ -306,4 +306,37 @@ test('an admin can only assign a course to a user who is an instructor', functio
     $this->actingAs($admin)
         ->post(route('courses.store'), coursePayload(['instructor_id' => $student->id]))
         ->assertSessionHasErrors('instructor_id');
+});
+
+test('the old edit link opens the edit tabs of the course page', function () {
+    $admin = User::factory()->admin()->create();
+    $course = Course::factory()->create();
+
+    $this->actingAs($admin)
+        ->get(route('courses.edit', $course))
+        ->assertRedirect(route('courses.show', ['course' => $course, 'tab' => 'informasi']));
+
+    $this->actingAs($admin)
+        ->get(route('courses.show', $course))
+        ->assertInertia(fn ($page) => $page
+            ->component('courses/Show')
+            ->where('form.slug', $course->slug)
+            ->where('isAdmin', true)
+            ->has('levels'));
+});
+
+test('an instructor can edit a published course without changing its status', function () {
+    $instructor = User::factory()->instructor()->create();
+    $course = Course::factory()->ownedBy($instructor)->published()->create();
+
+    $this->actingAs($instructor)
+        ->put(route('courses.update', $course), coursePayload(['title' => 'Judul Baru', 'status' => Course::STATUS_PUBLISHED]))
+        ->assertSessionHasNoErrors();
+
+    expect($course->refresh()->title)->toBe('Judul Baru')
+        ->and($course->status)->toBe(Course::STATUS_PUBLISHED);
+
+    $this->actingAs($instructor)
+        ->put(route('courses.update', $course), coursePayload(['status' => Course::STATUS_ARCHIVED]))
+        ->assertSessionHasErrors('status');
 });

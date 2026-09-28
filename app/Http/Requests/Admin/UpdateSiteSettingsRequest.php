@@ -29,7 +29,6 @@ class UpdateSiteSettingsRequest extends FormRequest
             'cta_description' => ['sometimes', 'nullable', 'string', 'max:300'],
             'hero_image' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:3072', 'dimensions:max_width=4000,max_height=4000'],
             'remove_hero_image' => ['sometimes', 'boolean'],
-            'surface_color' => ['sometimes', 'nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'site_description' => ['sometimes', 'nullable', 'string', 'max:300'],
             'contact_address' => ['sometimes', 'nullable', 'string', 'max:200'],
             'contact_email' => ['sometimes', 'nullable', 'email', 'max:120'],
@@ -57,7 +56,6 @@ class UpdateSiteSettingsRequest extends FormRequest
             'logo.uploaded' => __('The image could not be uploaded. Make sure it is no larger than :size MB.', ['size' => 2]),
             'hero_image.max' => __('The image may not be larger than :size MB.', ['size' => 3]),
             'hero_image.uploaded' => __('The image could not be uploaded. Make sure it is no larger than :size MB.', ['size' => 3]),
-            'surface_color.regex' => __('Choose a colour in #rrggbb format.'),
             'contact_phone.regex' => __('Use digits, spaces, +, - or brackets only.'),
             'social_*.url' => __('Enter a full link starting with https://.'),
         ];

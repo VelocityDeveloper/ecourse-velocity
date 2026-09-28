@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, CircleCheck, ExternalLink, FileText } from '@lucide/vue';
+import {
+    ArrowLeft,
+    CircleCheck,
+    ExternalLink,
+    FileText,
+    ShieldCheck,
+} from '@lucide/vue';
 import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
@@ -48,13 +54,14 @@ const props = defineProps<{
             confirmer: { id: number; name: string } | null;
         } | null;
     };
+    canManage: boolean;
 }>();
 
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pesanan', href: '/admin/orders' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Pesanan', href: '/dasbor/pesanan' },
             { title: 'Detail Pesanan', href: '#' },
         ],
     },
@@ -125,9 +132,27 @@ function cancelOrder(): void {
                     </a>
                 </div>
 
-                <template v-if="order.proof_url">
+                <template
+                    v-if="
+                        order.proof_url ||
+                        (!canManage && order.proof_uploaded_at)
+                    "
+                >
+                    <div
+                        v-if="!order.proof_url"
+                        class="flex items-start gap-3 rounded-lg border bg-muted/40 p-4 text-sm"
+                    >
+                        <ShieldCheck
+                            class="size-5 shrink-0 text-primary"
+                            aria-hidden="true"
+                        />
+                        <p class="text-muted-foreground">
+                            Siswa sudah mengirim bukti pembayaran. Demi privasi
+                            siswa, bukti hanya bisa dilihat dan diperiksa admin.
+                        </p>
+                    </div>
                     <a
-                        v-if="order.proof_is_pdf"
+                        v-else-if="order.proof_is_pdf"
                         :href="order.proof_url"
                         target="_blank"
                         rel="noopener"
@@ -165,7 +190,7 @@ function cancelOrder(): void {
                                 </template>
                             </dd>
                         </div>
-                        <div>
+                        <div v-if="order.payer_name">
                             <dt class="text-muted-foreground">Nama pengirim</dt>
                             <dd class="font-medium">{{ order.payer_name }}</dd>
                         </div>
@@ -214,8 +239,8 @@ function cancelOrder(): void {
                     <div class="flex justify-between gap-4">
                         <span class="text-muted-foreground">Kursus</span>
                         <Link
-                            v-if="order.course_id !== null"
-                            :href="courses.show(order.course_id)"
+                            v-if="order.course_slug !== null"
+                            :href="courses.show(order.course_slug)"
                             class="text-right font-medium text-primary underline-offset-4 hover:underline"
                             >{{ order.course_title }}</Link
                         >
@@ -272,7 +297,7 @@ function cancelOrder(): void {
                     >.
                 </p>
 
-                <div v-if="isOpen()" class="flex flex-col gap-2">
+                <div v-if="canManage && isOpen()" class="flex flex-col gap-2">
                     <Button @click="dialog = 'confirm'">
                         <CircleCheck class="mr-2 h-4 w-4" />
                         Konfirmasi pembayaran

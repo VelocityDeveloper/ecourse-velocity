@@ -28,6 +28,8 @@ import CancelEnrollmentDialog from '@/components/CancelEnrollmentDialog.vue';
 import CourseCard from '@/components/CourseCard.vue';
 import CourseReviews from '@/components/CourseReviews.vue';
 import StarRating from '@/components/StarRating.vue';
+import WishlistButton from '@/components/WishlistButton.vue';
+import { useWishlist } from '@/composables/useWishlist';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -81,6 +83,7 @@ const props = defineProps<{
     };
 }>();
 
+const { canUse: canWishlist } = useWishlist();
 const enrolling = ref(false);
 const cancelDialogOpen = ref(false);
 
@@ -217,7 +220,7 @@ function enroll(): void {
     enrolling.value = true;
 
     router.post(
-        catalogRoutes.enroll(props.course.id).url,
+        catalogRoutes.enroll(props.course.slug).url,
         {},
         {
             preserveScroll: true,
@@ -275,7 +278,7 @@ function enroll(): void {
                                 :href="
                                     catalogRoutes.index({
                                         query: {
-                                            category_id: course.category.id,
+                                            kategori: course.category.slug,
                                         },
                                     })
                                 "
@@ -322,7 +325,7 @@ function enroll(): void {
                     >
                         <Link
                             v-if="course.instructor"
-                            :href="users.show(course.instructor.id)"
+                            :href="users.show(course.instructor.slug)"
                             class="flex items-center gap-3"
                         >
                             <Avatar
@@ -445,7 +448,7 @@ function enroll(): void {
                                     {{ formatDate(enrollment.enrolled_at) }}.
                                 </span>
                             </div>
-                            <Link :href="learn.show(course.id)">
+                            <Link :href="learn.show(course.slug)">
                                 <Button
                                     size="lg"
                                     class="h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
@@ -515,7 +518,7 @@ function enroll(): void {
                                 </template>
                                 <Link
                                     v-else
-                                    :href="orderRoutes.checkout(course.id)"
+                                    :href="orderRoutes.checkout(course.slug)"
                                 >
                                     <Button
                                         size="lg"
@@ -573,15 +576,30 @@ function enroll(): void {
                                     </Link>
                                 </p>
                             </template>
+                            <p
+                                v-else-if="can.manage"
+                                class="text-xs text-muted-foreground"
+                            >
+                                Ini kursus yang Anda kelola, jadi tidak perlu
+                                mendaftar.
+                            </p>
                             <p v-else class="text-xs text-muted-foreground">
-                                Hanya siswa yang dapat mendaftar ke kursus yang
-                                terbit.
+                                Hanya siswa dan instruktur yang dapat mendaftar
+                                ke kursus yang terbit.
                             </p>
                         </template>
 
+                        <WishlistButton
+                            v-if="canWishlist && !can.manage && !isEnrolled"
+                            :course-id="course.id"
+                            :course-slug="course.slug"
+                            :course-title="course.title"
+                            variant="full"
+                        />
+
                         <Link
                             v-if="can.manage && !isEnrolled"
-                            :href="learn.show(course.id)"
+                            :href="learn.show(course.slug)"
                         >
                             <Button variant="outline" class="w-full rounded-xl">
                                 <PlayCircle class="mr-2 h-4 w-4" />
@@ -590,7 +608,7 @@ function enroll(): void {
                         </Link>
                         <Link
                             v-if="can.manage"
-                            :href="courses.show(course.id)"
+                            :href="courses.show(course.slug)"
                             class="text-center text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                         >
                             Kelola kursus ini di dasbor
@@ -623,7 +641,7 @@ function enroll(): void {
             <div class="flex min-w-0 flex-col gap-6 lg:row-start-1">
                 <!-- Section tabs -->
                 <nav
-                    class="sticky top-16 z-20 -mx-4 overflow-x-auto border-b bg-background/95 px-4 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:px-2 sm:shadow-sm"
+                    class="sticky top-16 z-20 -mx-4 scrollbar-none overflow-x-auto border-b bg-background/95 px-4 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:px-2 sm:shadow-sm"
                     aria-label="Bagian halaman"
                 >
                     <ul class="flex gap-1">
@@ -780,8 +798,8 @@ function enroll(): void {
                                                 v-if="can.learn"
                                                 :href="
                                                     learn.lessons.show({
-                                                        course: course.id,
-                                                        lesson: lesson.id,
+                                                        course: course.slug,
+                                                        lesson: lesson.slug,
                                                     })
                                                 "
                                                 class="truncate font-medium hover:underline"
@@ -827,8 +845,8 @@ function enroll(): void {
                                                 v-if="can.learn"
                                                 :href="
                                                     learn.quizzes.show({
-                                                        course: course.id,
-                                                        quiz: quiz.id,
+                                                        course: course.slug,
+                                                        quiz: quiz.slug,
                                                     })
                                                 "
                                                 class="truncate font-medium hover:underline"
@@ -917,7 +935,7 @@ function enroll(): void {
                         </Avatar>
                         <div class="min-w-0 space-y-2">
                             <Link
-                                :href="users.show(course.instructor.id)"
+                                :href="users.show(course.instructor.slug)"
                                 class="text-lg font-bold hover:underline"
                                 >{{ course.instructor.name }}</Link
                             >
@@ -938,7 +956,7 @@ function enroll(): void {
                                 {{ course.instructor.bio }}
                             </p>
                             <Link
-                                :href="users.show(course.instructor.id)"
+                                :href="users.show(course.instructor.slug)"
                                 class="inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline"
                             >
                                 Lihat profil
@@ -954,7 +972,7 @@ function enroll(): void {
                     class="scroll-mt-32 rounded-2xl border bg-card p-6 text-card-foreground shadow-sm sm:p-8"
                 >
                     <CourseReviews
-                        :course-id="course.id"
+                        :course-slug="course.slug"
                         :rating="rating"
                         :reviews="reviews"
                         :my-review="myReview"

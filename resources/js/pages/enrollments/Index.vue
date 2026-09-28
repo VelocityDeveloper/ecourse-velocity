@@ -4,6 +4,7 @@ import { Eye, Plus, Search, UserMinus } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CancelEnrollmentDialog from '@/components/CancelEnrollmentDialog.vue';
 import Heading from '@/components/Heading.vue';
+import SalesTabs from '@/components/SalesTabs.vue';
 import InputError from '@/components/InputError.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -42,8 +43,9 @@ import type {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pendaftaran', href: '/enrollments' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Penjualan', href: '/dasbor/pesanan' },
+            { title: 'User Terdaftar', href: '/dasbor/pendaftaran' },
         ],
     },
 });
@@ -165,12 +167,14 @@ function submitEnrollment(): void {
 
 <template>
     <div class="flex flex-col space-y-6">
-        <Head title="Pendaftaran" />
+        <Head title="User Terdaftar" />
+
+        <SalesTabs />
 
         <div class="flex items-center justify-between gap-4">
             <Heading
                 variant="small"
-                title="Pendaftaran"
+                title="User Terdaftar"
                 description="Siswa yang terdaftar di kursus yang Anda kelola"
             />
             <Button @click="openEnrollDialog">
@@ -270,7 +274,7 @@ function submitEnrollment(): void {
                                 colspan="6"
                                 class="py-8 text-center text-muted-foreground"
                             >
-                                Pendaftaran tidak ditemukan.
+                                User terdaftar tidak ditemukan.
                             </td>
                         </tr>
                         <tr

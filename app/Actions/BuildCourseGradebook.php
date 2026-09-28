@@ -52,7 +52,7 @@ class BuildCourseGradebook
 
         $enrollments = $course->enrollments()
             ->active()
-            ->with('user:id,name,email,avatar_path')
+            ->with('user:id,name,slug,email,avatar_path')
             ->when($only !== null, fn (Builder $query) => $query->where('user_id', $only?->id))
             ->when($search !== '', fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user
                 ->where('name', 'like', "%{$search}%")
@@ -91,7 +91,7 @@ class BuildCourseGradebook
 
                 return [
                     'enrollment_id' => $enrollment->id,
-                    'student' => $enrollment->user->only(['id', 'name', 'email', 'avatar']),
+                    'student' => $enrollment->user->only(['id', 'name', 'slug', 'email', 'avatar']),
                     'grades' => $grades,
                     'quizzes_taken' => count(array_filter($grades, fn (array $grade): bool => $grade['attempts'] > 0)),
                     'final_percent' => $finalPercent,
@@ -106,6 +106,7 @@ class BuildCourseGradebook
             'quizzes' => array_values($quizzes
                 ->map(fn (Quiz $quiz): array => [
                     'id' => $quiz->id,
+                    'slug' => $quiz->slug,
                     'title' => $quiz->title,
                     'section_title' => $quiz->section->title,
                     'weight' => $quiz->weight,

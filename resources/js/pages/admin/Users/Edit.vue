@@ -14,12 +14,13 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import PasswordInput from '@/components/PasswordInput.vue';
+import adminUsers from '@/routes/admin/users';
 
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pengguna', href: '/admin/users' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Pengguna', href: '/dasbor/pengguna' },
             { title: 'Ubah Pengguna', href: '#' },
         ],
     },
@@ -28,6 +29,7 @@ defineOptions({
 const props = defineProps<{
     user: {
         id: number;
+        slug: string;
         name: string;
         email: string;
         role: string;
@@ -49,7 +51,7 @@ function submit() {
     processing.value = true;
     errors.value = {};
 
-    router.put(`/admin/users/${props.user.id}`, form, {
+    router.put(adminUsers.update(props.user.slug).url, form, {
         onError: (err) => {
             errors.value = err;
         },
@@ -134,7 +136,7 @@ function submit() {
                 <Button :disabled="processing">
                     {{ processing ? 'Memperbarui...' : 'Perbarui Pengguna' }}
                 </Button>
-                <Link href="/admin/users">
+                <Link :href="adminUsers.index()">
                     <Button type="button" variant="ghost">Batal</Button>
                 </Link>
             </div>

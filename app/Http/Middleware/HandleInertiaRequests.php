@@ -57,11 +57,15 @@ class HandleInertiaRequests extends Middleware
                 ->whereHas('courses', fn (Builder $query) => $query->published())
                 ->orderBy('name')
                 ->limit(self::NAV_CATEGORY_LIMIT)
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'slug']),
             'canRegister' => Features::enabled(Features::registration()),
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Courses on the learner's wishlist, so every course card can show its heart filled in.
+            'wishlistCourseIds' => fn (): array => $request->user()?->canLearn()
+                ? $request->user()->wishlistedCourses()->pluck('courses.id')->all()
+                : [],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

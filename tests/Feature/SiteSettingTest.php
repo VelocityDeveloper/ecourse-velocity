@@ -229,8 +229,8 @@ test('each settings page opens from the submenu', function (string $section, str
 test('the settings root opens the first page and unknown pages are not found', function () {
     $admin = User::factory()->admin()->create();
 
-    $this->actingAs($admin)->get('/admin/settings')->assertRedirect('/admin/settings/identitas');
-    $this->actingAs($admin)->get('/admin/settings/lainnya')->assertNotFound();
+    $this->actingAs($admin)->get('/dasbor/pengaturan-situs')->assertRedirect('/dasbor/pengaturan-situs/identitas');
+    $this->actingAs($admin)->get('/dasbor/pengaturan-situs/lainnya')->assertNotFound();
 });
 
 test('saving goes back to the page the form came from', function () {
@@ -239,18 +239,6 @@ test('saving goes back to the page the form came from', function () {
     $this->actingAs($admin)
         ->post(route('admin.settings.update'), ['section' => 'warna', 'primary_color' => '#16a34a'])
         ->assertRedirect(route('admin.settings.edit', 'warna'));
-});
-
-test('an admin can set the dark surface colour', function () {
-    $admin = User::factory()->admin()->create();
-
-    $this->actingAs($admin)
-        ->post(route('admin.settings.update'), ['section' => 'warna', 'surface_color' => '#0F1E4A'])
-        ->assertSessionHasNoErrors();
-
-    expect(SiteSetting::get(SiteSetting::SURFACE_COLOR))->toBe('#0f1e4a')
-        ->and(SiteSetting::paletteCss())->toContain('--surface:hsl(')
-        ->not->toContain('--primary:');
 });
 
 test('the footer shows the contact details and socials an admin fills in', function () {

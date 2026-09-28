@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -45,11 +46,12 @@ class TransactionController extends Controller
             'summary' => [
                 'filtered_total' => (int) $this->filtered($request)->sum('amount'),
                 'filtered_count' => $this->filtered($request)->count(),
-                'today' => (int) Transaction::query()->where('paid_at', '>=', today())->sum('amount'),
-                'this_month' => (int) Transaction::query()->where('paid_at', '>=', now()->startOfMonth())->sum('amount'),
-                'all_time' => (int) Transaction::query()->sum('amount'),
+                'today' => (int) $this->visible($request)->where('paid_at', '>=', today())->sum('amount'),
+                'this_month' => (int) $this->visible($request)->where('paid_at', '>=', now()->startOfMonth())->sum('amount'),
+                'all_time' => (int) $this->visible($request)->sum('amount'),
             ],
             'filters' => $request->only(['from', 'to', 'search']),
+            'isAdmin' => $this->actor($request)->isAdmin(),
         ]);
     }
 
@@ -96,7 +98,7 @@ class TransactionController extends Controller
     {
         $search = $request->string('search')->toString();
 
-        return Transaction::query()
+        return $this->visible($request)
             ->when($request->filled('from'), fn (Builder $query) => $query->where('paid_at', '>=', Carbon::parse($request->string('from')->toString())->startOfDay()))
             ->when($request->filled('to'), fn (Builder $query) => $query->where('paid_at', '<=', Carbon::parse($request->string('to')->toString())->endOfDay()))
             ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $inner) => $inner
@@ -106,5 +108,27 @@ class TransactionController extends Controller
                 ->orWhereHas('user', fn (Builder $user) => $user
                     ->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%"))));
+    }
+
+    /**
+     * The payments the current user may see: all for admins, their own courses' for instructors.
+     *
+     * @return Builder<Transaction>
+     */
+    private function visible(Request $request): Builder
+    {
+        return Transaction::query()->manageableBy($this->actor($request));
+    }
+
+    /**
+     * Get the authenticated user making the request.
+     */
+    private function actor(Request $request): User
+    {
+        $actor = $request->user();
+
+        assert($actor instanceof User);
+
+        return $actor;
     }
 }

@@ -33,9 +33,15 @@ import type { AdminBanner } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pengaturan Situs', href: '/admin/settings/identitas' },
-            { title: 'Banner Promo', href: '/admin/banners' },
+            { title: 'Dasbor', href: '/dasbor' },
+            {
+                title: 'Pengaturan Situs',
+                href: '/dasbor/pengaturan-situs/identitas',
+            },
+            {
+                title: 'Banner Promo',
+                href: '/dasbor/pengaturan-situs/banner-promo',
+            },
         ],
     },
 });

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\HasCourseSlug;
 use App\Concerns\HasPosition;
 use Database\Factories\QuizFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -16,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $section_id
  * @property string $title
+ * @property string $slug Unique within the course, used in the learning URL.
  * @property string|null $description
  * @property int|null $time_limit_minutes
  * @property int|null $passing_score Minimum percentage to pass, or null when the quiz has none.
@@ -28,7 +30,7 @@ use Illuminate\Support\Carbon;
 class Quiz extends Model
 {
     /** @use HasFactory<QuizFactory> */
-    use HasFactory, HasPosition;
+    use HasCourseSlug, HasFactory, HasPosition;
 
     /**
      * The longest time limit, in minutes, a quiz may be given.
@@ -112,5 +114,13 @@ class Quiz extends Model
     public function siblings(): Builder
     {
         return static::query()->where('section_id', $this->section_id);
+    }
+
+    /**
+     * The slug used when the title has no letters or digits.
+     */
+    protected function slugFallback(): string
+    {
+        return 'kuis';
     }
 }

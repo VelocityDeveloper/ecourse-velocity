@@ -72,7 +72,7 @@ test('people without an active enrollment are sent back to the course page', fun
 
     $this->actingAs($makeUser($course))
         ->get(route('learn.lessons.show', [$course, $first]))
-        ->assertRedirect(route('catalog.show', $course));
+        ->assertRedirect(route('catalog.show', $course->permalinkParameters()));
 })->with([
     'not enrolled' => [fn () => User::factory()->student()->create()],
     'cancelled enrollment' => [function (Course $course) {
@@ -181,10 +181,10 @@ test('the catalog tells enrolled students they can start learning', function () 
     ['course' => $course] = learnableCourse();
 
     $this->actingAs(enrolledStudentIn($course))
-        ->get(route('catalog.show', $course))
+        ->get(route('catalog.show', $course->permalinkParameters()))
         ->assertInertia(fn ($page) => $page->where('can.learn', true));
 
     $this->actingAs(User::factory()->student()->create())
-        ->get(route('catalog.show', $course))
+        ->get(route('catalog.show', $course->permalinkParameters()))
         ->assertInertia(fn ($page) => $page->where('can.learn', false));
 });

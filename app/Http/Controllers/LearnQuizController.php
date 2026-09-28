@@ -26,7 +26,7 @@ class LearnQuizController extends Controller
         if (Gate::denies('learn', $course)) {
             Inertia::flash('toast', ['type' => 'warning', 'message' => __('Enroll in this course to open its lessons.')]);
 
-            return to_route('catalog.show', $course);
+            return to_route('catalog.show', $course->permalinkParameters());
         }
 
         $this->ensureQuizBelongsToCourse($course, $quiz);
@@ -45,6 +45,7 @@ class LearnQuizController extends Controller
             'outline' => $outline,
             'quiz' => [
                 'id' => $quiz->id,
+                'slug' => $quiz->slug,
                 'title' => $quiz->title,
                 'description' => $quiz->description,
                 'time_limit_minutes' => $quiz->time_limit_minutes,

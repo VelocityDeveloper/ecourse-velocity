@@ -5,6 +5,7 @@ export type CourseLevel = 'beginner' | 'intermediate' | 'advanced';
 export type CourseOption = {
     id: number;
     name: string;
+    slug?: string;
 };
 
 export type CoursePermissions = {
@@ -69,6 +70,7 @@ export type LessonContentType = 'video' | 'article';
 
 export type Lesson = {
     id: number;
+    slug: string;
     title: string;
     content_type: LessonContentType;
     content_url: string | null;
@@ -109,6 +111,7 @@ export type QuizQuestion = {
 
 export type QuizSummary = {
     id: number;
+    slug: string;
     title: string;
     description: string | null;
     time_limit_minutes: number | null;
@@ -138,6 +141,7 @@ export type MovableItem = {
 
 export type GradebookQuiz = {
     id: number;
+    slug: string;
     title: string;
     section_title: string;
     weight: number;
@@ -155,7 +159,13 @@ export type GradebookQuizGrade = {
 
 export type GradebookRow = {
     enrollment_id: number;
-    student: { id: number; name: string; email: string; avatar: string | null };
+    student: {
+        id: number;
+        name: string;
+        slug: string;
+        email: string;
+        avatar: string | null;
+    };
     grades: Record<number, GradebookQuizGrade>;
     quizzes_taken: number;
     final_percent: number | null;

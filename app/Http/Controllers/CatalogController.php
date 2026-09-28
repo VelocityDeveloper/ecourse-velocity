@@ -54,7 +54,7 @@ class CatalogController extends Controller
             ->published()
             ->forCatalogCard($viewerId)
             ->when($search !== '', fn (Builder $query) => $query->where('title', 'like', "%{$search}%"))
-            ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
+            ->when($request->filled('kategori'), fn (Builder $query) => $query->whereRelation('category', 'slug', $request->string('kategori')->toString()))
             ->when(in_array($level, Course::LEVELS, true), fn (Builder $query) => $query->where('level', $level))
             ->when($sort === 'populer', fn (Builder $query) => $query->orderByDesc('students_count'))
             ->when($sort === 'rating', fn (Builder $query) => $query->orderByRaw('reviews_avg_rating IS NULL')->orderByDesc('reviews_avg_rating'))
@@ -67,14 +67,15 @@ class CatalogController extends Controller
 
         return Inertia::render('catalog/Index', [
             'courses' => $courses,
-            'filters' => [...$request->only(['search', 'category_id', 'level']), 'sort' => $sort],
+            'filters' => [...$request->only(['search', 'kategori', 'level']), 'sort' => $sort],
             'categories' => Category::query()
                 ->withCount(['courses' => fn (Builder $query) => $query->published()])
                 ->orderBy('name')
-                ->get(['id', 'name'])
+                ->get(['id', 'name', 'slug'])
                 ->map(fn (Category $category): array => [
                     'id' => $category->id,
                     'name' => $category->name,
+                    'slug' => $category->slug,
                     'courses_count' => (int) $category->courses_count,
                 ]),
             'levels' => Course::LEVELS,
@@ -86,21 +87,26 @@ class CatalogController extends Controller
     /**
      * Show a course as students see it, with its outline and enroll action.
      */
-    public function show(Request $request, Course $course): Response
+    public function show(Request $request, string $category, Course $course): Response|RedirectResponse
     {
         Gate::authorize('viewInCatalog', $course);
+
+        // One canonical URL per course: fix a wrong or outdated category segment.
+        if ($category !== $course->permalinkCategory()) {
+            return redirect()->route('catalog.show', $course->permalinkParameters(), 301);
+        }
 
         $viewer = $request->user();
 
         if ($viewer === null) {
             // Bring a guest back to this course after they log in to enroll.
-            redirect()->setIntendedUrl(route('catalog.show', $course));
+            redirect()->setIntendedUrl(route('catalog.show', $course->permalinkParameters()));
         }
 
         $course->load([
-            'category:id,name',
-            'instructor:id,name,avatar_path,headline,bio',
-            'sections.lessons:id,section_id,title,content_type,duration_minutes,position',
+            'category:id,name,slug',
+            'instructor:id,name,slug,avatar_path,headline,bio',
+            'sections.lessons:id,section_id,title,slug,content_type,duration_minutes,position',
             'sections.quizzes' => fn ($query) => $query->withCount('questions'),
         ]);
 
@@ -111,15 +117,16 @@ class CatalogController extends Controller
         return Inertia::render('catalog/Show', [
             'course' => [
                 'id' => $course->id,
+                'slug' => $course->slug,
                 'title' => $course->title,
                 'description' => $course->description,
                 'level' => $course->level,
                 'price' => $course->price,
                 'status' => $course->status,
                 'thumbnail_url' => $course->thumbnail_url,
-                'category' => $course->category?->only(['id', 'name']),
+                'category' => $course->category?->only(['id', 'name', 'slug']),
                 'instructor' => $course->instructor === null ? null : [
-                    ...$course->instructor->only(['id', 'name', 'avatar', 'headline', 'bio']),
+                    ...$course->instructor->only(['id', 'name', 'slug', 'avatar', 'headline', 'bio']),
                     'courses_count' => $course->instructor->courses()->published()->count(),
                 ],
                 'students_count' => $course->enrollments()->active()->count(),
@@ -143,6 +150,7 @@ class CatalogController extends Controller
                     'lessons' => $section->lessons
                         ->map(fn (Lesson $lesson): array => [
                             'id' => $lesson->id,
+                            'slug' => $lesson->slug,
                             'title' => $lesson->title,
                             'content_type' => $lesson->content_type,
                             'duration_minutes' => $lesson->duration_minutes,
@@ -151,6 +159,7 @@ class CatalogController extends Controller
                     'quizzes' => $section->quizzes
                         ->map(fn (Quiz $quiz): array => [
                             'id' => $quiz->id,
+                            'slug' => $quiz->slug,
                             'title' => $quiz->title,
                             'time_limit_minutes' => $quiz->time_limit_minutes,
                             'questions_count' => (int) $quiz->questions_count,
@@ -165,7 +174,7 @@ class CatalogController extends Controller
                 'enrolled_at' => $enrollment->enrolled_at->toIso8601String(),
                 'cancelled_at' => $enrollment->cancelled_at?->toIso8601String(),
             ],
-            'rating' => $this->ratingSummary($course),
+            'rating' => CourseReview::summarize($course->reviews()),
             'reviews' => $course->reviews()
                 ->with('user:id,name,avatar_path')
                 ->whereNotNull('comment')
@@ -195,34 +204,6 @@ class CatalogController extends Controller
     }
 
     /**
-     * Summarise the course's star ratings: the average, the count and how many of each star.
-     *
-     * @return array{average: float|null, count: int, distribution: array<int, int>}
-     */
-    private function ratingSummary(Course $course): array
-    {
-        $counts = $course->reviews()
-            ->selectRaw('rating, count(*) as total')
-            ->groupBy('rating')
-            ->pluck('total', 'rating');
-
-        $count = (int) $counts->sum();
-        $distribution = [];
-
-        foreach (range(CourseReview::MAX_RATING, CourseReview::MIN_RATING) as $stars) {
-            $distribution[$stars] = (int) ($counts[$stars] ?? 0);
-        }
-
-        return [
-            'average' => $count === 0
-                ? null
-                : round($counts->map(fn (mixed $total, mixed $stars): int => (int) $stars * (int) $total)->sum() / $count, 1),
-            'count' => $count,
-            'distribution' => $distribution,
-        ];
-    }
-
-    /**
      * Enroll the current student in the course.
      */
     public function enroll(Request $request, Course $course): RedirectResponse
@@ -234,20 +215,20 @@ class CatalogController extends Controller
         if ($course->enrollments()->active()->where('user_id', $actor->id)->exists()) {
             Inertia::flash('toast', ['type' => 'info', 'message' => __('You are already enrolled in this course.')]);
 
-            return to_route('catalog.show', $course);
+            return to_route('catalog.show', $course->permalinkParameters());
         }
 
         if ($course->isPaid() && ! $actor->orders()->where('course_id', $course->id)->where('status', Order::STATUS_PAID)->exists()) {
             Inertia::flash('toast', ['type' => 'info', 'message' => __('This is a paid course. Buy it to start learning.')]);
 
-            return to_route('catalog.show', $course);
+            return to_route('catalog.show', $course->permalinkParameters());
         }
 
         Enrollment::enroll($actor, $course);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('You are now enrolled in :course.', ['course' => $course->title])]);
 
-        return to_route('catalog.show', $course);
+        return to_route('catalog.show', $course->permalinkParameters());
     }
 
     /**

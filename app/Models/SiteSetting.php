@@ -42,9 +42,14 @@ class SiteSetting extends Model
     public const string PRIMARY_COLOR = 'primary_color';
 
     /**
-     * The key holding the optional dark surface colour (hero and footer) as "#rrggbb".
+     * Where the homepage testimonials come from; see App\Support\HomeTestimonials.
      */
-    public const string SURFACE_COLOR = 'surface_color';
+    public const string TESTIMONIAL_SOURCE = 'testimonial_source';
+
+    /**
+     * How many testimonials the homepage shows; see App\Support\HomeTestimonials.
+     */
+    public const string TESTIMONIAL_LIMIT = 'testimonial_limit';
 
     /**
      * The contact and footer fields an admin may fill in. Empty ones are hidden on the site.
@@ -134,11 +139,8 @@ class SiteSetting extends Model
     public static function paletteCss(): ?string
     {
         $color = self::get(self::PRIMARY_COLOR);
-        $surface = self::get(self::SURFACE_COLOR);
-        $css = ($color === null ? '' : BrandPalette::fromHex($color)->toCss())
-            .($surface === null ? '' : BrandPalette::surfaceCss($surface));
 
-        return $css === '' ? null : $css;
+        return $color === null ? null : BrandPalette::fromHex($color)->toCss();
     }
 
     /**

@@ -29,7 +29,7 @@ class EnrollmentController extends Controller
 
         $enrollments = Enrollment::query()
             ->manageableBy($actor)
-            ->with(['user:id,name,email,avatar_path', 'course:id,title,instructor_id', 'enrolledBy:id,name'])
+            ->with(['user:id,name,email,avatar_path', 'course:id,slug,title,instructor_id', 'enrolledBy:id,name'])
             ->when($search !== '', fn (Builder $query) => $query->where(
                 fn (Builder $inner) => $inner
                     ->whereHas('user', fn (Builder $user) => $user
@@ -51,7 +51,7 @@ class EnrollmentController extends Controller
                 'is_self_enrolled' => $enrollment->isSelfEnrolled(),
                 'enrolled_by' => $enrollment->enrolledBy?->only(['id', 'name']),
                 'student' => $enrollment->user->only(['id', 'name', 'email', 'avatar']),
-                'course' => $enrollment->course->only(['id', 'title']),
+                'course' => $enrollment->course->only(['id', 'slug', 'title']),
                 'can_cancel' => Gate::allows('cancel', $enrollment),
             ]);
 
@@ -81,7 +81,7 @@ class EnrollmentController extends Controller
         Gate::authorize('view', $enrollment);
 
         $enrollment->load([
-            'user:id,name,email,role,avatar_path,headline,created_at',
+            'user:id,name,slug,email,role,avatar_path,headline,created_at',
             'course.instructor:id,name',
             'course.category:id,name',
             'enrolledBy:id,name,role',
@@ -99,11 +99,12 @@ class EnrollmentController extends Controller
                 'enrolled_by' => $enrollment->enrolledBy?->only(['id', 'name', 'role']),
                 'cancelled_by' => $enrollment->cancelledBy?->only(['id', 'name', 'role']),
                 'student' => [
-                    ...$enrollment->user->only(['id', 'name', 'email', 'avatar', 'headline']),
+                    ...$enrollment->user->only(['id', 'name', 'slug', 'email', 'avatar', 'headline']),
                     'joined_at' => $enrollment->user->created_at?->toIso8601String(),
                 ],
                 'course' => [
                     'id' => $enrollment->course->id,
+                    'slug' => $enrollment->course->slug,
                     'title' => $enrollment->course->title,
                     'status' => $enrollment->course->status,
                     'level' => $enrollment->course->level,

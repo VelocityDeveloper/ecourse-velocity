@@ -24,7 +24,8 @@ declare module '@inertiajs/core' {
             canRegister: boolean;
             branding: { logoUrl: string | null; paletteCss: string | null };
             site: PublicSite;
-            navCategories: { id: number; name: string }[];
+            navCategories: { id: number; name: string; slug: string }[];
+            wishlistCourseIds: number[];
             [key: string]: unknown;
         };
     }

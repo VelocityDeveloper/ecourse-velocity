@@ -28,7 +28,7 @@ class CourseGradeController extends Controller
         $finals = collect($gradebook['students'])->pluck('final_percent')->filter(fn (?int $value): bool => $value !== null);
 
         return Inertia::render('courses/Grades', [
-            'course' => ['id' => $course->id, 'title' => $course->title, 'passing_grade' => $course->passing_grade],
+            'course' => ['id' => $course->id, 'slug' => $course->slug, 'title' => $course->title, 'passing_grade' => $course->passing_grade],
             'quizzes' => $gradebook['quizzes'],
             'students' => $gradebook['students'],
             'totalWeight' => $gradebook['total_weight'],

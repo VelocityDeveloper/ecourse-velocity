@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Slug;
 use Database\Factories\CourseFactory;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -29,6 +30,8 @@ use Illuminate\Support\Facades\Storage;
  * @property int $passing_grade
  * @property-read string|null $thumbnail_url
  * @property-read Category|null $category
+ * @property-read int|null $reviews_count
+ * @property-read float|string|null $reviews_avg_rating
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -155,6 +158,42 @@ class Course extends Model
     }
 
     /**
+     * Get every quiz of this course, across its sections.
+     *
+     * @return HasManyThrough<Quiz, Section, $this>
+     */
+    public function quizzes(): HasManyThrough
+    {
+        return $this->hasManyThrough(Quiz::class, Section::class);
+    }
+
+    /**
+     * The first segment of the course's public URL: its category slug, or "kursus" when it has none.
+     */
+    public function permalinkCategory(): string
+    {
+        return $this->category->slug ?? Slug::UNCATEGORIZED;
+    }
+
+    /**
+     * The path of the course's public page, such as /web-development/laravel-12-dari-nol.
+     */
+    public function permalink(): string
+    {
+        return route('catalog.show', $this->permalinkParameters(), false);
+    }
+
+    /**
+     * The route parameters of the course's public page, /{category}/{course}.
+     *
+     * @return array{category: string, course: string}
+     */
+    public function permalinkParameters(): array
+    {
+        return ['category' => $this->permalinkCategory(), 'course' => $this->slug];
+    }
+
+    /**
      * Determine whether the given user is the instructor of this course.
      */
     public function isOwnedBy(User $user): bool
@@ -218,7 +257,7 @@ class Course extends Model
     public function scopeForCatalogCard(Builder $query, ?int $viewerId): void
     {
         $query
-            ->with(['category:id,name', 'instructor:id,name,avatar_path'])
+            ->with(['category:id,name,slug', 'instructor:id,name,slug,avatar_path'])
             ->withCount([
                 'lessons',
                 'reviews',
@@ -226,6 +265,27 @@ class Course extends Model
             ])
             ->withAvg('reviews', 'rating')
             ->withExists(['enrollments as is_enrolled' => fn (Builder $enrollments) => $enrollments->active()->where('user_id', $viewerId)]);
+    }
+
+    /**
+     * The statuses the user may give a course: every status for admins; for
+     * instructors draft or pending review, plus the status the course already has.
+     *
+     * @return list<string>
+     */
+    public static function statusesFor(User $user, ?self $course = null): array
+    {
+        if ($user->isAdmin()) {
+            return self::STATUSES;
+        }
+
+        $statuses = self::INSTRUCTOR_STATUSES;
+
+        if ($course !== null && ! in_array($course->status, $statuses, true)) {
+            $statuses[] = $course->status;
+        }
+
+        return $statuses;
     }
 
     /**

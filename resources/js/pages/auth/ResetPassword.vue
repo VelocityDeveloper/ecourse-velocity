@@ -34,16 +34,16 @@ const inputEmail = ref(props.email);
         :reset-on-success="['password', 'password_confirmation']"
         v-slot="{ errors, processing }"
     >
-        <div class="grid gap-6">
+        <div class="grid gap-5">
             <div class="grid gap-2">
-                <Label for="email">Email</Label>
+                <Label for="email">Alamat email</Label>
                 <Input
                     id="email"
                     type="email"
                     name="email"
                     autocomplete="email"
                     v-model="inputEmail"
-                    class="mt-1 block w-full"
+                    class="h-11 w-full rounded-xl"
                     readonly
                 />
                 <InputError :message="errors.email" class="mt-2" />
@@ -55,7 +55,7 @@ const inputEmail = ref(props.email);
                     id="password"
                     name="password"
                     autocomplete="new-password"
-                    class="mt-1 block w-full"
+                    class="h-11 w-full rounded-xl"
                     autofocus
                     placeholder="Kata sandi"
                     :passwordrules="passwordRules"
@@ -71,7 +71,7 @@ const inputEmail = ref(props.email);
                     id="password_confirmation"
                     name="password_confirmation"
                     autocomplete="new-password"
-                    class="mt-1 block w-full"
+                    class="h-11 w-full rounded-xl"
                     placeholder="Konfirmasi kata sandi"
                     :passwordrules="passwordRules"
                 />
@@ -80,7 +80,7 @@ const inputEmail = ref(props.email);
 
             <Button
                 type="submit"
-                class="mt-4 w-full"
+                class="mt-2 h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
                 :disabled="processing"
                 data-test="reset-password-button"
             >

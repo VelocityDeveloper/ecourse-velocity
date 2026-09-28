@@ -67,7 +67,7 @@ test('the catalog shows the rating summary and written reviews', function () {
     CourseReview::factory()->for($course)->create(['rating' => 4, 'comment' => null]);
     CourseReview::factory()->for($course)->create(['rating' => 3, 'comment' => 'Cukup']);
 
-    $this->get(route('catalog.show', $course))
+    $this->get(route('catalog.show', $course->permalinkParameters()))
         ->assertInertia(fn ($page) => $page
             ->where('rating.count', 3)
             ->where('rating.average', 4)
@@ -96,4 +96,73 @@ test('students can remove their own review and admins can remove any', function 
     $this->actingAs(User::factory()->admin()->create())->delete(route('reviews.destroy', $other))->assertRedirect();
 
     expect(CourseReview::query()->count())->toBe(0);
+});
+
+test('admins see and can remove the reviews of any course', function () {
+    $course = Course::factory()->create();
+    CourseReview::factory()->for($course)->count(2)->create();
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get(route('courses.reviews.index', $course))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('reviews.data', 2)
+            ->where('summary.count', 2)
+            ->where('reviews.data.0.can_delete', true));
+});
+
+test('instructors cannot remove reviews of their own courses', function () {
+    $instructor = User::factory()->instructor()->create();
+    $course = Course::factory()->ownedBy($instructor)->create();
+    CourseReview::factory()->for($course)->create(['rating' => 5]);
+
+    $this->actingAs($instructor)
+        ->get(route('courses.reviews.index', $course))
+        ->assertInertia(fn ($page) => $page
+            ->where('reviews.data.0.can_delete', false)
+            ->where('summary.average', 5));
+});
+
+test('course reviews can be filtered by stars', function () {
+    $course = Course::factory()->create();
+    CourseReview::factory()->for($course)->create(['rating' => 5]);
+    CourseReview::factory()->for($course)->create(['rating' => 2]);
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get(route('courses.reviews.index', ['course' => $course, 'rating' => 5]))
+        ->assertInertia(fn ($page) => $page
+            ->has('reviews.data', 1)
+            ->where('summary.count', 2));
+});
+
+test('students are sent away from the dashboard reviews', function () {
+    $this->actingAs(User::factory()->student()->create())
+        ->get(route('courses.reviews.index', Course::factory()->create()))
+        ->assertRedirect(route('home'));
+});
+
+test('there is no combined reviews page in the dashboard', function () {
+    $this->actingAs(User::factory()->admin()->create())
+        ->get('/dasbor/ulasan')
+        ->assertNotFound();
+});
+
+test('a course has its own reviews page in the dashboard', function () {
+    $instructor = User::factory()->instructor()->create();
+    $course = Course::factory()->ownedBy($instructor)->create();
+    CourseReview::factory()->for($course)->count(2)->create();
+    CourseReview::factory()->create();
+
+    $this->actingAs($instructor)
+        ->get(route('courses.reviews.index', $course))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('courses/Reviews')
+            ->where('course.slug', $course->slug)
+            ->has('reviews.data', 2)
+            ->where('summary.count', 2));
+
+    $this->actingAs(User::factory()->instructor()->create())
+        ->get(route('courses.reviews.index', $course))
+        ->assertForbidden();
 });

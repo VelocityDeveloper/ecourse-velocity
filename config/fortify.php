@@ -73,7 +73,7 @@ return [
     |
     */
 
-    'home' => '/dashboard',
+    'home' => '/dasbor',
 
     /*
     |--------------------------------------------------------------------------
@@ -87,6 +87,29 @@ return [
     */
 
     'prefix' => '',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fortify Route Paths
+    |--------------------------------------------------------------------------
+    |
+    | Indonesian paths that match the "Masuk" / "Daftar" buttons of the site.
+    | The old English paths redirect here (routes/legacy.php).
+    |
+    */
+
+    'paths' => [
+        'login' => '/masuk',
+        'logout' => '/keluar',
+        'register' => '/daftar',
+        // Nested, because Fortify reads "fortify.paths.password.request" with dot notation.
+        'password' => [
+            'request' => '/lupa-kata-sandi',
+            'email' => '/lupa-kata-sandi',
+            'reset' => '/atur-ulang-kata-sandi/{token}',
+            'update' => '/atur-ulang-kata-sandi',
+        ],
+    ],
 
     'domain' => null,
 

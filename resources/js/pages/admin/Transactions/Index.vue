@@ -37,13 +37,15 @@ const props = defineProps<{
         all_time: number;
     };
     filters: { from?: string; to?: string; search?: string };
+    isAdmin: boolean;
 }>();
 
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Transaksi', href: '/admin/transactions' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Penjualan', href: '/dasbor/pesanan' },
+            { title: 'Transaksi', href: '/dasbor/transaksi' },
         ],
     },
 });
@@ -102,7 +104,11 @@ function destination(row: TransactionRow): string {
             <Heading
                 variant="small"
                 title="Transaksi"
-                description="Pembayaran yang sudah dikonfirmasi."
+                :description="
+                    isAdmin
+                        ? 'Pembayaran yang sudah dikonfirmasi.'
+                        : 'Hasil penjualan kursus Anda yang sudah dikonfirmasi.'
+                "
             />
             <a :href="exportUrl">
                 <Button variant="outline" size="sm">

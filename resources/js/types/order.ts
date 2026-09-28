@@ -16,6 +16,7 @@ export type BankAccount = {
 export type OrderSummary = {
     number: string;
     course_id: number | null;
+    course_slug: string | null;
     course_title: string;
     total: number;
     status: OrderStatus;

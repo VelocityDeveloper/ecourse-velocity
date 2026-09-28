@@ -26,10 +26,22 @@ defineProps<{
 const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
 
 /**
+ * A menu entry is active on its own page and on the pages it lists in `activeFor`.
+ */
+function isChildActive(child: NavItem): boolean {
+    return (
+        isCurrentUrl(child.href) ||
+        (child.activeFor ?? []).some((href) => isCurrentOrParentUrl(href))
+    );
+}
+
+/**
  * Open a group when the page being viewed lives inside it.
  */
 function isGroupOpen(item: NavItem): boolean {
-    return (item.items ?? []).some((child) => isCurrentOrParentUrl(child.href));
+    return (item.items ?? []).some(
+        (child) => isCurrentOrParentUrl(child.href) || isChildActive(child),
+    );
 }
 </script>
 
@@ -62,7 +74,7 @@ function isGroupOpen(item: NavItem): boolean {
                                 >
                                     <SidebarMenuSubButton
                                         as-child
-                                        :is-active="isCurrentUrl(child.href)"
+                                        :is-active="isChildActive(child)"
                                     >
                                         <Link :href="child.href">
                                             <span>{{ child.title }}</span>

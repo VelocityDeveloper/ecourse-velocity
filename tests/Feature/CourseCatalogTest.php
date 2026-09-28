@@ -4,6 +4,7 @@ use App\Models\Category;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 
 test('the catalog lists only published courses', function () {
     $published = Course::factory()->published()->create();
@@ -51,7 +52,7 @@ test('students cannot open an unpublished course in the catalog', function () {
     $course = Course::factory()->create();
 
     $this->actingAs(User::factory()->student()->create())
-        ->get(route('catalog.show', $course))
+        ->get(route('catalog.show', $course->permalinkParameters()))
         ->assertForbidden();
 });
 
@@ -61,7 +62,7 @@ test('an enrolled student keeps seeing a course after it is archived', function 
     Enrollment::factory()->for($student)->for($course)->create();
 
     $this->actingAs($student)
-        ->get(route('catalog.show', $course))
+        ->get(route('catalog.show', $course->permalinkParameters()))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('catalog/Show')
@@ -77,7 +78,7 @@ test('a student can enroll in a published course', function () {
 
     $this->actingAs($student)
         ->post(route('catalog.enroll', $course))
-        ->assertRedirect(route('catalog.show', $course));
+        ->assertRedirect(route('catalog.show', $course->permalinkParameters()));
 
     $enrollment = Enrollment::sole();
 
@@ -124,14 +125,44 @@ test('students cannot enroll in an unpublished course', function () {
     expect(Enrollment::query()->count())->toBe(0);
 });
 
-test('staff cannot self enroll', function () {
+test('admins cannot self enroll and instructors cannot enroll in their own course', function () {
+    $instructor = User::factory()->instructor()->create();
+    $own = Course::factory()->published()->ownedBy($instructor)->create();
     $course = Course::factory()->published()->create();
 
-    $this->actingAs(User::factory()->instructor()->create())
+    $this->actingAs(User::factory()->admin()->create())
         ->post(route('catalog.enroll', $course))
         ->assertForbidden();
 
+    $this->actingAs($instructor)
+        ->post(route('catalog.enroll', $own))
+        ->assertForbidden();
+
     expect(Enrollment::query()->count())->toBe(0);
+});
+
+test('an instructor can learn from another instructor\'s course', function () {
+    $instructor = User::factory()->instructor()->create();
+    $course = Course::factory()->published()->create(['price' => 0]);
+
+    $this->actingAs($instructor)
+        ->post(route('catalog.enroll', $course))
+        ->assertRedirect();
+
+    expect($instructor->enrollments()->active()->where('course_id', $course->id)->exists())->toBeTrue();
+
+    $this->actingAs($instructor)
+        ->get(route('my-courses.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('enrollments', 1));
+
+    expect(Gate::forUser($instructor)->allows('learn', $course))->toBeTrue();
+
+    $this->actingAs($instructor)
+        ->put(route('catalog.review.update', $course), ['rating' => 5, 'comment' => 'Mantap'])
+        ->assertRedirect();
+
+    expect($course->reviews()->where('user_id', $instructor->id)->exists())->toBeTrue();
 });
 
 test('my courses lists only active enrollments', function () {
@@ -160,7 +191,7 @@ test('guests can browse the catalog', function () {
             ->where('courses.data.0.is_enrolled', false)
         );
 
-    $this->get(route('catalog.show', $course))
+    $this->get(route('catalog.show', $course->permalinkParameters()))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('catalog/Show')
@@ -171,7 +202,7 @@ test('guests can browse the catalog', function () {
 });
 
 test('guests cannot see unpublished courses', function () {
-    $this->get(route('catalog.show', Course::factory()->create()))->assertForbidden();
+    $this->get(route('catalog.show', Course::factory()->create()->permalinkParameters()))->assertForbidden();
 });
 
 test('guests must log in before enrolling', function () {
@@ -186,12 +217,12 @@ test('a guest returns to the course after logging in', function () {
     $student = User::factory()->student()->create();
     $course = Course::factory()->published()->create();
 
-    $this->get(route('catalog.show', $course))->assertOk();
+    $this->get(route('catalog.show', $course->permalinkParameters()))->assertOk();
 
     $this->post(route('login.store'), [
         'email' => $student->email,
         'password' => 'password',
-    ])->assertRedirect(route('catalog.show', $course));
+    ])->assertRedirect(route('catalog.show', $course->permalinkParameters()));
 });
 
 test('course managers get a link back to the dashboard from the catalog', function () {
@@ -199,7 +230,7 @@ test('course managers get a link back to the dashboard from the catalog', functi
     $course = Course::factory()->ownedBy($instructor)->published()->create();
 
     $this->actingAs($instructor)
-        ->get(route('catalog.show', $course))
+        ->get(route('catalog.show', $course->permalinkParameters()))
         ->assertInertia(fn ($page) => $page->where('can.manage', true));
 });
 
@@ -229,7 +260,7 @@ test('a course page suggests other published courses from the same category', fu
     Course::factory()->create(['category_id' => $category->id]);
     Course::factory()->published()->create();
 
-    $this->get(route('catalog.show', $course))
+    $this->get(route('catalog.show', $course->permalinkParameters()))
         ->assertInertia(fn ($page) => $page
             ->has('related', 1)
             ->where('related.0.id', $sibling->id)

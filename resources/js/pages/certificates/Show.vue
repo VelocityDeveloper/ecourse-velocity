@@ -5,13 +5,14 @@ import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import catalogRoutes from '@/routes/catalog';
 import certificateRoutes from '@/routes/certificates';
+import { copyText } from '@/lib/clipboard';
 
 const props = defineProps<{
     certificate: {
         code: string;
         student_name: string;
         course_title: string;
-        course_id: number;
+        course_url: string | null;
         instructor_name: string | null;
         final_percent: number | null;
         letter: string | null;
@@ -29,12 +30,10 @@ const issuedAt = new Date(props.certificate.issued_at).toLocaleDateString(
 );
 
 async function copyLink(): Promise<void> {
-    try {
-        await navigator.clipboard.writeText(props.verifyUrl);
+    // When copying is blocked the link is still shown on the page.
+    if (await copyText(props.verifyUrl)) {
         copied.value = true;
         setTimeout(() => (copied.value = false), 2000);
-    } catch {
-        // Clipboard access can be blocked; the link is still shown on the page.
     }
 }
 </script>
@@ -95,11 +94,15 @@ async function copyLink(): Promise<void> {
                     <dt class="text-sm text-muted-foreground">Kursus</dt>
                     <dd class="text-lg font-semibold text-primary">
                         <Link
-                            :href="catalogRoutes.show(certificate.course_id)"
+                            v-if="certificate.course_url"
+                            :href="certificate.course_url"
                             class="underline-offset-4 hover:underline"
                         >
                             {{ certificate.course_title }}
                         </Link>
+                        <template v-else>{{
+                            certificate.course_title
+                        }}</template>
                     </dd>
                 </div>
                 <div v-if="certificate.final_percent !== null">

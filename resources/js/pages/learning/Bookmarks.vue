@@ -14,8 +14,8 @@ defineProps<{
 function removeBookmark(bookmark: BookmarkEntry): void {
     router.delete(
         learn.lessons.bookmark.destroy({
-            course: bookmark.course.id,
-            lesson: bookmark.id,
+            course: bookmark.course.slug,
+            lesson: bookmark.slug,
         }).url,
         { preserveScroll: true },
     );
@@ -66,8 +66,8 @@ function removeBookmark(bookmark: BookmarkEntry): void {
                     <Link
                         :href="
                             learn.lessons.show({
-                                course: bookmark.course.id,
-                                lesson: bookmark.id,
+                                course: bookmark.course.slug,
+                                lesson: bookmark.slug,
                             })
                         "
                         class="min-w-0 flex-1"

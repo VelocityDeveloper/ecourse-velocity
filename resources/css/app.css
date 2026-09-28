@@ -33,6 +33,7 @@
     /* Public site width: 1200px of content plus the 24px side padding (px-6). */
     --container-site: 78rem;
     --color-rating: var(--rating);
+    --color-wishlist: var(--wishlist);
     --color-surface: var(--surface);
     --color-surface-foreground: var(--surface-foreground);
     --color-surface-muted: var(--surface-muted);
@@ -110,6 +111,7 @@
     --brand: hsl(24 95% 53%);
     /* Star ratings: the same gold in both themes (chart-4 turns purple in dark mode). */
     --rating: hsl(40 92% 52%);
+    --wishlist: hsl(347 77% 50%);
     /* Dark band for the public header, hero and footer (Admin → Pengaturan Situs → Warna). */
     --surface: hsl(223 53% 9%);
     --surface-foreground: hsl(0 0% 100%);
@@ -154,6 +156,7 @@
     --primary-deep: hsl(15 85% 40%);
     --brand: hsl(24 95% 53%);
     --rating: hsl(42 95% 58%);
+    --wishlist: hsl(347 85% 62%);
     --surface: hsl(223 53% 7%);
     --surface-foreground: hsl(0 0% 100%);
     --surface-muted: hsl(223 43% 15%);
@@ -245,5 +248,41 @@
 
     .prose-editor :where(a) {
         @apply text-primary underline underline-offset-4;
+    }
+}
+
+/* A blog article: the editor typography, set larger for reading. */
+@layer components {
+    .blog-content :where(p) {
+        @apply my-5;
+    }
+
+    .blog-content > :first-child {
+        @apply mt-0;
+    }
+
+    .blog-content :where(h2) {
+        @apply mt-10 mb-3 text-2xl font-extrabold tracking-tight;
+    }
+
+    .blog-content :where(h3) {
+        @apply mt-8 mb-2 text-xl font-bold;
+    }
+
+    .blog-content :where(ul, ol) {
+        @apply my-5 space-y-1.5;
+    }
+
+    .blog-content :where(blockquote) {
+        @apply my-6 border-l-4 border-primary pl-5;
+    }
+}
+
+/* Tab rows that may still be swiped sideways on phones, without a visible scroll bar. */
+@utility scrollbar-none {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
     }
 }

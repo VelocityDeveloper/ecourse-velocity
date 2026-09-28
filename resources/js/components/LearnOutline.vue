@@ -21,12 +21,12 @@ const props = defineProps<{
 function itemHref(item: OutlineItem) {
     return item.type === 'lesson'
         ? learn.lessons.show({
-              course: props.outline.course.id,
-              lesson: item.id,
+              course: props.outline.course.slug,
+              lesson: item.slug,
           })
         : learn.quizzes.show({
-              course: props.outline.course.id,
-              quiz: item.id,
+              course: props.outline.course.slug,
+              quiz: item.slug,
           });
 }
 
@@ -39,7 +39,7 @@ function isActive(item: OutlineItem): boolean {
     <nav class="flex flex-col gap-5" aria-label="Isi kursus">
         <div class="space-y-3">
             <Link
-                :href="catalogRoutes.show(outline.course.id)"
+                :href="outline.course.url"
                 class="line-clamp-2 font-semibold hover:underline"
             >
                 {{ outline.course.title }}

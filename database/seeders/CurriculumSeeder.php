@@ -7,14 +7,11 @@ use App\Models\Lesson;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
 use App\Models\Section;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 class CurriculumSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Give every course that has no curriculum yet three sections of lessons and quizzes.
      */

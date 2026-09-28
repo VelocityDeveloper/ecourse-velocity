@@ -26,8 +26,8 @@ import learn from '@/routes/learn';
 import type { DiscussionAuthor, DiscussionQuestion } from '@/types';
 
 const props = defineProps<{
-    courseId: number;
-    lessonId: number;
+    courseSlug: string;
+    lessonSlug: string;
     questions: DiscussionQuestion[];
 }>();
 
@@ -98,8 +98,8 @@ function ask(): void {
 
     router.post(
         learn.questions.store({
-            course: props.courseId,
-            lesson: props.lessonId,
+            course: props.courseSlug,
+            lesson: props.lessonSlug,
         }).url,
         { body: questionBody.value },
         {

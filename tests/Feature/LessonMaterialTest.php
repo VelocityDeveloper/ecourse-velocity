@@ -67,7 +67,7 @@ test('an instructor can open the editor for their own lesson', function () {
     $lesson = lessonFor($instructor);
 
     $this->actingAs($instructor)
-        ->get(route('lessons.edit', $lesson))
+        ->get(route('lessons.edit', ['course' => $lesson->section->course, 'lesson' => $lesson]))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('lessons/Edit'));
 });
@@ -76,7 +76,7 @@ test('an instructor cannot open the editor for another instructors lesson', func
     $instructor = User::factory()->instructor()->create();
     $lesson = Lesson::factory()->create();
 
-    $this->actingAs($instructor)->get(route('lessons.edit', $lesson))->assertForbidden();
+    $this->actingAs($instructor)->get(route('lessons.edit', ['course' => $lesson->section->course, 'lesson' => $lesson]))->assertForbidden();
 });
 
 test('lesson material is saved and dangerous html is stripped', function () {

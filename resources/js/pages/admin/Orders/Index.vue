@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Search, TriangleAlert } from '@lucide/vue';
 import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
+import SalesTabs from '@/components/SalesTabs.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,13 +36,15 @@ const props = defineProps<{
     statuses: OrderStatus[];
     filters: { status?: string; search?: string };
     paymentReady: boolean;
+    canManage: boolean;
 }>();
 
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pesanan', href: '/admin/orders' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Penjualan', href: '/dasbor/pesanan' },
+            { title: 'Pesanan', href: '/dasbor/pesanan' },
         ],
     },
 });
@@ -84,14 +87,20 @@ const totalCount = (): number =>
     <div class="flex flex-col space-y-6">
         <Head title="Pesanan" />
 
+        <SalesTabs />
+
         <Heading
             variant="small"
             title="Pesanan"
-            description="Pembelian kursus berbayar. Cek bukti pembayaran lalu konfirmasi agar siswa langsung terdaftar."
+            :description="
+                canManage
+                    ? 'Pembelian kursus berbayar. Cek bukti pembayaran lalu konfirmasi agar siswa langsung terdaftar.'
+                    : 'Pembelian kursus Anda. Pembayaran dikonfirmasi oleh admin.'
+            "
         />
 
         <div
-            v-if="!paymentReady"
+            v-if="canManage && !paymentReady"
             class="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm"
         >
             <TriangleAlert class="size-5 shrink-0 text-destructive" />

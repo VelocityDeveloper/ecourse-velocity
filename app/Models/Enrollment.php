@@ -87,6 +87,9 @@ class Enrollment extends Model
             'cancellation_reason' => null,
         ])->save();
 
+        // A course the student now has no longer belongs on their wishlist.
+        $student->wishlistedCourses()->detach($course->id);
+
         return $enrollment;
     }
 

@@ -25,8 +25,8 @@ import type { EnrollmentActor, EnrollmentDetail } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pendaftaran', href: '/enrollments' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'User Terdaftar', href: '/dasbor/pendaftaran' },
             { title: 'Detail', href: '#' },
         ],
     },
@@ -72,13 +72,13 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
 
 <template>
     <div class="flex flex-col space-y-6">
-        <Head :title="`Pendaftaran #${enrollment.id}`" />
+        <Head :title="`User Terdaftar #${enrollment.id}`" />
 
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="flex items-start gap-3">
                 <Heading
                     variant="small"
-                    :title="`Pendaftaran #${enrollment.id}`"
+                    :title="`User Terdaftar #${enrollment.id}`"
                     :description="`${enrollment.student.name} di ${enrollment.course.title}`"
                 />
                 <Badge :variant="enrollmentStatusVariant(enrollment.status)">
@@ -120,7 +120,7 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
                     </Avatar>
                     <div class="min-w-0">
                         <Link
-                            :href="users.show(enrollment.student.id)"
+                            :href="users.show(enrollment.student.slug)"
                             class="font-semibold hover:underline"
                         >
                             {{ enrollment.student.name }}
@@ -163,7 +163,7 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
                     </div>
                     <div class="min-w-0">
                         <Link
-                            :href="courses.show(enrollment.course.id)"
+                            :href="courses.show(enrollment.course.slug)"
                             class="font-semibold hover:underline"
                         >
                             {{ enrollment.course.title }}

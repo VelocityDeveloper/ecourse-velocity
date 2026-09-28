@@ -25,11 +25,13 @@ import {
 import { Eye, Plus, Search, Trash2, Pencil } from '@lucide/vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/composables/useInitials';
+import adminUsers from '@/routes/admin/users';
 import userRoutes from '@/routes/users';
 
 type UserRow = {
     id: number;
     name: string;
+    slug: string;
     email: string;
     role: string;
     avatar: string | null;
@@ -43,8 +45,8 @@ type UserRow = {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pengguna', href: '/admin/users' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Pengguna', href: '/dasbor/pengguna' },
         ],
     },
 });
@@ -76,7 +78,7 @@ function showDetail(user: UserRow) {
 
 function applyFilters() {
     router.get(
-        '/admin/users',
+        '/dasbor/pengguna',
         {
             search: search.value || undefined,
             role:
@@ -88,8 +90,8 @@ function applyFilters() {
     );
 }
 
-function deleteUser(id: number) {
-    router.delete(`/admin/users/${id}`);
+function deleteUser(slug: string) {
+    router.delete(adminUsers.destroy(slug).url);
 }
 
 function roleBadgeVariant(role: string) {
@@ -132,7 +134,7 @@ function formatDate(date: string) {
                 title="Manajemen Pengguna"
                 description="Kelola semua pengguna dan perannya"
             />
-            <Link href="/admin/users/create">
+            <Link href="/dasbor/pengguna/tambah">
                 <Button>
                     <Plus class="mr-2 h-4 w-4" />
                     Tambah Pengguna
@@ -257,9 +259,7 @@ function formatDate(date: string) {
                                     >
                                         <Eye class="h-4 w-4" />
                                     </Button>
-                                    <Link
-                                        :href="`/admin/users/${user.id}/edit`"
-                                    >
+                                    <Link :href="adminUsers.edit(user.slug)">
                                         <Button variant="ghost" size="sm">
                                             <Pencil class="h-4 w-4" />
                                         </Button>
@@ -300,7 +300,9 @@ function formatDate(date: string) {
                                                 </DialogClose>
                                                 <Button
                                                     variant="destructive"
-                                                    @click="deleteUser(user.id)"
+                                                    @click="
+                                                        deleteUser(user.slug)
+                                                    "
                                                 >
                                                     Hapus
                                                 </Button>
@@ -425,10 +427,10 @@ function formatDate(date: string) {
                 </dl>
 
                 <DialogFooter class="gap-2">
-                    <Link :href="userRoutes.show(viewedUser.id)">
+                    <Link :href="userRoutes.show(viewedUser.slug)">
                         <Button variant="outline">Profil Publik</Button>
                     </Link>
-                    <Link :href="`/admin/users/${viewedUser.id}/edit`">
+                    <Link :href="adminUsers.edit(viewedUser.slug)">
                         <Button>
                             <Pencil class="mr-2 h-4 w-4" />
                             Ubah
@@ -448,9 +450,12 @@ function formatDate(date: string) {
                 size="sm"
                 :disabled="users.current_page <= 1"
                 @click="
-                    router.get(`/admin/users?page=${users.current_page - 1}`, {
-                        preserveState: true,
-                    })
+                    router.get(
+                        `/dasbor/pengguna?page=${users.current_page - 1}`,
+                        {
+                            preserveState: true,
+                        },
+                    )
                 "
             >
                 Sebelumnya
@@ -463,9 +468,12 @@ function formatDate(date: string) {
                 size="sm"
                 :disabled="users.current_page >= users.last_page"
                 @click="
-                    router.get(`/admin/users?page=${users.current_page + 1}`, {
-                        preserveState: true,
-                    })
+                    router.get(
+                        `/dasbor/pengguna?page=${users.current_page + 1}`,
+                        {
+                            preserveState: true,
+                        },
+                    )
                 "
             >
                 Berikutnya

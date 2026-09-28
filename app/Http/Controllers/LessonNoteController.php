@@ -25,7 +25,7 @@ class LessonNoteController extends Controller
         $search = $request->string('search')->toString();
 
         $notes = $actor->lessonNotes()
-            ->with('lesson:id,section_id,title', 'lesson.section:id,course_id,title', 'lesson.section.course:id,title')
+            ->with('lesson:id,section_id,title,slug', 'lesson.section:id,course_id,title', 'lesson.section.course:id,title,slug')
             ->when($search !== '', fn (Builder $query) => $query->where(
                 fn (Builder $inner) => $inner
                     ->where('body', 'like', "%{$search}%")
@@ -37,9 +37,9 @@ class LessonNoteController extends Controller
                 'id' => $note->id,
                 'body' => $note->body,
                 'updated_at' => $note->updated_at?->toIso8601String(),
-                'lesson' => ['id' => $note->lesson->id, 'title' => $note->lesson->title],
+                'lesson' => $note->lesson->only(['id', 'slug', 'title']),
                 'section' => ['id' => $note->lesson->section->id, 'title' => $note->lesson->section->title],
-                'course' => $note->lesson->section->course->only(['id', 'title']),
+                'course' => $note->lesson->section->course->only(['id', 'slug', 'title']),
             ]);
 
         return Inertia::render('learning/Notes', [

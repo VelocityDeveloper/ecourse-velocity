@@ -52,7 +52,8 @@ class CertificateController extends Controller
                 'code' => $certificate->code,
                 'student_name' => $certificate->student_name,
                 'course_title' => $certificate->course_title,
-                'course_id' => $certificate->course_id,
+                // Link to the course only while it is still in the catalog.
+                'course_url' => $certificate->course?->isPublished() ? $certificate->course->permalink() : null,
                 'instructor_name' => $certificate->instructor_name,
                 'final_percent' => $certificate->final_percent,
                 'letter' => $certificate->letter,

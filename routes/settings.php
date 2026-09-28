@@ -7,24 +7,24 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', '/settings/profile');
+    Route::redirect('pengaturan', '/pengaturan/profil');
 
-    Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('pengaturan/profil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('pengaturan/profil', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('pengaturan/profil', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('settings/security', [SecurityController::class, 'edit'])
+    Route::get('pengaturan/keamanan', [SecurityController::class, 'edit'])
         ->name('security.edit');
 
-    Route::put('settings/password', [SecurityController::class, 'update'])
+    Route::put('pengaturan/kata-sandi', [SecurityController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('user-password.update');
 
     // Dark mode only exists in the dashboard; students (public site, always light) get their profile instead.
-    Route::get('settings/appearance', fn (Request $request) => $request->user()?->isStudent()
+    Route::get('pengaturan/tampilan', fn (Request $request) => $request->user()?->isStudent()
         ? to_route('profile.edit')
         : Inertia::render('settings/Appearance'))->name('appearance.edit');
 });

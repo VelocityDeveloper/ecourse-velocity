@@ -8,8 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import learn from '@/routes/learn';
 
 const props = defineProps<{
-    courseId: number;
-    lessonId: number;
+    courseSlug: string;
+    lessonSlug: string;
     note: string | null;
 }>();
 
@@ -18,7 +18,7 @@ const saving = ref(false);
 const error = ref<string | undefined>();
 
 watch(
-    () => [props.lessonId, props.note] as const,
+    () => [props.lessonSlug, props.note] as const,
     ([, note]) => {
         body.value = note ?? '';
     },
@@ -32,8 +32,8 @@ function save(): void {
 
     router.put(
         learn.lessons.note.update({
-            course: props.courseId,
-            lesson: props.lessonId,
+            course: props.courseSlug,
+            lesson: props.lessonSlug,
         }).url,
         { body: body.value },
         {

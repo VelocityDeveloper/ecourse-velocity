@@ -14,9 +14,9 @@ import type { Category } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Kategori', href: '/admin/categories' },
-            { title: 'Ubah Kategori', href: '/admin/categories' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Kategori', href: '/dasbor/kategori' },
+            { title: 'Ubah Kategori', href: '/dasbor/kategori' },
         ],
     },
 });
@@ -42,7 +42,7 @@ function submit() {
 
     // Files need multipart, which PUT cannot carry: POST with a spoofed method.
     router.post(
-        categories.update(props.category.id).url,
+        categories.update(props.category.slug).url,
         { ...form, _method: 'put' },
         {
             forceFormData: true,

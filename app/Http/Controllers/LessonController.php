@@ -33,7 +33,7 @@ class LessonController extends Controller
         $type = $request->string('content_type')->toString();
 
         $lessons = Lesson::query()
-            ->with(['section:id,title,course_id', 'section.course:id,title,instructor_id'])
+            ->with(['section:id,title,course_id', 'section.course:id,slug,title,instructor_id'])
             ->withCount('attachments')
             ->whereHas('section.course', fn (Builder $query) => $query->manageableBy($actor))
             ->when($search !== '', fn (Builder $query) => $query->where('title', 'like', "%{$search}%"))
@@ -47,13 +47,14 @@ class LessonController extends Controller
             ->withQueryString()
             ->through(fn (Lesson $lesson): array => [
                 'id' => $lesson->id,
+                'slug' => $lesson->slug,
                 'title' => $lesson->title,
                 'content_type' => $lesson->content_type,
                 'duration_minutes' => $lesson->duration_minutes,
                 'has_content' => $lesson->content !== null,
                 'attachments_count' => (int) $lesson->attachments_count,
                 'section' => ['id' => $lesson->section->id, 'title' => $lesson->section->title],
-                'course' => ['id' => $lesson->section->course->id, 'title' => $lesson->section->course->title],
+                'course' => ['id' => $lesson->section->course->id, 'slug' => $lesson->section->course->slug, 'title' => $lesson->section->course->title],
             ]);
 
         return Inertia::render('lessons/Index', [
@@ -67,7 +68,7 @@ class LessonController extends Controller
     /**
      * Show the full page editor for a lesson.
      */
-    public function edit(Lesson $lesson): Response
+    public function edit(Course $course, Lesson $lesson): Response
     {
         $lesson->load(['section.course', 'attachments']);
         Gate::authorize('update', $lesson->section->course);
@@ -75,6 +76,7 @@ class LessonController extends Controller
         return Inertia::render('lessons/Edit', [
             'lesson' => [
                 'id' => $lesson->id,
+                'slug' => $lesson->slug,
                 'title' => $lesson->title,
                 'content_type' => $lesson->content_type,
                 'content' => $lesson->content,
@@ -91,7 +93,7 @@ class LessonController extends Controller
                     ->all(),
             ],
             'section' => ['id' => $lesson->section->id, 'title' => $lesson->section->title],
-            'course' => ['id' => $lesson->section->course->id, 'title' => $lesson->section->course->title],
+            'course' => ['id' => $lesson->section->course->id, 'slug' => $lesson->section->course->slug, 'title' => $lesson->section->course->title],
             'contentTypes' => Lesson::CONTENT_TYPES,
             'maxAttachmentKilobytes' => LessonAttachment::MAX_KILOBYTES,
         ]);

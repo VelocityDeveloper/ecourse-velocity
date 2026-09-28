@@ -123,8 +123,8 @@ function applySearch(): void {
                         <Link
                             :href="
                                 learn.lessons.show({
-                                    course: note.course.id,
-                                    lesson: note.lesson.id,
+                                    course: note.course.slug,
+                                    lesson: note.lesson.slug,
                                 })
                             "
                             class="font-bold hover:text-primary"

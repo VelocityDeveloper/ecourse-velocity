@@ -24,7 +24,7 @@ function claimCertificate(enrollment: MyCourseEnrollment): void {
     claiming.value = enrollment.id;
 
     router.post(
-        certificateRoutes.store(enrollment.course.id).url,
+        certificateRoutes.store(enrollment.course.slug).url,
         {},
         {
             onFinish: () => {
@@ -81,7 +81,7 @@ function askCancel(enrollment: MyCourseEnrollment): void {
                     class="group flex flex-col overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10"
                 >
                     <Link
-                        :href="learn.show(enrollment.course.id)"
+                        :href="learn.show(enrollment.course.slug)"
                         class="relative block overflow-hidden bg-muted"
                     >
                         <img
@@ -110,7 +110,7 @@ function askCancel(enrollment: MyCourseEnrollment): void {
                             {{ enrollment.course.category.name }}
                         </p>
                         <Link
-                            :href="learn.show(enrollment.course.id)"
+                            :href="learn.show(enrollment.course.slug)"
                             class="line-clamp-2 min-h-12 leading-6 font-bold transition-colors hover:text-primary"
                         >
                             {{ enrollment.course.title }}
@@ -154,7 +154,7 @@ function askCancel(enrollment: MyCourseEnrollment): void {
                         </div>
 
                         <Link
-                            :href="learn.show(enrollment.course.id)"
+                            :href="learn.show(enrollment.course.slug)"
                             class="mt-2"
                         >
                             <Button class="w-full rounded-xl font-bold">

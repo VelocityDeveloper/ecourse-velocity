@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
-    BookOpen,
-    ClipboardCheck,
     Compass,
     GraduationCap,
     LayoutGrid,
+    Newspaper,
     Settings,
     Users,
     Wallet,
@@ -30,6 +29,7 @@ import quizzes from '@/routes/quizzes';
 import banners from '@/routes/admin/banners';
 import adminOrders from '@/routes/admin/orders';
 import paymentSettings from '@/routes/admin/payment-settings';
+import posts from '@/routes/admin/posts';
 import siteSettings from '@/routes/admin/settings';
 import testimonials from '@/routes/admin/testimonials';
 import transactions from '@/routes/admin/transactions';
@@ -79,38 +79,47 @@ const mainNavItems = computed<NavItem[]>(() => {
     }
 
     if (canManageCourses.value) {
+        const salesChildren: NavItem[] = [
+            {
+                title: 'Pesanan & User Terdaftar',
+                href: adminOrders.index(),
+                activeFor: [adminOrders.index(), enrollments.index()],
+            },
+            { title: 'Transaksi', href: transactions.index() },
+        ];
+
+        if (isAdmin.value) {
+            salesChildren.push({
+                title: 'Pengaturan Pembayaran',
+                href: paymentSettings.edit(),
+            });
+        }
+
         items.push({
-            title: 'Pendaftaran',
-            href: enrollments.index(),
-            icon: ClipboardCheck,
+            title: 'Penjualan',
+            href: adminOrders.index(),
+            icon: Wallet,
+            items: salesChildren,
         });
     }
 
     if (isAdmin.value) {
+        items.push({
+            title: 'Blog',
+            href: posts.index(),
+            icon: Newspaper,
+        });
         items.push({
             title: 'Pengguna',
             href: users.index(),
             icon: Users,
         });
         items.push({
-            title: 'Penjualan',
-            href: adminOrders.index(),
-            icon: Wallet,
-            items: [
-                { title: 'Pesanan', href: adminOrders.index() },
-                { title: 'Transaksi', href: transactions.index() },
-                {
-                    title: 'Pengaturan Pembayaran',
-                    href: paymentSettings.edit(),
-                },
-            ],
-        });
-        items.push({
             title: 'Pengaturan Situs',
             href: siteSettings.edit('identitas'),
             icon: Settings,
             activeFor: [
-                '/admin/settings',
+                '/dasbor/pengaturan-situs',
                 banners.index(),
                 testimonials.index(),
             ],
@@ -125,11 +134,6 @@ const footerNavItems: NavItem[] = [
         title: 'Lihat Situs',
         href: catalog.index(),
         icon: Compass,
-    },
-    {
-        title: 'Dokumentasi',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
     },
 ];
 </script>

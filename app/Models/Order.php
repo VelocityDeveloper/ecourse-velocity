@@ -203,6 +203,19 @@ class Order extends Model
     }
 
     /**
+     * Limit the query to the orders the user may see: every order for admins,
+     * only the orders of their own courses for instructors.
+     *
+     * @param  Builder<Order>  $query
+     */
+    public function scopeManageableBy(Builder $query, User $user): void
+    {
+        if (! $user->isAdmin()) {
+            $query->whereHas('course', fn (Builder $course) => $course->where('instructor_id', $user->id));
+        }
+    }
+
+    /**
      * Get the student who placed the order.
      *
      * @return BelongsTo<User, $this>

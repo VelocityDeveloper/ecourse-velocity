@@ -39,7 +39,7 @@ class CourseProgressController extends Controller
 
         $enrollments = $course->enrollments()
             ->active()
-            ->with('user:id,name,email,avatar_path')
+            ->with('user:id,name,slug,email,avatar_path')
             ->when($search !== '', fn (Builder $query) => $query->whereHas('user', fn (Builder $user) => $user
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")))
@@ -71,7 +71,7 @@ class CourseProgressController extends Controller
 
                 return [
                     'enrollment_id' => $enrollment->id,
-                    'student' => $enrollment->user->only(['id', 'name', 'email', 'avatar']),
+                    'student' => $enrollment->user->only(['id', 'name', 'slug', 'email', 'avatar']),
                     'enrolled_at' => $enrollment->enrolled_at->toIso8601String(),
                     'last_accessed_at' => $enrollment->last_accessed_at?->toIso8601String(),
                     'lessons_completed' => $lessonsDone,
@@ -86,7 +86,7 @@ class CourseProgressController extends Controller
             ->values();
 
         return Inertia::render('courses/Progress', [
-            'course' => ['id' => $course->id, 'title' => $course->title],
+            'course' => ['id' => $course->id, 'slug' => $course->slug, 'title' => $course->title],
             'summary' => [
                 'students' => $students->count(),
                 'average_percent' => $students->isEmpty() ? 0 : (int) round($students->avg('percent')),
@@ -107,7 +107,7 @@ class CourseProgressController extends Controller
     {
         Gate::authorize('update', $course);
 
-        $enrollment = $course->enrollments()->where('user_id', $student->id)->with('lastLesson:id,title')->first();
+        $enrollment = $course->enrollments()->where('user_id', $student->id)->with('lastLesson:id,title,slug')->first();
 
         abort_if($enrollment === null, 404);
 
@@ -152,7 +152,7 @@ class CourseProgressController extends Controller
         $questions = LessonQuestion::query()
             ->where('user_id', $student->id)
             ->whereIn('lesson_id', $this->lessonIds($course))
-            ->with('lesson:id,title')
+            ->with('lesson:id,title,slug')
             ->withCount('replies')
             ->latest()
             ->get()
@@ -161,13 +161,13 @@ class CourseProgressController extends Controller
                 'body' => $question->body,
                 'created_at' => $question->created_at?->toIso8601String(),
                 'replies_count' => (int) $question->replies_count,
-                'lesson' => $question->lesson->only(['id', 'title']),
+                'lesson' => $question->lesson->only(['id', 'slug', 'title']),
             ]);
 
         return Inertia::render('courses/ProgressStudent', [
-            'course' => ['id' => $course->id, 'title' => $course->title],
+            'course' => ['id' => $course->id, 'slug' => $course->slug, 'title' => $course->title],
             'student' => [
-                ...$student->only(['id', 'name', 'email', 'avatar', 'headline']),
+                ...$student->only(['id', 'name', 'slug', 'email', 'avatar', 'headline']),
             ],
             'enrollment' => [
                 'id' => $enrollment->id,
@@ -240,7 +240,7 @@ class CourseProgressController extends Controller
         return LessonQuestion::query()
             ->whereIn('lesson_id', $lessonIds)
             ->whereDoesntHave('replies')
-            ->with(['user:id,name,avatar_path', 'lesson:id,title'])
+            ->with(['user:id,name,avatar_path', 'lesson:id,title,slug'])
             ->latest()
             ->limit(self::UNANSWERED_LIMIT)
             ->get()
@@ -249,8 +249,8 @@ class CourseProgressController extends Controller
                 'body' => $question->body,
                 'created_at' => $question->created_at?->toIso8601String(),
                 'author' => $question->user->only(['id', 'name', 'avatar']),
-                'lesson' => $question->lesson->only(['id', 'title']),
-                'course_id' => $course->id,
+                'lesson' => $question->lesson->only(['id', 'slug', 'title']),
+                'course_slug' => $course->slug,
             ])
             ->all();
     }

@@ -30,7 +30,7 @@ class LearningDashboardController extends Controller
 
         $enrollments = $actor->enrollments()
             ->active()
-            ->with(['course:id,title,thumbnail_path,level,instructor_id', 'course.instructor:id,name', 'lastLesson:id,title'])
+            ->with(['course:id,title,slug,thumbnail_path,level,instructor_id', 'course.instructor:id,name', 'lastLesson:id,title,slug'])
             ->orderByRaw('last_accessed_at is null')
             ->latest('last_accessed_at')
             ->latest('enrolled_at')
@@ -76,12 +76,13 @@ class LearningDashboardController extends Controller
         return [
             'course' => [
                 'id' => $enrollment->course->id,
+                'slug' => $enrollment->course->slug,
                 'title' => $enrollment->course->title,
                 'thumbnail_url' => $enrollment->course->thumbnail_url,
                 'level' => $enrollment->course->level,
                 'instructor' => $enrollment->course->instructor?->name,
             ],
-            'last_lesson' => $enrollment->lastLesson?->only(['id', 'title']),
+            'last_lesson' => $enrollment->lastLesson?->only(['id', 'slug', 'title']),
             'last_accessed_at' => $enrollment->last_accessed_at?->toIso8601String(),
             'progress' => [
                 'completed' => $progress['completed'],
@@ -100,29 +101,31 @@ class LearningDashboardController extends Controller
     {
         /** @var Collection<int, array<string, mixed>> $lessons */
         $lessons = $student->completedLessons()
-            ->with('section.course:id,title')
+            ->with('section.course:id,title,slug')
             ->orderByPivot('created_at', 'desc')
             ->limit(self::ACTIVITY_LIMIT)
             ->get()
             ->map(fn (Lesson $lesson): array => [
                 'type' => 'lesson',
                 'title' => $lesson->title,
-                'course' => $lesson->section->course->only(['id', 'title']),
+                'course' => $lesson->section->course->only(['id', 'slug', 'title']),
                 'target_id' => $lesson->id,
+                'target_slug' => $lesson->slug,
                 'at' => $lesson->pivot?->created_at?->toIso8601String(),
             ]);
 
         $quizzes = $student->quizAttempts()
             ->whereNotNull('submitted_at')
-            ->with('quiz:id,section_id,title', 'quiz.section.course:id,title')
+            ->with('quiz:id,section_id,title,slug', 'quiz.section.course:id,title,slug')
             ->latest('submitted_at')
             ->limit(self::ACTIVITY_LIMIT)
             ->get()
             ->map(fn (QuizAttempt $attempt): array => [
                 'type' => 'quiz',
                 'title' => $attempt->quiz->title,
-                'course' => $attempt->quiz->section->course->only(['id', 'title']),
+                'course' => $attempt->quiz->section->course->only(['id', 'slug', 'title']),
                 'target_id' => $attempt->id,
+                'target_slug' => $attempt->quiz->slug,
                 'score' => $attempt->score,
                 'max_score' => $attempt->max_score,
                 'at' => $attempt->submitted_at?->toIso8601String(),

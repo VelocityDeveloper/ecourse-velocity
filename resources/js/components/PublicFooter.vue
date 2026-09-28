@@ -5,6 +5,7 @@ import { computed } from 'vue';
 import SiteLogo from '@/components/SiteLogo.vue';
 import SocialIcon from '@/components/SocialIcon.vue';
 import { home, login, register } from '@/routes';
+import blogRoutes from '@/routes/blog';
 import catalogRoutes from '@/routes/catalog';
 
 const page = usePage();
@@ -27,6 +28,7 @@ const columns = computed(() => [
             { label: 'Semua Kursus', href: catalogRoutes.index().url },
             { label: 'Jalur Belajar', href: '/#categories' },
             { label: 'Cara Kerja', href: '/#how-it-works' },
+            { label: 'Blog', href: blogRoutes.index().url },
         ],
     },
     {

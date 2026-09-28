@@ -36,10 +36,10 @@ const props = defineProps<{
 
 const saving = ref(false);
 
-const courseId = computed(() => props.outline.course.id);
+const courseSlug = computed(() => props.outline.course.slug);
 const routeParams = computed(() => ({
-    course: courseId.value,
-    lesson: props.lesson.id,
+    course: courseSlug.value,
+    lesson: props.lesson.slug,
 }));
 
 function markComplete(): void {
@@ -57,12 +57,12 @@ function markComplete(): void {
                     router.visit(
                         next.type === 'lesson'
                             ? learn.lessons.show({
-                                  course: courseId.value,
-                                  lesson: next.id,
+                                  course: courseSlug.value,
+                                  lesson: next.slug,
                               })
                             : learn.quizzes.show({
-                                  course: courseId.value,
-                                  quiz: next.id,
+                                  course: courseSlug.value,
+                                  quiz: next.slug,
                               }),
                     );
                 }
@@ -261,16 +261,16 @@ function markIncomplete(): void {
         </div>
 
         <LessonNotes
-            :course-id="courseId"
-            :lesson-id="lesson.id"
+            :course-slug="courseSlug"
+            :lesson-slug="lesson.slug"
             :note="lesson.note"
         />
 
-        <LearnPager :course-id="courseId" :neighbours="neighbours" />
+        <LearnPager :course-slug="courseSlug" :neighbours="neighbours" />
 
         <LessonDiscussion
-            :course-id="courseId"
-            :lesson-id="lesson.id"
+            :course-slug="courseSlug"
+            :lesson-slug="lesson.slug"
             :questions="discussion"
         />
     </LearnShell>

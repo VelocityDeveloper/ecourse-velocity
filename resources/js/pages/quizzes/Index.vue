@@ -20,21 +20,22 @@ import type { Paginated } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Kursus', href: '/courses' },
-            { title: 'Kuis', href: '/quizzes' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Kursus', href: '/dasbor/kursus' },
+            { title: 'Kuis', href: '/dasbor/kuis' },
         ],
     },
 });
 
 type QuizRow = {
     id: number;
+    slug: string;
     title: string;
     time_limit_minutes: number | null;
     questions_count: number;
     total_points: number;
     section: { id: number; title: string };
-    course: { id: number; title: string };
+    course: { id: number; slug: string; title: string };
 };
 
 const ANY = 'all';
@@ -160,7 +161,12 @@ function goToPage(page: number) {
                         >
                             <td class="p-4 align-middle">
                                 <Link
-                                    :href="quizRoutes.edit(quiz.id)"
+                                    :href="
+                                        quizRoutes.edit({
+                                            course: quiz.course.slug,
+                                            quiz: quiz.slug,
+                                        })
+                                    "
                                     class="font-medium hover:underline"
                                 >
                                     {{ quiz.title }}
@@ -184,7 +190,14 @@ function goToPage(page: number) {
                                 >
                             </td>
                             <td class="p-4 text-right align-middle">
-                                <Link :href="quizRoutes.edit(quiz.id)">
+                                <Link
+                                    :href="
+                                        quizRoutes.edit({
+                                            course: quiz.course.slug,
+                                            quiz: quiz.slug,
+                                        })
+                                    "
+                                >
                                     <Button variant="ghost" size="sm">
                                         <Pencil class="h-4 w-4" />
                                     </Button>

@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             Route::middleware('web')
                 ->group(base_path('routes/admin.php'));
+
+            // Last, so /{category}/{course} never shadows a fixed path.
+            Route::middleware('web')
+                ->group(base_path('routes/permalinks.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

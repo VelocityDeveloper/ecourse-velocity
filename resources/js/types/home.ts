@@ -8,6 +8,7 @@ export type HomeStats = {
 export type HomeCategory = {
     id: number;
     name: string;
+    slug: string;
     description: string | null;
     image_url: string | null;
     courses_count: number;
@@ -16,6 +17,7 @@ export type HomeCategory = {
 export type HomeInstructor = {
     id: number;
     name: string;
+    slug: string;
     avatar: string | null;
     headline: string | null;
     courses_count: number;

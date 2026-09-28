@@ -37,6 +37,7 @@ import {
 import learn from '@/routes/learn';
 import orderRoutes from '@/routes/orders';
 import type { CheckoutPayment, OrderSummary, PaymentDetails } from '@/types';
+import { copyText } from '@/lib/clipboard';
 
 const props = defineProps<{
     order: OrderSummary & {
@@ -57,12 +58,10 @@ const copied = ref<string | null>(null);
 const cancelOpen = ref(false);
 
 async function copy(text: string, key: string): Promise<void> {
-    try {
-        await navigator.clipboard.writeText(text);
+    // When copying is blocked the text stays visible to copy by hand.
+    if (await copyText(text)) {
         copied.value = key;
         setTimeout(() => (copied.value = null), 2000);
-    } catch {
-        // Clipboard can be blocked; the text stays visible to copy by hand.
     }
 }
 
@@ -163,8 +162,8 @@ const isPending = computed(() => props.order.status === 'pending');
                     </p>
                 </div>
                 <Link
-                    v-if="order.course_id !== null"
-                    :href="learn.show(order.course_id)"
+                    v-if="order.course_slug"
+                    :href="learn.show(order.course_slug)"
                 >
                     <Button class="rounded-xl font-bold">
                         <PlayCircle class="mr-2 h-4 w-4" />
@@ -225,8 +224,8 @@ const isPending = computed(() => props.order.status === 'pending');
                     </p>
                 </div>
                 <Link
-                    v-if="order.course_id !== null"
-                    :href="orderRoutes.checkout(order.course_id)"
+                    v-if="order.course_slug"
+                    :href="orderRoutes.checkout(order.course_slug)"
                 >
                     <Button class="rounded-xl font-bold">Pesan lagi</Button>
                 </Link>

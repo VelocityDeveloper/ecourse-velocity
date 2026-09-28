@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -14,8 +15,8 @@ import { request } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Masuk ke akun Anda',
-        description: 'Masukkan email dan kata sandi Anda di bawah untuk masuk',
+        title: 'Selamat datang kembali',
+        description: 'Masuk untuk melanjutkan belajar Anda.',
     },
 });
 
@@ -23,6 +24,8 @@ defineProps<{
     status?: string;
     canResetPassword: boolean;
 }>();
+
+const canRegister = computed(() => usePage().props.canRegister);
 </script>
 
 <template>
@@ -30,7 +33,7 @@ defineProps<{
 
     <div
         v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        class="rounded-xl bg-primary/10 p-3 text-center text-sm font-medium"
     >
         {{ status }}
     </div>
@@ -41,7 +44,7 @@ defineProps<{
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"
     >
-        <div class="grid gap-6">
+        <div class="grid gap-5">
             <div class="grid gap-2">
                 <Label for="email">Alamat email</Label>
                 <Input
@@ -53,6 +56,7 @@ defineProps<{
                     :tabindex="1"
                     autocomplete="email"
                     placeholder="email@example.com"
+                    class="h-11 rounded-xl"
                 />
                 <InputError :message="errors.email" />
             </div>
@@ -63,7 +67,7 @@ defineProps<{
                     <TextLink
                         v-if="canResetPassword"
                         :href="request()"
-                        class="text-sm"
+                        class="text-sm font-semibold text-primary decoration-primary/40"
                         :tabindex="5"
                     >
                         Lupa kata sandi?
@@ -76,20 +80,22 @@ defineProps<{
                     :tabindex="2"
                     autocomplete="current-password"
                     placeholder="Kata sandi"
+                    class="h-11 rounded-xl"
                 />
                 <InputError :message="errors.password" />
             </div>
 
-            <div class="flex items-center justify-between">
-                <Label for="remember" class="flex items-center space-x-3">
-                    <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>Ingat saya</span>
-                </Label>
-            </div>
+            <Label
+                for="remember"
+                class="flex w-fit items-center gap-2.5 font-normal text-muted-foreground"
+            >
+                <Checkbox id="remember" name="remember" :tabindex="3" />
+                Ingat saya
+            </Label>
 
             <Button
                 type="submit"
-                class="mt-4 w-full"
+                class="mt-2 h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
                 :tabindex="4"
                 :disabled="processing"
                 data-test="login-button"
@@ -99,9 +105,17 @@ defineProps<{
             </Button>
         </div>
 
-        <div class="text-center text-sm text-muted-foreground">
+        <p
+            v-if="canRegister"
+            class="border-t pt-6 text-center text-sm text-muted-foreground"
+        >
             Belum punya akun?
-            <TextLink :href="register()" :tabindex="5">Daftar</TextLink>
-        </div>
+            <TextLink
+                :href="register()"
+                :tabindex="5"
+                class="font-bold text-primary decoration-primary/40"
+                >Daftar gratis</TextLink
+            >
+        </p>
     </Form>
 </template>

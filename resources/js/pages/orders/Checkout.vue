@@ -22,6 +22,8 @@ import type { CourseLevel, PaymentMethod } from '@/types';
 const props = defineProps<{
     course: {
         id: number;
+        slug: string;
+        url: string;
         title: string;
         thumbnail_url: string | null;
         level: CourseLevel;
@@ -45,7 +47,7 @@ const METHOD_HINTS: Record<PaymentMethod, string> = {
 };
 
 function placeOrder(): void {
-    form.post(orderRoutes.store(props.course.id).url);
+    form.post(orderRoutes.store(props.course.slug).url);
 }
 </script>
 
@@ -56,7 +58,7 @@ function placeOrder(): void {
         <Head :title="`Checkout · ${course.title}`" />
 
         <Link
-            :href="catalogRoutes.show(course.id)"
+            :href="course.url"
             class="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
             <ArrowLeft class="h-4 w-4" />

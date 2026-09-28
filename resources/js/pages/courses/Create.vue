@@ -21,9 +21,9 @@ import type { CourseLevel, CourseOption, CourseStatus } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Kursus', href: '/courses' },
-            { title: 'Buat Kursus', href: '/courses/create' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Kursus', href: '/dasbor/kursus' },
+            { title: 'Buat Kursus', href: '/dasbor/kursus/buat' },
         ],
     },
 });

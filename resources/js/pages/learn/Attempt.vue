@@ -231,7 +231,10 @@ function submit(): void {
             <div class="min-w-0">
                 <Link
                     :href="
-                        learn.quizzes.show({ course: course.id, quiz: quiz.id })
+                        learn.quizzes.show({
+                            course: course.slug,
+                            quiz: quiz.slug,
+                        })
                     "
                     class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                 >

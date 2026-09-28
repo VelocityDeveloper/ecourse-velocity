@@ -26,7 +26,7 @@ class MyCourseController extends Controller
 
         $enrollments = $actor->enrollments()
             ->active()
-            ->with(['course.category:id,name', 'course.instructor:id,name,avatar_path'])
+            ->with(['course.category:id,name,slug', 'course.instructor:id,name,slug,avatar_path'])
             ->latest('enrolled_at')
             ->get()
             ->map(function (Enrollment $enrollment) use ($actor, $calculateProgress, $checkEligibility, $certificates): array {
@@ -53,11 +53,13 @@ class MyCourseController extends Controller
                     ],
                     'course' => [
                         'id' => $enrollment->course->id,
+                        'slug' => $enrollment->course->slug,
+                        'url' => $enrollment->course->permalink(),
                         'title' => $enrollment->course->title,
                         'level' => $enrollment->course->level,
                         'thumbnail_url' => $enrollment->course->thumbnail_url,
-                        'category' => $enrollment->course->category?->only(['id', 'name']),
-                        'instructor' => $enrollment->course->instructor?->only(['id', 'name', 'avatar']),
+                        'category' => $enrollment->course->category?->only(['id', 'name', 'slug']),
+                        'instructor' => $enrollment->course->instructor?->only(['id', 'name', 'slug', 'avatar']),
                     ],
                 ];
             });

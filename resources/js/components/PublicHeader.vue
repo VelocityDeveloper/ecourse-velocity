@@ -6,9 +6,11 @@ import {
     ChevronDown,
     CircleHelp,
     GraduationCap,
+    Heart,
     House,
     LayoutGrid,
     LogOut,
+    Newspaper,
     Menu,
     Settings,
     X,
@@ -24,8 +26,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
+import { accountLinks } from '@/composables/useAccountLinks';
 import { getInitials } from '@/composables/useInitials';
 import { dashboard, home, login, logout, register } from '@/routes';
+import blogRoutes from '@/routes/blog';
 import catalogRoutes from '@/routes/catalog';
 import learning from '@/routes/learning';
 import myCourses from '@/routes/my-courses';
@@ -39,6 +43,14 @@ const navCategories = computed(() => page.props.navCategories ?? []);
 const isStaff = computed(
     () => user.value?.role === 'admin' || user.value?.role === 'instructor',
 );
+
+const wishlistCount = computed(() => page.props.wishlistCourseIds?.length ?? 0);
+// Students and instructors take courses, so both get the wishlist heart.
+const isLearner = computed(
+    () => user.value?.role === 'student' || user.value?.role === 'instructor',
+);
+
+const userLinks = computed(() => (user.value ? accountLinks(user.value) : []));
 
 const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
 
@@ -66,6 +78,12 @@ const navLinks = computed(() => [
         href: '/#how-it-works',
         icon: CircleHelp,
         active: false,
+    },
+    {
+        label: 'Blog',
+        href: blogRoutes.index().url,
+        icon: Newspaper,
+        active: isCurrentOrParentUrl(blogRoutes.index()),
     },
 ]);
 
@@ -172,6 +190,21 @@ function logoutFromMenu(): void {
                     >
                         <Button size="sm" class="font-bold"
                             >Belajar Saya</Button
+                        >
+                    </Link>
+                    <Link
+                        v-if="isLearner"
+                        :href="learning.wishlist()"
+                        class="relative hidden size-9 items-center justify-center rounded-full transition-colors hover:bg-surface-muted md:inline-flex"
+                        :class="onSurface"
+                        :aria-label="`Wishlist (${wishlistCount} kursus)`"
+                        title="Wishlist"
+                    >
+                        <Heart class="h-5 w-5" />
+                        <span
+                            v-if="wishlistCount > 0"
+                            class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground"
+                            >{{ wishlistCount }}</span
                         >
                     </Link>
 
@@ -308,8 +341,7 @@ function logoutFromMenu(): void {
                                             :href="
                                                 catalogRoutes.index({
                                                     query: {
-                                                        category_id:
-                                                            category.id,
+                                                        kategori: category.slug,
                                                     },
                                                 })
                                             "
@@ -341,41 +373,25 @@ function logoutFromMenu(): void {
                         </li>
 
                         <template v-if="user">
-                            <li v-if="isStaff">
+                            <li v-for="link in userLinks" :key="link.href">
                                 <Link
-                                    :href="dashboard()"
+                                    :href="link.href"
                                     class="flex items-center gap-3 rounded-xl px-3 py-3 font-bold hover:bg-muted"
                                 >
-                                    <LayoutGrid
+                                    <component
+                                        :is="link.icon"
                                         class="h-5 w-5 text-muted-foreground"
                                     />
-                                    Dasbor
+                                    {{ link.label }}
+                                    <span
+                                        v-if="
+                                            link.wishlist && wishlistCount > 0
+                                        "
+                                        class="ml-auto rounded-full bg-muted px-2 text-xs font-bold text-muted-foreground"
+                                        >{{ wishlistCount }}</span
+                                    >
                                 </Link>
                             </li>
-                            <template v-else>
-                                <li>
-                                    <Link
-                                        :href="learning.dashboard()"
-                                        class="flex items-center gap-3 rounded-xl px-3 py-3 font-bold hover:bg-muted"
-                                    >
-                                        <LayoutGrid
-                                            class="h-5 w-5 text-muted-foreground"
-                                        />
-                                        Belajar Saya
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        :href="myCourses.index()"
-                                        class="flex items-center gap-3 rounded-xl px-3 py-3 font-bold hover:bg-muted"
-                                    >
-                                        <BookMarked
-                                            class="h-5 w-5 text-muted-foreground"
-                                        />
-                                        Kursus Saya
-                                    </Link>
-                                </li>
-                            </template>
                             <li>
                                 <Link
                                     :href="profileEdit()"

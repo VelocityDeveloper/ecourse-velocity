@@ -49,7 +49,7 @@ class LearnController extends Controller
             return to_route('learn.lessons.show', [$course, $lastLesson]);
         }
 
-        $course->load(['sections.lessons:id,section_id,position', 'sections.quizzes:id,section_id,position']);
+        $course->load(['sections.lessons:id,section_id,slug,position', 'sections.quizzes:id,section_id,slug,position']);
 
         foreach ($course->sections as $section) {
             foreach ($section->lessons as $lesson) {
@@ -73,7 +73,7 @@ class LearnController extends Controller
 
         Inertia::flash('toast', ['type' => 'info', 'message' => __('This course has no lessons yet.')]);
 
-        return to_route('catalog.show', $course);
+        return to_route('catalog.show', $course->permalinkParameters());
     }
 
     /**
@@ -97,6 +97,7 @@ class LearnController extends Controller
             'outline' => $outline,
             'lesson' => [
                 'id' => $lesson->id,
+                'slug' => $lesson->slug,
                 'title' => $lesson->title,
                 'content_type' => $lesson->content_type,
                 'content' => $lesson->content,
@@ -213,7 +214,7 @@ class LearnController extends Controller
     {
         Inertia::flash('toast', ['type' => 'warning', 'message' => __('Enroll in this course to open its lessons.')]);
 
-        return to_route('catalog.show', $course);
+        return to_route('catalog.show', $course->permalinkParameters());
     }
 
     /**

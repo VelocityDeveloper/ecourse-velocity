@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Slug;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 /**
  * @property int $id
  * @property string $name
+ * @property string $slug Used in the public profile URL, /instruktur/{slug}.
  * @property string $role
  * @property string $email
  * @property string|null $avatar_path
@@ -110,6 +112,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Determine whether the user can take courses: students, and instructors
+     * learning from other instructors' courses.
+     */
+    public function canLearn(): bool
+    {
+        return $this->isStudent() || $this->isInstructor();
+    }
+
+    /**
      * Determine whether the user is a student.
      */
     public function isStudent(): bool
@@ -168,6 +179,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the courses this student saved to their wishlist to take later.
+     *
+     * @return BelongsToMany<Course, $this>
+     */
+    public function wishlistedCourses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_wishlists')->withTimestamps();
+    }
+
+    /**
      * Get the private notes this student has written on lessons.
      *
      * @return HasMany<LessonNote, $this>
@@ -195,5 +216,23 @@ class User extends Authenticatable
     public function courses(): HasMany
     {
         return $this->hasMany(Course::class, 'instructor_id');
+    }
+
+    /**
+     * Give every new user a profile slug made from their name.
+     *
+     * It is kept when the name changes, so shared profile links keep working.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (($user->slug ?? '') === '') {
+                $user->slug = Slug::unique(
+                    $user->name,
+                    'pengguna',
+                    fn (string $slug): bool => static::query()->where('slug', $slug)->exists(),
+                );
+            }
+        });
     }
 }

@@ -9,9 +9,12 @@ import type { BannerSettingsData } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pengaturan Situs', href: '/admin/settings/identitas' },
-            { title: 'Hero Beranda', href: '/admin/settings/hero' },
+            { title: 'Dasbor', href: '/dasbor' },
+            {
+                title: 'Pengaturan Situs',
+                href: '/dasbor/pengaturan-situs/identitas',
+            },
+            { title: 'Hero Beranda', href: '/dasbor/pengaturan-situs/hero' },
         ],
     },
 });

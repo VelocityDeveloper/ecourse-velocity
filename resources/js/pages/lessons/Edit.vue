@@ -24,9 +24,9 @@ import type { LessonContentType } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Materi', href: '/lessons' },
-            { title: 'Ubah Materi', href: '/lessons' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Materi', href: '/dasbor/materi' },
+            { title: 'Ubah Materi', href: '/dasbor/materi' },
         ],
     },
 });
@@ -50,7 +50,7 @@ const props = defineProps<{
         attachments: Attachment[];
     };
     section: { id: number; title: string };
-    course: { id: number; title: string };
+    course: { id: number; slug: string; title: string };
     contentTypes: LessonContentType[];
     maxAttachmentKilobytes: number;
 }>();
@@ -130,7 +130,7 @@ function removeAttachment(id: number) {
                 title="Ubah Materi"
                 :description="`${course.title} › ${section.title}`"
             />
-            <Link :href="courseRoutes.show(course.id)">
+            <Link :href="courseRoutes.show(course.slug)">
                 <Button variant="outline" size="sm">Kembali ke kursus</Button>
             </Link>
         </div>

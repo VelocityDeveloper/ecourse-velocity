@@ -34,7 +34,7 @@ class QuizController extends Controller
         $quizzes = Quiz::query()
             ->with([
                 'section:id,title,course_id',
-                'section.course:id,title,instructor_id',
+                'section.course:id,slug,title,instructor_id',
                 'questions.scores',
             ])
             ->withCount('questions')
@@ -49,12 +49,13 @@ class QuizController extends Controller
             ->withQueryString()
             ->through(fn (Quiz $quiz): array => [
                 'id' => $quiz->id,
+                'slug' => $quiz->slug,
                 'title' => $quiz->title,
                 'time_limit_minutes' => $quiz->time_limit_minutes,
                 'questions_count' => (int) $quiz->questions_count,
                 'total_points' => $this->totalPoints($quiz),
                 'section' => ['id' => $quiz->section->id, 'title' => $quiz->section->title],
-                'course' => ['id' => $quiz->section->course->id, 'title' => $quiz->section->course->title],
+                'course' => ['id' => $quiz->section->course->id, 'slug' => $quiz->section->course->slug, 'title' => $quiz->section->course->title],
             ]);
 
         return Inertia::render('quizzes/Index', [
@@ -82,7 +83,7 @@ class QuizController extends Controller
     /**
      * Show the quiz builder.
      */
-    public function edit(Quiz $quiz): Response
+    public function edit(Course $course, Quiz $quiz): Response
     {
         $quiz->load(['section.course', 'questions.options', 'questions.scores']);
         Gate::authorize('update', $quiz->section->course);
@@ -90,6 +91,7 @@ class QuizController extends Controller
         return Inertia::render('quizzes/Edit', [
             'quiz' => [
                 'id' => $quiz->id,
+                'slug' => $quiz->slug,
                 'title' => $quiz->title,
                 'description' => $quiz->description,
                 'time_limit_minutes' => $quiz->time_limit_minutes,
@@ -116,7 +118,7 @@ class QuizController extends Controller
                     ->all(),
             ],
             'section' => ['id' => $quiz->section->id, 'title' => $quiz->section->title],
-            'course' => ['id' => $quiz->section->course->id, 'title' => $quiz->section->course->title],
+            'course' => ['id' => $quiz->section->course->id, 'slug' => $quiz->section->course->slug, 'title' => $quiz->section->course->title],
             'answerModes' => QuizQuestion::ANSWER_MODES,
             'maxOptions' => QuizQuestion::MAX_OPTIONS,
             'maxTimeLimitMinutes' => Quiz::MAX_TIME_LIMIT_MINUTES,

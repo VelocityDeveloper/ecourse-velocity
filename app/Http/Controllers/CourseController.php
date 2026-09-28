@@ -35,7 +35,7 @@ class CourseController extends Controller
 
         $courses = Course::query()
             ->manageableBy($actor)
-            ->with(['category:id,name', 'instructor:id,name'])
+            ->with(['category:id,name', 'instructor:id,name,slug'])
             ->when($search !== '', fn (Builder $query) => $query->where(
                 fn (Builder $inner) => $inner
                     ->where('title', 'like', "%{$search}%")
@@ -78,7 +78,7 @@ class CourseController extends Controller
             'categories' => $this->categoryOptions(),
             'instructors' => $actor->isAdmin() ? $this->instructorOptions() : [],
             'levels' => Course::LEVELS,
-            'statuses' => $this->availableStatuses($actor),
+            'statuses' => Course::statusesFor($actor),
             'isAdmin' => $actor->isAdmin(),
         ]);
     }
@@ -107,7 +107,7 @@ class CourseController extends Controller
 
         $course->load([
             'category:id,name',
-            'instructor:id,name,email',
+            'instructor:id,name,slug,email',
             'sections.lessons',
             'sections.quizzes.questions.scores',
         ]);
@@ -127,22 +127,9 @@ class CourseController extends Controller
             'movableQuizzes' => Inertia::optional(
                 fn (): array => $this->movableQuizzes($this->actor($request)),
             ),
-            'statuses' => $this->availableStatuses($this->actor($request)),
+            'statuses' => Course::statusesFor($this->actor($request), $course),
             'contentTypes' => Lesson::CONTENT_TYPES,
-        ]);
-    }
-
-    /**
-     * Show the form for editing a course.
-     */
-    public function edit(Request $request, Course $course): Response
-    {
-        Gate::authorize('update', $course);
-
-        $actor = $this->actor($request);
-
-        return Inertia::render('courses/Edit', [
-            'course' => [
+            'form' => [
                 'id' => $course->id,
                 'title' => $course->title,
                 'slug' => $course->slug,
@@ -155,11 +142,21 @@ class CourseController extends Controller
                 'thumbnail_url' => $course->thumbnail_url,
             ],
             'categories' => $this->categoryOptions(),
-            'instructors' => $actor->isAdmin() ? $this->instructorOptions() : [],
+            'instructors' => $this->actor($request)->isAdmin() ? $this->instructorOptions() : [],
             'levels' => Course::LEVELS,
-            'statuses' => $this->availableStatuses($actor),
-            'isAdmin' => $actor->isAdmin(),
+            'isAdmin' => $this->actor($request)->isAdmin(),
         ]);
+    }
+
+    /**
+     * Send the old edit link to the course page's edit tabs.
+     */
+    public function edit(Course $course): RedirectResponse
+    {
+        Gate::authorize('update', $course);
+
+        // Editing lives in the tabs of the course page.
+        return to_route('courses.show', ['course' => $course, 'tab' => 'informasi']);
     }
 
     /**
@@ -224,7 +221,7 @@ class CourseController extends Controller
             'price' => $course->price,
             'thumbnail_url' => $course->thumbnail_url,
             'category' => $course->category?->only(['id', 'name']),
-            'instructor' => $course->instructor?->only(['id', 'name']),
+            'instructor' => $course->instructor?->only(['id', 'name', 'slug']),
             'created_at' => $course->created_at?->toIso8601String(),
             'can' => [
                 'update' => Gate::allows('update', $course),
@@ -294,6 +291,7 @@ class CourseController extends Controller
                 'lessons' => $section->lessons
                     ->map(fn (Lesson $lesson): array => [
                         'id' => $lesson->id,
+                        'slug' => $lesson->slug,
                         'title' => $lesson->title,
                         'content_type' => $lesson->content_type,
                         'content_url' => $lesson->content_url,
@@ -304,6 +302,7 @@ class CourseController extends Controller
                 'quizzes' => $section->quizzes
                     ->map(fn (Quiz $quiz): array => [
                         'id' => $quiz->id,
+                        'slug' => $quiz->slug,
                         'title' => $quiz->title,
                         'description' => $quiz->description,
                         'time_limit_minutes' => $quiz->time_limit_minutes,
@@ -316,16 +315,6 @@ class CourseController extends Controller
                     ->all(),
             ])
             ->all();
-    }
-
-    /**
-     * Get the statuses the given user may move a course to.
-     *
-     * @return list<string>
-     */
-    private function availableStatuses(User $actor): array
-    {
-        return $actor->isAdmin() ? Course::STATUSES : Course::INSTRUCTOR_STATUSES;
     }
 
     /**

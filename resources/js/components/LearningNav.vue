@@ -3,10 +3,12 @@ import { Link } from '@inertiajs/vue3';
 import {
     BookMarked,
     Bookmark,
+    Heart,
     LayoutGrid,
     NotebookPen,
     Receipt,
 } from '@lucide/vue';
+import { onMounted, useTemplateRef } from 'vue';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import learning from '@/routes/learning';
 import myCourses from '@/routes/my-courses';
@@ -19,14 +21,32 @@ const tabs = [
     { label: 'Kursus Saya', href: myCourses.index(), Icon: BookMarked },
     { label: 'Catatan', href: learning.notes(), Icon: NotebookPen },
     { label: 'Markah', href: learning.bookmarks(), Icon: Bookmark },
+    { label: 'Wishlist', href: learning.wishlist(), Icon: Heart },
     { label: 'Pesanan', href: orders.index(), Icon: Receipt },
 ];
+
+// On phones the tabs scroll sideways; bring the current one into view.
+const nav = useTemplateRef<HTMLElement>('nav');
+
+onMounted(() => {
+    const current = nav.value?.querySelector<HTMLElement>(
+        '[aria-current="page"]',
+    );
+
+    if (nav.value && current) {
+        nav.value.scrollLeft =
+            current.offsetLeft -
+            nav.value.clientWidth / 2 +
+            current.clientWidth / 2;
+    }
+});
 </script>
 
 <template>
     <!-- Tabs along the bottom of the dark LearningHeader band; the active one opens into the page. -->
     <nav
-        class="-mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0"
+        ref="nav"
+        class="-mx-4 scrollbar-none flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0"
         aria-label="Belajar Saya"
     >
         <Link

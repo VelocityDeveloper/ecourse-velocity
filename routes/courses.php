@@ -3,6 +3,8 @@
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseGradeController;
 use App\Http\Controllers\CourseProgressController;
+use App\Http\Controllers\CourseReviewController;
+use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\LessonAttachmentController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\QuizController;
@@ -10,47 +12,60 @@ use App\Http\Controllers\QuizQuestionController;
 use App\Http\Controllers\SectionController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'staff'])->group(function () {
-    Route::get('courses', [CourseController::class, 'index'])->name('courses.index');
-    Route::get('courses/create', [CourseController::class, 'create'])->name('courses.create');
-    Route::post('courses', [CourseController::class, 'store'])->name('courses.store');
-    Route::get('courses/{course}', [CourseController::class, 'show'])->name('courses.show');
-    Route::get('courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
-    Route::put('courses/{course}', [CourseController::class, 'update'])->name('courses.update');
-    Route::patch('courses/{course}/status', [CourseController::class, 'updateStatus'])->name('courses.status.update');
-    Route::delete('courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
-    Route::get('courses/{course}/progress', [CourseProgressController::class, 'index'])->name('courses.progress.index');
-    Route::get('courses/{course}/progress/{student}', [CourseProgressController::class, 'show'])->name('courses.progress.show');
-    Route::get('courses/{course}/grades', [CourseGradeController::class, 'index'])->name('courses.grades.index');
-    Route::get('courses/{course}/grades/export', [CourseGradeController::class, 'export'])->name('courses.grades.export');
-    Route::patch('courses/{course}/grading', [CourseGradeController::class, 'update'])->name('courses.grading.update');
+/*
+ * The staff dashboard, under /dasbor with paths named after the sidebar menu.
+ * Pages use slugs; the form actions behind them (save, move, delete) keep ids.
+ */
+Route::middleware(['auth', 'staff'])->prefix('dasbor')->group(function () {
+    Route::get('kursus', [CourseController::class, 'index'])->name('courses.index');
+    Route::get('kursus/buat', [CourseController::class, 'create'])->name('courses.create');
+    Route::post('kursus', [CourseController::class, 'store'])->name('courses.store');
+    Route::get('kursus/{course:slug}', [CourseController::class, 'show'])->name('courses.show');
+    Route::get('kursus/{course:slug}/ubah', [CourseController::class, 'edit'])->name('courses.edit');
+    Route::put('kursus/{course:slug}', [CourseController::class, 'update'])->name('courses.update');
+    Route::patch('kursus/{course:slug}/status', [CourseController::class, 'updateStatus'])->name('courses.status.update');
+    Route::delete('kursus/{course:slug}', [CourseController::class, 'destroy'])->name('courses.destroy');
+    Route::get('kursus/{course:slug}/progres', [CourseProgressController::class, 'index'])->name('courses.progress.index');
+    Route::get('kursus/{course:slug}/progres/{student:slug}', [CourseProgressController::class, 'show'])->withoutScopedBindings()->name('courses.progress.show');
+    Route::get('kursus/{course:slug}/nilai', [CourseGradeController::class, 'index'])->name('courses.grades.index');
+    Route::get('kursus/{course:slug}/nilai/ekspor', [CourseGradeController::class, 'export'])->name('courses.grades.export');
+    Route::get('kursus/{course:slug}/ulasan', [CourseReviewController::class, 'course'])->name('courses.reviews.index');
+    Route::patch('kursus/{course:slug}/penilaian', [CourseGradeController::class, 'update'])->name('courses.grading.update');
 
-    Route::post('courses/{course}/sections', [SectionController::class, 'store'])->name('sections.store');
-    Route::put('sections/{section}', [SectionController::class, 'update'])->name('sections.update');
-    Route::patch('sections/{section}/move', [SectionController::class, 'move'])->name('sections.move');
-    Route::delete('sections/{section}', [SectionController::class, 'destroy'])->name('sections.destroy');
+    Route::post('kursus/{course:slug}/bab', [SectionController::class, 'store'])->name('sections.store');
+    Route::put('bab/{section}', [SectionController::class, 'update'])->name('sections.update');
+    Route::patch('bab/{section}/pindah', [SectionController::class, 'move'])->name('sections.move');
+    Route::delete('bab/{section}', [SectionController::class, 'destroy'])->name('sections.destroy');
 
-    Route::get('lessons', [LessonController::class, 'index'])->name('lessons.index');
-    Route::post('sections/{section}/lessons', [LessonController::class, 'store'])->name('lessons.store');
-    Route::get('lessons/{lesson}/edit', [LessonController::class, 'edit'])->name('lessons.edit');
-    Route::put('lessons/{lesson}', [LessonController::class, 'update'])->name('lessons.update');
-    Route::patch('lessons/{lesson}/move', [LessonController::class, 'move'])->name('lessons.move');
-    Route::delete('lessons/{lesson}', [LessonController::class, 'destroy'])->name('lessons.destroy');
+    Route::get('materi', [LessonController::class, 'index'])->name('lessons.index');
+    Route::post('bab/{section}/materi', [LessonController::class, 'store'])->name('lessons.store');
+    Route::put('materi/{lesson}', [LessonController::class, 'update'])->name('lessons.update');
+    Route::patch('materi/{lesson}/pindah', [LessonController::class, 'move'])->name('lessons.move');
+    Route::patch('materi/{lesson}/bab', [LessonController::class, 'moveToSection'])->name('lessons.section.update');
+    Route::delete('materi/{lesson}', [LessonController::class, 'destroy'])->name('lessons.destroy');
 
-    Route::post('lessons/{lesson}/attachments', [LessonAttachmentController::class, 'store'])->name('lesson-attachments.store');
-    Route::delete('attachments/{attachment}', [LessonAttachmentController::class, 'destroy'])->name('lesson-attachments.destroy');
+    Route::post('materi/{lesson}/lampiran', [LessonAttachmentController::class, 'store'])->name('lesson-attachments.store');
+    Route::delete('lampiran/{attachment}', [LessonAttachmentController::class, 'destroy'])->name('lesson-attachments.destroy');
 
-    Route::get('quizzes', [QuizController::class, 'index'])->name('quizzes.index');
-    Route::post('sections/{section}/quizzes', [QuizController::class, 'store'])->name('quizzes.store');
-    Route::get('quizzes/{quiz}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
-    Route::put('quizzes/{quiz}', [QuizController::class, 'update'])->name('quizzes.update');
-    Route::patch('quizzes/{quiz}/move', [QuizController::class, 'move'])->name('quizzes.move');
-    Route::delete('quizzes/{quiz}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
+    Route::get('kuis', [QuizController::class, 'index'])->name('quizzes.index');
+    Route::post('bab/{section}/kuis', [QuizController::class, 'store'])->name('quizzes.store');
+    Route::put('kuis/{quiz}', [QuizController::class, 'update'])->name('quizzes.update');
+    Route::patch('kuis/{quiz}/pindah', [QuizController::class, 'move'])->name('quizzes.move');
+    Route::patch('kuis/{quiz}/bab', [QuizController::class, 'moveToSection'])->name('quizzes.section.update');
+    Route::delete('kuis/{quiz}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
 
-    Route::post('quizzes/{quiz}/questions', [QuizQuestionController::class, 'store'])->name('quiz-questions.store');
-    Route::put('questions/{question}', [QuizQuestionController::class, 'update'])->name('quiz-questions.update');
-    Route::patch('questions/{question}/move', [QuizQuestionController::class, 'move'])->name('quiz-questions.move');
-    Route::delete('questions/{question}', [QuizQuestionController::class, 'destroy'])->name('quiz-questions.destroy');
-    Route::patch('lessons/{lesson}/section', [LessonController::class, 'moveToSection'])->name('lessons.section.update');
-    Route::patch('quizzes/{quiz}/section', [QuizController::class, 'moveToSection'])->name('quizzes.section.update');
+    Route::post('kuis/{quiz}/soal', [QuizQuestionController::class, 'store'])->name('quiz-questions.store');
+    Route::put('soal/{question}', [QuizQuestionController::class, 'update'])->name('quiz-questions.update');
+    Route::patch('soal/{question}/pindah', [QuizQuestionController::class, 'move'])->name('quiz-questions.move');
+    Route::delete('soal/{question}', [QuizQuestionController::class, 'destroy'])->name('quiz-questions.destroy');
+
+    // A lesson or quiz slug is only unique inside its course.
+    Route::scopeBindings()->group(function () {
+        Route::get('kursus/{course:slug}/materi/{lesson:slug}/ubah', [LessonController::class, 'edit'])->name('lessons.edit');
+        Route::get('kursus/{course:slug}/kuis/{quiz:slug}/ubah', [QuizController::class, 'edit'])->name('quizzes.edit');
+    });
+
+    Route::get('pendaftaran', [EnrollmentController::class, 'index'])->name('enrollments.index');
+    Route::post('pendaftaran', [EnrollmentController::class, 'store'])->name('enrollments.store');
+    Route::get('pendaftaran/{enrollment}', [EnrollmentController::class, 'show'])->name('enrollments.show');
 });

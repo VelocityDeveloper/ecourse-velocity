@@ -7,14 +7,16 @@ use App\Models\Course;
 use App\Models\SiteSetting;
 use App\Models\User;
 use App\Support\BrandPalette;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CourseSeeder extends Seeder
 {
-    use WithoutModelEvents;
+    /**
+     * The hue of the dark navy surface behind the header, hero and footer.
+     */
+    private const float SURFACE_HUE = 223.0;
 
     private const int THUMBNAIL_WIDTH = 1280;
 
@@ -155,7 +157,7 @@ class CourseSeeder extends Seeder
      */
     private function paintGradient(\GdImage $image): void
     {
-        $surface = $this->surfaceHue();
+        $surface = self::SURFACE_HUE;
         [$fromR, $fromG, $fromB] = $this->hslToRgb($surface, 0.45, 0.16);
         [$toR, $toG, $toB] = $this->hslToRgb($surface, 0.50, 0.07);
         $span = self::THUMBNAIL_WIDTH + self::THUMBNAIL_HEIGHT;
@@ -257,16 +259,6 @@ class CourseSeeder extends Seeder
         $color = SiteSetting::get(SiteSetting::PRIMARY_COLOR);
 
         return $color === null ? 24.0 : BrandPalette::hueOf($color);
-    }
-
-    /**
-     * The hue of the site's dark surface colour, navy by default.
-     */
-    private function surfaceHue(): float
-    {
-        $color = SiteSetting::get(SiteSetting::SURFACE_COLOR);
-
-        return $color === null ? 223.0 : BrandPalette::hueOf($color);
     }
 
     /**

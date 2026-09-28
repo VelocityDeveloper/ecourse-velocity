@@ -6,3 +6,4 @@ export * from './enrollment';
 export * from './home';
 export * from './learn';
 export * from './order';
+export * from './blog';

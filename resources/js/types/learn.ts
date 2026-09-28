@@ -3,6 +3,7 @@ import type { AnswerMode, CourseLevel, LessonContentType } from './course';
 export type OutlineLessonItem = {
     type: 'lesson';
     id: number;
+    slug: string;
     title: string;
     content_type: LessonContentType;
     duration_minutes: number | null;
@@ -13,6 +14,7 @@ export type OutlineLessonItem = {
 export type OutlineQuizItem = {
     type: 'quiz';
     id: number;
+    slug: string;
     title: string;
     time_limit_minutes: number | null;
     questions_count: number;
@@ -24,11 +26,12 @@ export type OutlineItem = OutlineLessonItem | OutlineQuizItem;
 export type OutlineReference = {
     type: 'lesson' | 'quiz';
     id: number;
+    slug: string;
     title: string;
 };
 
 export type LearningOutline = {
-    course: { id: number; title: string };
+    course: { id: number; slug: string; url: string; title: string };
     sections: Array<{ id: number; title: string; items: OutlineItem[] }>;
     items: OutlineReference[];
     progress: { completed: number; total: number; percent: number };
@@ -41,6 +44,7 @@ export type OutlineNeighbours = {
 
 export type LearnLesson = {
     id: number;
+    slug: string;
     title: string;
     content_type: LessonContentType;
     content: string | null;
@@ -61,6 +65,7 @@ export type LearnLesson = {
 
 export type LearnQuiz = {
     id: number;
+    slug: string;
     title: string;
     description: string | null;
     time_limit_minutes: number | null;
@@ -91,11 +96,12 @@ export type AttemptContext = {
     };
     quiz: {
         id: number;
+        slug: string;
         title: string;
         time_limit_minutes: number | null;
         passing_score: number | null;
     };
-    course: { id: number; title: string };
+    course: { id: number; slug: string; title: string };
 };
 
 export type AttemptQuestion = {
@@ -145,12 +151,13 @@ export type DiscussionQuestion = DiscussionReply & {
 export type LearningCourseCard = {
     course: {
         id: number;
+        slug: string;
         title: string;
         thumbnail_url: string | null;
         level: CourseLevel;
         instructor: string | null;
     };
-    last_lesson: { id: number; title: string } | null;
+    last_lesson: { id: number; slug: string; title: string } | null;
     last_accessed_at: string | null;
     progress: { completed: number; total: number; percent: number };
 };
@@ -158,8 +165,10 @@ export type LearningCourseCard = {
 export type LearningActivity = {
     type: 'lesson' | 'quiz';
     title: string;
-    course: { id: number; title: string };
+    course: { id: number; slug: string; title: string };
     target_id: number;
+    /** The lesson or quiz slug; attempts are opened by target_id. */
+    target_slug: string;
     score?: number | null;
     max_score?: number;
     at: string | null;
@@ -178,19 +187,20 @@ export type NoteEntry = {
     id: number;
     body: string;
     updated_at: string | null;
-    lesson: { id: number; title: string };
+    lesson: { id: number; slug: string; title: string };
     section: { id: number; title: string };
-    course: { id: number; title: string };
+    course: { id: number; slug: string; title: string };
 };
 
 export type BookmarkEntry = {
     id: number;
+    slug: string;
     title: string;
     content_type: LessonContentType;
     duration_minutes: number | null;
     bookmarked_at: string | null;
     section: { id: number; title: string };
-    course: { id: number; title: string };
+    course: { id: number; slug: string; title: string };
 };
 
 export type RatingSummary = {
@@ -208,9 +218,25 @@ export type CourseReviewEntry = {
     can_delete: boolean;
 };
 
+export type DashboardReview = {
+    id: number;
+    rating: number;
+    comment: string | null;
+    created_at: string | null;
+    author: { id: number; name: string; slug: string; avatar: string | null };
+    course: { id: number; slug: string; title: string };
+    can_delete: boolean;
+};
+
 export type StudentProgressRow = {
     enrollment_id: number;
-    student: { id: number; name: string; email: string; avatar: string | null };
+    student: {
+        id: number;
+        name: string;
+        slug: string;
+        email: string;
+        avatar: string | null;
+    };
     enrolled_at: string;
     last_accessed_at: string | null;
     lessons_completed: number;
@@ -226,6 +252,6 @@ export type UnansweredQuestion = {
     body: string;
     created_at: string | null;
     author: { id: number; name: string; avatar: string | null };
-    lesson: { id: number; title: string };
-    course_id: number;
+    lesson: { id: number; slug: string; title: string };
+    course_slug: string;
 };

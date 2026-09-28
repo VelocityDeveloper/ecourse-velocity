@@ -18,9 +18,9 @@ import PasswordInput from '@/components/PasswordInput.vue';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pengguna', href: '/admin/users' },
-            { title: 'Buat Pengguna', href: '/admin/users/create' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Pengguna', href: '/dasbor/pengguna' },
+            { title: 'Buat Pengguna', href: '/dasbor/pengguna/tambah' },
         ],
     },
 });
@@ -40,7 +40,7 @@ function submit() {
     processing.value = true;
     errors.value = {};
 
-    router.post('/admin/users', form, {
+    router.post('/dasbor/pengguna', form, {
         onError: (err) => {
             errors.value = err;
         },
@@ -127,7 +127,7 @@ function submit() {
                 <Button :disabled="processing">
                     {{ processing ? 'Membuat...' : 'Buat Pengguna' }}
                 </Button>
-                <Link href="/admin/users">
+                <Link href="/dasbor/pengguna">
                     <Button type="button" variant="ghost">Batal</Button>
                 </Link>
             </div>

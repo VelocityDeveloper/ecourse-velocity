@@ -5,9 +5,9 @@ namespace App\Concerns;
 use App\Models\Category;
 use App\Models\Course;
 use App\Models\User;
+use App\Support\Slug;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 trait CourseValidationRules
@@ -25,7 +25,7 @@ trait CourseValidationRules
                 'required',
                 'string',
                 'max:255',
-                'alpha_dash',
+                'regex:/^'.Slug::PATTERN.'$/',
                 $course === null
                     ? Rule::unique(Course::class)
                     : Rule::unique(Course::class)->ignore($course->id),
@@ -36,7 +36,7 @@ trait CourseValidationRules
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'level' => ['required', 'string', Rule::in(Course::LEVELS)],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
-            'status' => $this->statusRules($actor),
+            'status' => $this->statusRules($actor, $course),
         ];
     }
 
@@ -65,16 +65,17 @@ trait CourseValidationRules
      * Get the validation rules used to validate a course status.
      *
      * Admins may select any status. Instructors may only keep a course as a
-     * draft or submit it for approval.
+     * draft or submit it for approval, or leave the status it already has, so
+     * they can still edit a course an admin has published.
      *
      * @return array<int, ValidationRule|array<mixed>|string>
      */
-    protected function statusRules(User $actor): array
+    protected function statusRules(User $actor, ?Course $course = null): array
     {
         return [
             'required',
             'string',
-            Rule::in($actor->isAdmin() ? Course::STATUSES : Course::INSTRUCTOR_STATUSES),
+            Rule::in(Course::statusesFor($actor, $course)),
         ];
     }
 
@@ -83,21 +84,7 @@ trait CourseValidationRules
      */
     protected function uniqueCourseSlug(string $title, ?Course $course = null): string
     {
-        $base = Str::slug($title);
-
-        if ($base === '') {
-            $base = 'course';
-        }
-
-        $candidate = $base;
-        $suffix = 2;
-
-        while ($this->courseSlugExists($candidate, $course)) {
-            $candidate = $base.'-'.$suffix;
-            $suffix++;
-        }
-
-        return $candidate;
+        return Slug::unique($title, 'kursus-baru', fn (string $slug): bool => $this->courseSlugExists($slug, $course));
     }
 
     /**

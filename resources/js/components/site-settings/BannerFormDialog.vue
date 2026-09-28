@@ -147,7 +147,7 @@ onBeforeUnmount(clearPreview);
                         name="link_url"
                         :default-value="banner?.link_url ?? ''"
                         maxlength="255"
-                        placeholder="/catalog atau https://..."
+                        placeholder="/kursus atau https://..."
                     />
                     <InputError :message="errors.link_url" />
                 </div>

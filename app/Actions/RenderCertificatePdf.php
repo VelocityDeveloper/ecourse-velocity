@@ -35,7 +35,7 @@ class RenderCertificatePdf
         return Pdf::loadView('certificates.pdf', [
             'certificate' => $certificate,
             'primary' => $primary,
-            'surface' => SiteSetting::get(SiteSetting::SURFACE_COLOR) ?? self::DEFAULT_SURFACE,
+            'surface' => self::DEFAULT_SURFACE,
             'siteName' => config('app.name'),
             'logo' => $this->logo($primary),
             'qr' => $this->qrCode(route('certificates.show', $certificate)),

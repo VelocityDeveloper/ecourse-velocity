@@ -3,13 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * The number of extra, randomly generated students to keep in the database.
      */

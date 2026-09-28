@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\HasCourseSlug;
 use App\Concerns\HasPosition;
 use Database\Factories\LessonFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -16,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $section_id
  * @property string $title
+ * @property string $slug Unique within the course, used in the learning URL.
  * @property string $content_type
  * @property string|null $content
  * @property string|null $content_url
@@ -28,7 +30,7 @@ use Illuminate\Support\Carbon;
 class Lesson extends Model
 {
     /** @use HasFactory<LessonFactory> */
-    use HasFactory, HasPosition;
+    use HasCourseSlug, HasFactory, HasPosition;
 
     public const string TYPE_VIDEO = 'video';
 
@@ -115,5 +117,13 @@ class Lesson extends Model
                 fn (LessonAttachment $attachment) => $attachment->delete(),
             );
         });
+    }
+
+    /**
+     * The slug used when the title has no letters or digits.
+     */
+    protected function slugFallback(): string
+    {
+        return 'materi';
     }
 }

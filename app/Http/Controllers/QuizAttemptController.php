@@ -25,7 +25,7 @@ class QuizAttemptController extends Controller
             $attempt->handIn([], $grade);
         }
 
-        $quiz = $attempt->quiz->load(['section.course:id,title', 'questions.options', 'questions.scores']);
+        $quiz = $attempt->quiz->load(['section.course:id,title,slug', 'questions.options', 'questions.scores']);
 
         $context = [
             'attempt' => [
@@ -42,12 +42,14 @@ class QuizAttemptController extends Controller
             ],
             'quiz' => [
                 'id' => $quiz->id,
+                'slug' => $quiz->slug,
                 'title' => $quiz->title,
                 'time_limit_minutes' => $quiz->time_limit_minutes,
                 'passing_score' => $quiz->passing_score,
             ],
             'course' => [
                 'id' => $quiz->section->course->id,
+                'slug' => $quiz->section->course->slug,
                 'title' => $quiz->section->course->title,
             ],
         ];

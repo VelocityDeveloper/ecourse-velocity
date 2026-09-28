@@ -91,7 +91,7 @@ onBeforeUnmount(clearAvatarPreview);
                 description="Perbarui foto, nama, alamat email, dan bio Anda"
             />
             <Link
-                :href="users.show(user.id)"
+                :href="users.show(user.slug)"
                 class="shrink-0 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
                 Lihat profil publik

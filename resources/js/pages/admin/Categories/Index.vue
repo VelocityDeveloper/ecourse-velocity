@@ -21,8 +21,8 @@ import type { Category, Paginated } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Kategori', href: '/admin/categories' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Kategori', href: '/dasbor/kategori' },
         ],
     },
 });
@@ -50,8 +50,8 @@ function goToPage(page: number) {
     );
 }
 
-function deleteCategory(id: number) {
-    router.delete(categoryRoutes.destroy(id).url, { preserveScroll: true });
+function deleteCategory(slug: string) {
+    router.delete(categoryRoutes.destroy(slug).url, { preserveScroll: true });
 }
 </script>
 
@@ -168,7 +168,9 @@ function deleteCategory(id: number) {
                                     class="flex items-center justify-end gap-2"
                                 >
                                     <Link
-                                        :href="categoryRoutes.edit(category.id)"
+                                        :href="
+                                            categoryRoutes.edit(category.slug)
+                                        "
                                     >
                                         <Button variant="ghost" size="sm">
                                             <Pencil class="h-4 w-4" />
@@ -212,7 +214,7 @@ function deleteCategory(id: number) {
                                                     variant="destructive"
                                                     @click="
                                                         deleteCategory(
-                                                            category.id,
+                                                            category.slug,
                                                         )
                                                     "
                                                 >

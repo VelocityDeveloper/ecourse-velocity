@@ -398,7 +398,7 @@ function searchCatalog(): void {
                         :key="category.id"
                         :href="
                             catalogRoutes.index({
-                                query: { category_id: category.id },
+                                query: { kategori: category.slug },
                             })
                         "
                         class="group relative isolate flex min-h-56 flex-col justify-between gap-6 overflow-hidden rounded-2xl bg-surface p-7 text-surface-foreground shadow-lg shadow-black/10 transition-transform hover:-translate-y-0.5 md:[&:last-child:nth-child(odd)]:col-span-2"
@@ -546,7 +546,7 @@ function searchCatalog(): void {
             >
                 <template #default="{ item: instructor }">
                     <Link
-                        :href="users.show(instructor.id)"
+                        :href="users.show(instructor.slug)"
                         class="flex w-full flex-col items-center gap-3 rounded-2xl border bg-card p-6 text-center text-card-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10"
                     >
                         <Avatar class="size-20 overflow-hidden rounded-full">

@@ -62,11 +62,11 @@ class CoursePolicy
     /**
      * Determine whether the user can rate and review the course.
      *
-     * Only students with an active enrollment may, so every review comes from a learner.
+     * Only learners with an active enrollment may, so every review comes from a learner.
      */
     public function review(User $user, Course $course): bool
     {
-        return $user->isStudent()
+        return $this->takes($user, $course)
             && $course->enrollments()->active()->where('user_id', $user->id)->exists();
     }
 
@@ -75,7 +75,27 @@ class CoursePolicy
      */
     public function enroll(?User $user, Course $course): bool
     {
-        return $user !== null && $user->isStudent() && $course->isPublished();
+        return $user !== null && $this->takes($user, $course) && $course->isPublished();
+    }
+
+    /**
+     * Determine whether the user can save the course to their wishlist.
+     *
+     * Like enrolling, it is for learners and published courses only.
+     */
+    public function wishlist(User $user, Course $course): bool
+    {
+        return $this->takes($user, $course) && $course->isPublished();
+    }
+
+    /**
+     * Determine whether the user can take the course as a learner.
+     *
+     * Instructors may learn too, from any course except their own.
+     */
+    private function takes(User $user, Course $course): bool
+    {
+        return $user->canLearn() && ! $course->isOwnedBy($user);
     }
 
     /**

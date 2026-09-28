@@ -22,6 +22,7 @@ void createInertiaApp({
             case name === 'users/Show':
             case name.startsWith('certificates/'):
             case name.startsWith('orders/'):
+            case name.startsWith('blog/'):
                 return PublicLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;

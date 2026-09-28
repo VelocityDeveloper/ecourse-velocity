@@ -7,9 +7,15 @@ import ContactSettings from '@/components/site-settings/ContactSettings.vue';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Pengaturan Situs', href: '/admin/settings/identitas' },
-            { title: 'Kontak & Footer', href: '/admin/settings/kontak' },
+            { title: 'Dasbor', href: '/dasbor' },
+            {
+                title: 'Pengaturan Situs',
+                href: '/dasbor/pengaturan-situs/identitas',
+            },
+            {
+                title: 'Kontak & Footer',
+                href: '/dasbor/pengaturan-situs/kontak',
+            },
         ],
     },
 });

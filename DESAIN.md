@@ -9,7 +9,7 @@ Design rules for **ecourse-velocity**, taken from the existing design system and
 - **Mark:** a check-shaped "V" (velocity, plus a finished lesson) followed by three speed lines on its left. Source: `components/AppLogoIcon.vue` (viewBox `0 0 40 40`). The SVG is drawn in `currentColor`, so its color **always** comes from the parent's text class; never give it a color of its own.
 - **Wordmark:** `components/AppWordmark.vue` renders **"ecourse velocity"** in lowercase: `ecourse` `font-medium opacity-60` + `velocity` `font-semibold`, `tracking-tight`. Don't retype the text by hand; use the component.
 - **Logo lockup:** the mark inside a tile `size-8 rounded-md bg-primary text-primary-foreground` (sidebar: `bg-sidebar-primary`) with an icon of `size-5`, followed by the wordmark with a `gap-2`. A small version (footer) uses a `size-6` tile + `size-4` icon.
-- **Admin-uploaded logo:** an admin can replace the logo at **Admin → Pengaturan Situs** (`/admin/settings`, PNG/JPG/WebP up to 2 MB; SVG is refused because it could carry script). Always render the logo through `components/SiteLogo.vue` (`size` sm/md/lg, `tile` primary/sidebar/none, `wordmark`): it shows the uploaded image (shared prop `branding.logoUrl`) in place of the whole lockup, or the built-in mark + wordmark when none is set. Never use `AppLogoIcon` directly for the site logo.
+- **Admin-uploaded logo:** an admin can replace the logo at **Admin → Pengaturan Situs** (`/dasbor/pengaturan-situs`, PNG/JPG/WebP up to 2 MB; SVG is refused because it could carry script). Always render the logo through `components/SiteLogo.vue` (`size` sm/md/lg, `tile` primary/sidebar/none, `wordmark`): it shows the uploaded image (shared prop `branding.logoUrl`) in place of the whole lockup, or the built-in mark + wordmark when none is set. Never use `AppLogoIcon` directly for the site logo.
 - **Minimum size:** icon 16px (favicon). Below 24px use the mark without the wordmark.
 - **Favicon/app icons** (`public/favicon.svg`, `favicon.ico`, `apple-touch-icon.png`): the white mark (`#ffffff`) on a `#cb450b` tile (the light-mode `--primary` value, brand orange), corner radius 9/40. The hex values are allowed **only** in these static files. If the mark changes, update all three from the same geometry.
 - The product name for titles/emails comes from `APP_NAME` (`Ecourse Velocity`) via `page.props.name`.
@@ -127,11 +127,12 @@ Use one H1 per page and don't skip heading levels.
 - The "Lanjutkan belajar" (resume) card: `rounded-xl border` with the thumbnail on the left (`md:grid-cols-[280px_1fr]`), a progress bar, and a **Lanjutkan** button pointing at the last lesson opened.
 - Statistics tiles use the same pattern as the homepage: an accent icon chip (`chart-*`) + `text-2xl font-semibold` figure + `text-sm text-muted-foreground` label.
 - **Rating stars** (`StarRating`, `StarRatingInput`) are the only place a filled accent colour is allowed: `fill-current text-rating` (a gold `--rating` token, the same in both themes; `chart-4` turned purple in dark mode), empty stars `text-muted-foreground/40`. Show the rating as `4.5 ★★★★☆ (12)`; do not show stars when there are no reviews yet.
+- **Wishlist heart** (`WishlistButton`) is the one other filled accent: `fill-current text-wishlist` (a rose `--wishlist` token) once the course is saved, an outline heart before. On a `CourseCard` it sits in the thumbnail's bottom-right corner, beside the link rather than inside it; students and guests see it (guests go to log in), staff never do.
 - **Discussion** (`LessonDiscussion`): each question is a card with an `Avatar size-8`, name, `Instructor` badge (`secondary`) for course staff, and a relative time. Replies are indented `ml-11 border-l pl-4`. Deleting always goes through a `Dialog` confirmation (never `window.confirm`).
 - **Personal notes** (`LessonNotes`): a card with the label "Hanya Anda yang bisa melihatnya"; the save button stays disabled until something changes.
 - Gradebook (`courses/Grades`, "Buku Nilai"): quiz grade = best attempt %, final grade = weighted average (quiz `weight`, untaken = 0), letter from `App\Support\GradeScale`, pass = final ≥ course `passing_grade`; quiz KKM = `passing_score`. Pass/fail badges use `passStatusLabel` → **Lulus / Belum lulus** everywhere (dashboard, CSV and public site). Other dashboard statuses stay English; statuses students see on the public site are Indonesian. CSV export is `;`-separated with a UTF-8 BOM for Excel.
 - Certificates: earned at 100% progress + final grade ≥ course `passing_grade` (no final grade → progress alone). Students claim them on My Courses ("Ambil sertifikat" → `certificates/Show`, public verification page `/sertifikat/{code}`, PublicLayout); the PDF (`resources/views/certificates/pdf.blade.php`, dompdf, A4 landscape, site colours + QR to the verification page) downloads only for the owner and course staff. Name/course/grade are snapshotted at issue.
-- Payments (manual): paid courses (`Course::isPaid()`) are bought, not self-enrolled. "Beli kursus" → checkout page (`orders/Checkout`, pick bank transfer or QRIS; nothing is created yet) → "Buat pesanan" creates the invoice (`Order`, number `INV-YYYYMMDD-XXXXX`, total = price, no unique code, deadline from Pengaturan Pembayaran) → invoice page (`orders/Show`, printable) → separate proof page (`orders/Proof`, `/orders/{number}/konfirmasi-pembayaran`, file on the private `local` disk) → admin confirms in Penjualan → Pesanan (creates a `Transaction`, enrolls the student) or rejects with a reason (back to pending). Unpaid orders expire (`orders:expire`, every 15 min + lazily on read). Order statuses: English on the dashboard (`orderStatusLabel`), Indonesian on the public site (`publicOrderStatusLabel`).
+- Payments (manual): paid courses (`Course::isPaid()`) are bought, not self-enrolled. "Beli kursus" → checkout page (`orders/Checkout`, pick bank transfer or QRIS; nothing is created yet) → "Buat pesanan" creates the invoice (`Order`, number `INV-YYYYMMDD-XXXXX`, total = price, no unique code, deadline from Pengaturan Pembayaran) → invoice page (`orders/Show`, printable) → separate proof page (`orders/Proof`, `/belajar-saya/pesanan/{number}/konfirmasi-pembayaran`, file on the private `local` disk) → admin confirms in Penjualan → Pesanan (creates a `Transaction`, enrolls the student) or rejects with a reason (back to pending). Unpaid orders expire (`orders:expire`, every 15 min + lazily on read). Order statuses: English on the dashboard (`orderStatusLabel`), Indonesian on the public site (`publicOrderStatusLabel`).
 - Staff monitoring pages (`courses/Progress`, `courses/ProgressStudent`) stay in the dashboard (`AppLayout` + `<Heading variant="small">`), with progress per student shown as an `h-2` bar + a `tabular-nums` percentage.
 
 ### Public header
@@ -250,6 +251,7 @@ The fixed Indonesian names for UI terms. The same concept always uses the same w
 | Overview                                      | Ringkasan                                      |
 | Notes                                         | Catatan                                        |
 | Bookmarks / Bookmark                          | Markah / Tandai                                |
+| Wishlist / Save to wishlist                   | Wishlist / Simpan ke wishlist                  |
 | Continue learning / Resume                    | Lanjutkan belajar / Lanjutkan                  |
 | Progress                                      | Progres                                        |
 | Completed / Mark as complete                  | Selesai / Tandai selesai                       |
@@ -313,5 +315,32 @@ The public site follows the look of kursussipil.id. These rules override the old
 - **Buttons on public pages:** `rounded-xl font-bold`.
 - **Promo slider:** `components/BannerSlider.vue`, fed by `banners` (Pengaturan Situs → Banner Promo), 3:1 images, autoplay 5 s (off with reduced motion), arrows + dots.
 - **Footer:** four columns (logo + description + social icons, two link columns, "Hubungi Kami") from the shared `site` prop (Pengaturan Situs → Kontak & Footer). Empty contacts are hidden. Brand icons come from `components/SocialIcon.vue` (lucide v1 has none).
-- **Testimonials:** "Cerita Sukses Alumni" comes from Pengaturan Situs → Testimoni (name, optional masking "N***a P***i", institution, quote, rating, photo); until one is active it falls back to the latest 4–5★ course reviews. `components/TestimonialCarousel.vue` shows whole cards inside the 1200px container: 3 per view on large screens, 2 on tablets, 1 on phones; it advances every 6 s (paused on hover/focus, off with reduced motion), with arrows, dots and swipe; each card a `components/TestimonialCard.vue`. Never seed invented testimonials: they must come from real alumni.
+- **Testimonials:** "Cerita Sukses Alumni" comes from Pengaturan Situs → Testimoni (name, optional masking "N***a P***i", institution, quote, rating, photo); until one is active it falls back to the latest 4–5★ course reviews. `components/TestimonialCarousel.vue` shows whole cards inside the 1200px container: 3 per view on large screens, 2 on tablets, 1 on phones; it advances every 6 s (paused on hover/focus, off with reduced motion), with arrows, dots and swipe; each card a `components/TestimonialCard.vue`. Never seed invented testimonials: they must come from real alumni. How many show (1–24, default 8, for either source) is set on the same page (`HomeTestimonials::limit()`); active manual testimonials past it are badged "Melebihi jumlah tampil".
 - **Phones:** the homepage shows 4 featured courses (the rest from "Lihat semua kursus") and the testimonials as a swipeable row.
+
+## URL (permalink)
+
+Every page URL is Indonesian, follows the menu labels, and uses slugs instead of ids (route names stay English, e.g. `catalog.show`). Form actions behind a page (save, move, delete) and private records (quiz attempts, enrollments) keep ids. Old paths (`/catalog/{id}`, `/login`, `/learning`, `/dashboard`, `/courses/{id}`, `/admin/*`, `/settings/*`, …) redirect with 301 (`routes/legacy.php`).
+
+| Page | URL |
+| --- | --- |
+| Katalog (menu "Kursus"), filter kategori | `/kursus`, `/kursus?kategori={category-slug}` |
+| Detail kursus, like WordPress `/%category%/%postname%/` | `/{category-slug}/{course-slug}`; no category → `/kursus/{course-slug}` |
+| Profil instruktur | `/instruktur/{user-slug}` |
+| Beli kursus | `/beli/{course-slug}` |
+| Belajar Saya + tabs | `/belajar-saya`, `/belajar-saya/{kursus,catatan,markah,wishlist,pesanan}` |
+| Invoice, kirim bukti | `/belajar-saya/pesanan/{number}`, `…/konfirmasi-pembayaran` |
+| Ruang belajar | `/belajar/{course-slug}`, `…/materi/{lesson-slug}`, `…/kuis/{quiz-slug}` |
+| Masuk / Daftar / Lupa kata sandi | `/masuk`, `/daftar`, `/lupa-kata-sandi` |
+| Pengaturan akun (Profil, Keamanan, Tampilan) | `/pengaturan/{profil,keamanan,tampilan}` |
+| Dasbor | `/dasbor` |
+| Kursus (dasbor) | `/dasbor/kursus`, `…/buat`, `/dasbor/kursus/{course-slug}`, `…/ubah`, `…/progres`, `…/progres/{user-slug}`, `…/nilai` |
+| Materi / Kuis (dasbor) | `/dasbor/materi`, `/dasbor/kuis`; editor `/dasbor/kursus/{course-slug}/materi/{lesson-slug}/ubah`, `…/kuis/{quiz-slug}/ubah` |
+| Pendaftaran | `/dasbor/pendaftaran`, `/dasbor/pendaftaran/{id}` |
+| Pengguna, Kategori | `/dasbor/pengguna`, `…/tambah`, `…/{user-slug}/ubah`; `/dasbor/kategori`, `…/tambah`, `…/{category-slug}/ubah` |
+| Penjualan | `/dasbor/pesanan`, `/dasbor/pesanan/{number}`, `/dasbor/transaksi`, `/dasbor/pengaturan-pembayaran` |
+| Pengaturan Situs | `/dasbor/pengaturan-situs/{identitas,warna,hero,kontak}`, `…/banner-promo`, `…/testimoni` |
+
+- Build course page links from the server's `url` (`Course::permalink()`), never by hand; a wrong category segment redirects to the canonical URL.
+- Slugs come from `App\Support\Slug` ("UI/UX Design" → `ui-ux-design`). Lesson and quiz slugs are unique per course and kept when the title changes; user slugs are made once from the name.
+- `/{category}/{course}` is registered last (`routes/permalinks.php`); a category may not take a reserved first segment (`Slug::RESERVED`), so add any new top-level path there too.

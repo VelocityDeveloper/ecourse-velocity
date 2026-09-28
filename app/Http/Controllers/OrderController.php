@@ -28,11 +28,13 @@ class OrderController extends Controller
             return $redirect;
         }
 
-        $course->loadMissing(['category:id,name', 'instructor:id,name']);
+        $course->loadMissing(['category:id,name,slug', 'instructor:id,name']);
 
         return Inertia::render('orders/Checkout', [
             'course' => [
                 'id' => $course->id,
+                'slug' => $course->slug,
+                'url' => $course->permalink(),
                 'title' => $course->title,
                 'thumbnail_url' => $course->thumbnail_url,
                 'level' => $course->level,
@@ -73,6 +75,7 @@ class OrderController extends Controller
 
         return Inertia::render('orders/Index', [
             'orders' => $this->actor($request)->orders()
+                ->with('course:id,slug')
                 ->latest('id')
                 ->get()
                 ->map(fn (Order $order): array => self::summary($order))
@@ -196,6 +199,7 @@ class OrderController extends Controller
         return [
             'number' => $order->number,
             'course_id' => $order->course_id,
+            'course_slug' => $order->course?->slug,
             'course_title' => $order->course_title,
             'total' => $order->total,
             'status' => $order->status,
@@ -241,11 +245,11 @@ class OrderController extends Controller
         if ($course->enrollments()->active()->where('user_id', $student->id)->exists()) {
             Inertia::flash('toast', ['type' => 'info', 'message' => __('You are already enrolled in this course.')]);
 
-            return to_route('catalog.show', $course);
+            return to_route('catalog.show', $course->permalinkParameters());
         }
 
         if (! $course->isPaid()) {
-            return to_route('catalog.show', $course);
+            return to_route('catalog.show', $course->permalinkParameters());
         }
 
         Order::expireOverdue();

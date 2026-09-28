@@ -39,18 +39,24 @@ const props = defineProps<{
     courses: Paginated<CatalogCourse>;
     filters: {
         search?: string;
-        category_id?: string | number;
+        kategori?: string;
         level?: string;
         sort: CatalogSort;
     };
-    categories: { id: number; name: string; courses_count: number }[];
+    categories: {
+        id: number;
+        name: string;
+        slug: string;
+        courses_count: number;
+    }[];
     levels: CourseLevel[];
     sorts: CatalogSort[];
     total: number;
 }>();
 
 const search = ref(props.filters.search ?? '');
-const categoryId = ref(String(props.filters.category_id ?? ANY) || ANY);
+// Filtered by category slug, e.g. /kursus?kategori=web-development
+const categoryId = ref(props.filters.kategori || ANY);
 const level = ref(props.filters.level ?? ANY);
 const sort = ref<CatalogSort>(props.filters.sort);
 
@@ -58,7 +64,7 @@ const categoryOptions = computed(() => [
     { id: ANY, name: 'Semua Kategori', courses_count: props.total },
     ...props.categories.map((category) => ({
         ...category,
-        id: String(category.id),
+        id: category.slug,
     })),
 ]);
 
@@ -71,7 +77,7 @@ const activeCategory = computed(() =>
 const hasFilters = computed(
     () =>
         Boolean(props.filters.search) ||
-        props.filters.category_id !== undefined ||
+        props.filters.kategori !== undefined ||
         props.filters.level !== undefined,
 );
 
@@ -98,7 +104,7 @@ const pageItems = computed<(number | '…')[]>(() => {
 function currentQuery(page?: number) {
     return {
         search: search.value.trim() || undefined,
-        category_id: categoryId.value === ANY ? undefined : categoryId.value,
+        kategori: categoryId.value === ANY ? undefined : categoryId.value,
         level: level.value === ANY ? undefined : level.value,
         sort: sort.value === props.sorts[0] ? undefined : sort.value,
         page,

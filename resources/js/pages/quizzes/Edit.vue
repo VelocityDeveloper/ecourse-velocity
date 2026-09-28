@@ -48,9 +48,9 @@ import type {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Kuis', href: '/quizzes' },
-            { title: 'Ubah Kuis', href: '/quizzes' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Kuis', href: '/dasbor/kuis' },
+            { title: 'Ubah Kuis', href: '/dasbor/kuis' },
         ],
     },
 });
@@ -58,7 +58,7 @@ defineOptions({
 const props = defineProps<{
     quiz: QuizDetail;
     section: { id: number; title: string };
-    course: { id: number; title: string };
+    course: { id: number; slug: string; title: string };
     answerModes: AnswerMode[];
     maxOptions: number;
     maxTimeLimitMinutes: number;
@@ -345,7 +345,7 @@ function confirmDelete() {
                     KKM {{ quiz.passing_score }}%
                 </Badge>
                 <Badge variant="outline">Bobot {{ quiz.weight }}</Badge>
-                <Link :href="courseRoutes.show(course.id)">
+                <Link :href="courseRoutes.show(course.slug)">
                     <Button variant="outline" size="sm"
                         >Kembali ke kursus</Button
                     >

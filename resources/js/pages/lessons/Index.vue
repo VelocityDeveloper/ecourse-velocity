@@ -20,22 +20,23 @@ import type { LessonContentType, Paginated } from '@/types';
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dashboard' },
-            { title: 'Kursus', href: '/courses' },
-            { title: 'Materi', href: '/lessons' },
+            { title: 'Dasbor', href: '/dasbor' },
+            { title: 'Kursus', href: '/dasbor/kursus' },
+            { title: 'Materi', href: '/dasbor/materi' },
         ],
     },
 });
 
 type LessonRow = {
     id: number;
+    slug: string;
     title: string;
     content_type: LessonContentType;
     duration_minutes: number | null;
     has_content: boolean;
     attachments_count: number;
     section: { id: number; title: string };
-    course: { id: number; title: string };
+    course: { id: number; slug: string; title: string };
 };
 
 const ANY = 'all';
@@ -184,7 +185,12 @@ function goToPage(page: number) {
                         >
                             <td class="p-4 align-middle">
                                 <Link
-                                    :href="lessonRoutes.edit(lesson.id)"
+                                    :href="
+                                        lessonRoutes.edit({
+                                            course: lesson.course.slug,
+                                            lesson: lesson.slug,
+                                        })
+                                    "
                                     class="font-medium hover:underline"
                                 >
                                     {{ lesson.title }}
@@ -226,7 +232,14 @@ function goToPage(page: number) {
                                 </div>
                             </td>
                             <td class="p-4 text-right align-middle">
-                                <Link :href="lessonRoutes.edit(lesson.id)">
+                                <Link
+                                    :href="
+                                        lessonRoutes.edit({
+                                            course: lesson.course.slug,
+                                            lesson: lesson.slug,
+                                        })
+                                    "
+                                >
                                     <Button variant="ghost" size="sm">
                                         <Pencil class="h-4 w-4" />
                                     </Button>

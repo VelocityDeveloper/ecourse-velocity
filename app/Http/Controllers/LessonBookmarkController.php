@@ -23,18 +23,19 @@ class LessonBookmarkController extends Controller
         $actor = $this->actor($request);
 
         $bookmarks = $actor->bookmarkedLessons()
-            ->with('section:id,course_id,title', 'section.course:id,title,instructor_id')
+            ->with('section:id,course_id,title', 'section.course:id,title,slug,instructor_id')
             ->orderByPivot('created_at', 'desc')
             ->get()
             ->filter(fn (Lesson $lesson): bool => Gate::allows('learn', $lesson->section->course))
             ->map(fn (Lesson $lesson): array => [
                 'id' => $lesson->id,
+                'slug' => $lesson->slug,
                 'title' => $lesson->title,
                 'content_type' => $lesson->content_type,
                 'duration_minutes' => $lesson->duration_minutes,
                 'bookmarked_at' => $lesson->pivot?->created_at?->toIso8601String(),
                 'section' => ['id' => $lesson->section->id, 'title' => $lesson->section->title],
-                'course' => ['id' => $lesson->section->course->id, 'title' => $lesson->section->course->title],
+                'course' => $lesson->section->course->only(['id', 'slug', 'title']),
             ])
             ->values();
 

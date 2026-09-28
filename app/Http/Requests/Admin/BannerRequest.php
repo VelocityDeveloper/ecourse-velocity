@@ -11,7 +11,7 @@ class BannerRequest extends FormRequest
      * Get the validation rules that apply to the request.
      *
      * The image is required when a banner is created and optional when one is edited.
-     * Links may be a full https URL or a path on this site ("/catalog").
+     * Links may be a full https URL or a path on this site ("/kursus").
      *
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */

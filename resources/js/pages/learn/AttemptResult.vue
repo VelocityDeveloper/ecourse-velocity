@@ -33,7 +33,7 @@ const correctCount = computed(
 );
 
 const quizHref = computed(() =>
-    learn.quizzes.show({ course: props.course.id, quiz: props.quiz.id }),
+    learn.quizzes.show({ course: props.course.slug, quiz: props.quiz.slug }),
 );
 </script>
 
@@ -92,7 +92,7 @@ const quizHref = computed(() =>
                 <Link :href="quizHref">
                     <Button variant="outline">Ulangi kuis</Button>
                 </Link>
-                <Link :href="learn.show(course.id)">
+                <Link :href="learn.show(course.slug)">
                     <Button>Lanjutkan kursus</Button>
                 </Link>
             </div>

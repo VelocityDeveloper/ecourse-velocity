@@ -78,25 +78,6 @@ final class BrandPalette
     }
 
     /**
-     * The CSS for the dark surface tokens (hero and footer) from a "#rrggbb" colour.
-     *
-     * Text on the surface is white, so the colour is darkened until white reaches
-     * the minimum contrast; the lighter "muted" shade is for borders and tiles.
-     */
-    public static function surfaceCss(string $hex): string
-    {
-        [$h, $s, $l] = self::parseHex($hex);
-        $surface = self::untilContrast([$h, $s, $l], [0.0, 0.0, 100.0], -1.0);
-        $tokens = self::declarations([
-            'surface' => self::css($surface),
-            'surface-foreground' => self::css([0.0, 0.0, 100.0]),
-            'surface-muted' => self::css([$h, $s * 0.8, min($surface[2] + 8, 40.0)]),
-        ]);
-
-        return ':root{'.$tokens.'}.dark{'.$tokens.'}';
-    }
-
-    /**
      * The CSS that overrides the default tokens; load it after app.css.
      */
     public function toCss(): string

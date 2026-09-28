@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { BookMarked, GraduationCap, LogOut, Settings } from '@lucide/vue';
+import { LogOut, Settings } from '@lucide/vue';
+import { computed } from 'vue';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -8,9 +9,8 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
+import { accountLinks } from '@/composables/useAccountLinks';
 import { logout } from '@/routes';
-import learning from '@/routes/learning';
-import myCourses from '@/routes/my-courses';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
@@ -18,11 +18,13 @@ type Props = {
     user: User;
 };
 
+const props = defineProps<Props>();
+
+const links = computed(() => accountLinks(props.user));
+
 const handleLogout = () => {
     router.flushAll();
 };
-
-defineProps<Props>();
 </script>
 
 <template>
@@ -33,19 +35,14 @@ defineProps<Props>();
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
-        <DropdownMenuItem v-if="user.role === 'student'" :as-child="true">
-            <Link
-                class="block w-full cursor-pointer"
-                :href="learning.dashboard()"
-            >
-                <GraduationCap class="mr-2 h-4 w-4" />
-                Belajar Saya
-            </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem v-if="user.role === 'student'" :as-child="true">
-            <Link class="block w-full cursor-pointer" :href="myCourses.index()">
-                <BookMarked class="mr-2 h-4 w-4" />
-                Kursus Saya
+        <DropdownMenuItem
+            v-for="link in links"
+            :key="link.href"
+            :as-child="true"
+        >
+            <Link class="block w-full cursor-pointer" :href="link.href">
+                <component :is="link.icon" class="mr-2 h-4 w-4" />
+                {{ link.label }}
             </Link>
         </DropdownMenuItem>
         <DropdownMenuItem :as-child="true">

@@ -30,7 +30,7 @@ const props = defineProps<{
 }>();
 
 const starting = ref(false);
-const courseId = computed(() => props.outline.course.id);
+const courseSlug = computed(() => props.outline.course.slug);
 
 function startQuiz(): void {
     if (props.openAttemptId !== null) {
@@ -42,7 +42,7 @@ function startQuiz(): void {
     starting.value = true;
 
     router.post(
-        learn.quizzes.start({ course: courseId.value, quiz: props.quiz.id })
+        learn.quizzes.start({ course: courseSlug.value, quiz: props.quiz.slug })
             .url,
         {},
         {
@@ -227,6 +227,6 @@ function formatDateTime(date: string | null): string {
             </ul>
         </section>
 
-        <LearnPager :course-id="courseId" :neighbours="neighbours" />
+        <LearnPager :course-slug="courseSlug" :neighbours="neighbours" />
     </LearnShell>
 </template>

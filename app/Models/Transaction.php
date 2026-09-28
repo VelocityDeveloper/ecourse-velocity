@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -40,6 +41,19 @@ class Transaction extends Model
             'confirmed_by' => 'integer',
             'paid_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Limit the query to the payments the user may see: all of them for admins,
+     * only those for their own courses for instructors.
+     *
+     * @param  Builder<Transaction>  $query
+     */
+    public function scopeManageableBy(Builder $query, User $user): void
+    {
+        if (! $user->isAdmin()) {
+            $query->whereHas('order', fn (Builder $order) => $order->manageableBy($user));
+        }
     }
 
     /**

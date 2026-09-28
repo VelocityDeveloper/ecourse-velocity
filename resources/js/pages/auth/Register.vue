@@ -16,8 +16,8 @@ defineProps<{
 
 defineOptions({
     layout: {
-        title: 'Buat akun',
-        description: 'Masukkan data Anda di bawah untuk membuat akun',
+        title: 'Buat akun gratis',
+        description: 'Daftar sekarang dan mulai belajar hari ini.',
     },
 });
 </script>
@@ -31,7 +31,7 @@ defineOptions({
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"
     >
-        <div class="grid gap-6">
+        <div class="grid gap-5">
             <div class="grid gap-2">
                 <Label for="name">Nama</Label>
                 <Input
@@ -43,6 +43,7 @@ defineOptions({
                     autocomplete="name"
                     name="name"
                     placeholder="Nama lengkap"
+                    class="h-11 rounded-xl"
                 />
                 <InputError :message="errors.name" />
             </div>
@@ -57,6 +58,7 @@ defineOptions({
                     autocomplete="email"
                     name="email"
                     placeholder="email@example.com"
+                    class="h-11 rounded-xl"
                 />
                 <InputError :message="errors.email" />
             </div>
@@ -70,6 +72,7 @@ defineOptions({
                     autocomplete="new-password"
                     name="password"
                     placeholder="Kata sandi"
+                    class="h-11 rounded-xl"
                     :passwordrules="passwordRules"
                 />
                 <InputError :message="errors.password" />
@@ -84,6 +87,7 @@ defineOptions({
                     autocomplete="new-password"
                     name="password_confirmation"
                     placeholder="Konfirmasi kata sandi"
+                    class="h-11 rounded-xl"
                     :passwordrules="passwordRules"
                 />
                 <InputError :message="errors.password_confirmation" />
@@ -91,7 +95,7 @@ defineOptions({
 
             <Button
                 type="submit"
-                class="mt-2 w-full"
+                class="mt-2 h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
                 tabindex="5"
                 :disabled="processing"
                 data-test="register-user-button"
@@ -101,14 +105,14 @@ defineOptions({
             </Button>
         </div>
 
-        <div class="text-center text-sm text-muted-foreground">
+        <p class="border-t pt-6 text-center text-sm text-muted-foreground">
             Sudah punya akun?
             <TextLink
                 :href="login()"
-                class="underline underline-offset-4"
+                class="font-bold text-primary decoration-primary/40"
                 :tabindex="6"
                 >Masuk</TextLink
             >
-        </div>
+        </p>
     </Form>
 </template>

@@ -5,14 +5,14 @@ import learn from '@/routes/learn';
 import type { OutlineNeighbours, OutlineReference } from '@/types';
 
 const props = defineProps<{
-    courseId: number;
+    courseSlug: string;
     neighbours: OutlineNeighbours;
 }>();
 
 function href(item: OutlineReference) {
     return item.type === 'lesson'
-        ? learn.lessons.show({ course: props.courseId, lesson: item.id })
-        : learn.quizzes.show({ course: props.courseId, quiz: item.id });
+        ? learn.lessons.show({ course: props.courseSlug, lesson: item.slug })
+        : learn.quizzes.show({ course: props.courseSlug, quiz: item.slug });
 }
 </script>
 
