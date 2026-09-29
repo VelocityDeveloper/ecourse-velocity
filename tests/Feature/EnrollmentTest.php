@@ -18,7 +18,31 @@ test('admins see every enrollment', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('enrollments/Index')
-            ->has('enrollments.data', 3)
+            ->has('learners.data', 3)
+        );
+});
+
+test('a student in several courses is listed once with every course', function () {
+    $student = User::factory()->student()->create(['name' => 'Budi Santoso']);
+    Enrollment::factory()->for($student)->for(Course::factory()->published()->create(['title' => 'Laravel']))->create();
+    Enrollment::factory()->for($student)->for(Course::factory()->published()->create(['title' => 'Vue']))->create();
+    Enrollment::factory()->create();
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get(route('enrollments.index'))
+        ->assertInertia(fn ($page) => $page
+            ->has('learners.data', 2)
+            ->where('learners.total', 2)
+            ->where('learners.data', fn ($rows) => collect(collect($rows)->firstWhere('student.name', 'Budi Santoso')['enrollments'])
+                ->pluck('course.title')->sort()->values()->all() === ['Laravel', 'Vue'])
+        );
+
+    $this->actingAs(User::factory()->admin()->create())
+        ->get(route('enrollments.index', ['search' => 'Vue']))
+        ->assertInertia(fn ($page) => $page
+            ->has('learners.data', 1)
+            ->has('learners.data.0.enrollments', 1)
+            ->where('learners.data.0.enrollments.0.course.title', 'Vue')
         );
 });
 
@@ -30,9 +54,10 @@ test('instructors only see enrollments in their own courses', function () {
     $this->actingAs($instructor)
         ->get(route('enrollments.index'))
         ->assertInertia(fn ($page) => $page
-            ->has('enrollments.data', 1)
-            ->where('enrollments.data.0.id', $own->id)
-            ->where('enrollments.data.0.can_cancel', true)
+            ->has('learners.data', 1)
+            ->has('learners.data.0.enrollments', 1)
+            ->where('learners.data.0.enrollments.0.id', $own->id)
+            ->where('learners.data.0.enrollments.0.can_cancel', true)
         );
 });
 
@@ -50,8 +75,9 @@ test('enrollments can be searched by student and filtered by course and status',
             'status' => Enrollment::STATUS_ACTIVE,
         ]))
         ->assertInertia(fn ($page) => $page
-            ->has('enrollments.data', 1)
-            ->where('enrollments.data.0.student.name', 'Budi Santoso')
+            ->has('learners.data', 1)
+            ->where('learners.data.0.student.name', 'Budi Santoso')
+            ->has('learners.data.0.enrollments', 1)
         );
 });
 

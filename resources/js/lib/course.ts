@@ -183,11 +183,11 @@ export function formatBytes(size: number): string {
 
 // Order statuses: English on the dashboard, Indonesian on the public site.
 const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-    pending: 'Pending Payment',
-    awaiting_confirmation: 'Awaiting Confirmation',
-    paid: 'Paid',
-    expired: 'Expired',
-    cancelled: 'Cancelled',
+    pending: 'Menunggu pembayaran',
+    awaiting_confirmation: 'Menunggu konfirmasi',
+    paid: 'Lunas',
+    expired: 'Kedaluwarsa',
+    cancelled: 'Dibatalkan',
 };
 
 const PUBLIC_ORDER_STATUS_LABELS: Record<OrderStatus, string> = {

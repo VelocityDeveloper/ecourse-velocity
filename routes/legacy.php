@@ -55,10 +55,10 @@ Route::middleware('auth')->group(function () {
     Route::get('admin/settings/{section}', fn (string $section) => redirect('/dasbor/pengaturan-situs/'.$section, 301))->where('section', '[a-z]+');
     Route::permanentRedirect('admin/banners', '/dasbor/pengaturan-situs/banner-promo');
     Route::permanentRedirect('admin/testimonials', '/dasbor/pengaturan-situs/testimoni');
-    Route::permanentRedirect('admin/orders', '/dasbor/pesanan');
+    Route::permanentRedirect('admin/orders', '/dasbor/keuangan/pesanan');
     Route::get('admin/orders/{order}', fn (string $order) => redirect()->route('admin.orders.show', $order, 301));
-    Route::permanentRedirect('admin/transactions', '/dasbor/transaksi');
-    Route::permanentRedirect('admin/payment-settings', '/dasbor/pengaturan-pembayaran');
+    Route::permanentRedirect('admin/transactions', '/dasbor/keuangan/pesanan?status=paid');
+    Route::permanentRedirect('admin/payment-settings', '/dasbor/pengaturan-situs/pembayaran');
 
     Route::permanentRedirect('settings', '/pengaturan/profil');
     Route::permanentRedirect('settings/profile', '/pengaturan/profil');

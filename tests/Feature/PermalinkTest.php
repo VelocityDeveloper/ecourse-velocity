@@ -149,7 +149,8 @@ test('dashboard pages live under /dasbor with slugs', function () {
         '/dasbor/pengguna', '/dasbor/pengguna/tambah', '/dasbor/pengguna/budi-santoso/ubah',
         '/dasbor/kategori', '/dasbor/kategori/tambah', '/dasbor/kategori/desain/ubah',
         '/dasbor/pengaturan-situs/identitas', '/dasbor/pengaturan-situs/banner-promo', '/dasbor/pengaturan-situs/testimoni',
-        '/dasbor/pesanan', '/dasbor/transaksi', '/dasbor/pengaturan-pembayaran',
+        '/dasbor/keuangan', '/dasbor/keuangan/pesanan', '/dasbor/keuangan/penarikan-dana',
+        '/dasbor/keuangan/instruktur', '/dasbor/instruktur', '/dasbor/pengaturan-situs/pembayaran',
         '/pengaturan/profil', '/pengaturan/keamanan', '/pengaturan/tampilan',
     ] as $path) {
         $this->actingAs($admin)->get($path)->assertOk();
@@ -177,4 +178,14 @@ test('old dashboard URLs redirect permanently', function () {
     $this->get("/admin/users/{$user->id}/edit")->assertRedirect('/dasbor/pengguna/rina-ayu/ubah');
     $this->get('/admin/settings/warna')->assertRedirect('/dasbor/pengaturan-situs/warna');
     $this->get('/settings/profile')->assertRedirect('/pengaturan/profil');
+
+    // Money pages moved under Keuangan, payment settings under Pengaturan Situs.
+    $this->get('/dasbor/pesanan')->assertRedirect('/dasbor/keuangan/pesanan')->assertStatus(301);
+    $this->get('/dasbor/pesanan/INV-20260101-ABCDE')->assertRedirect('/dasbor/keuangan/pesanan/INV-20260101-ABCDE');
+    $this->get('/dasbor/transaksi')->assertRedirect('/dasbor/keuangan/pesanan?status=paid');
+    $this->get('/dasbor/keuangan/transaksi')->assertRedirect('/dasbor/keuangan/pesanan?status=paid');
+    $this->get('/dasbor/penarikan-dana')->assertRedirect('/dasbor/keuangan/penarikan-dana');
+    $this->get('/dasbor/instruktur/budi-santoso')->assertRedirect('/dasbor/keuangan/instruktur/budi-santoso');
+    $this->get('/dasbor/pengaturan-pembayaran')->assertRedirect('/dasbor/pengaturan-situs/pembayaran');
+    $this->get('/admin/payment-settings')->assertRedirect('/dasbor/pengaturan-situs/pembayaran');
 });

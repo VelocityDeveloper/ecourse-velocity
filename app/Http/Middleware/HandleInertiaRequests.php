@@ -2,8 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\NotificationController;
 use App\Models\Category;
+use App\Models\InstructorApplication;
+use App\Models\Order;
 use App\Models\SiteSetting;
+use App\Models\Withdrawal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -66,6 +70,22 @@ class HandleInertiaRequests extends Middleware
             'wishlistCourseIds' => fn (): array => $request->user()?->canLearn()
                 ? $request->user()->wishlistedCourses()->pluck('courses.id')->all()
                 : [],
+            // Requests to become an instructor still waiting for an admin, for the sidebar badge.
+            'pendingInstructorApplications' => fn (): int => $request->user()?->isAdmin()
+                ? InstructorApplication::query()->pending()->count()
+                : 0,
+            // Payout requests waiting for the admin, for the sidebar badge.
+            'pendingWithdrawals' => fn (): int => $request->user()?->isAdmin()
+                ? Withdrawal::query()->pending()->count()
+                : 0,
+            // Payment proofs waiting for the admin to confirm, for the sidebar badge.
+            'pendingOrders' => fn (): int => $request->user()?->isAdmin()
+                ? Order::query()->where('status', Order::STATUS_AWAITING_CONFIRMATION)->count()
+                : 0,
+            // The bell: unread count and the latest notifications.
+            'notifications' => fn (): ?array => $request->user() === null
+                ? null
+                : NotificationController::summary($request->user()),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

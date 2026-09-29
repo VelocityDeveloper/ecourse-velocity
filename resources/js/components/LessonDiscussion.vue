@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import {
     ChevronDown,
     MessageCircle,
@@ -7,7 +7,7 @@ import {
     SendHorizontal,
     Trash2,
 } from '@lucide/vue';
-import { nextTick, ref } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +56,40 @@ function openReply(questionId: number): void {
         expandedIds.value = [...expandedIds.value, questionId];
     }
 }
+// A notification opens the lesson with ?pertanyaan=ID: show that thread.
+const page = usePage();
+const highlightedId = ref<number | null>(null);
+
+watch(
+    () => page.url,
+    async (url) => {
+        // Nothing to scroll while rendering on the server.
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const id = Number(
+            new URL(url, window.location.origin).searchParams.get('pertanyaan'),
+        );
+
+        if (!id || !props.questions.some((question) => question.id === id)) {
+            return;
+        }
+
+        if (!isExpanded(id)) {
+            expandedIds.value = [...expandedIds.value, id];
+        }
+
+        highlightedId.value = id;
+        await nextTick();
+        document
+            .getElementById(`pertanyaan-${id}`)
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.setTimeout(() => (highlightedId.value = null), 3000);
+    },
+    { immediate: true },
+);
+
 const errors = ref<Record<string, string>>({});
 const posting = ref(false);
 
@@ -204,8 +238,13 @@ function authorLabel(author: DiscussionAuthor): string {
 
         <article
             v-for="question in questions"
+            :id="`pertanyaan-${question.id}`"
             :key="question.id"
-            class="space-y-3 rounded-lg border bg-card p-4 text-card-foreground"
+            class="scroll-mt-24 space-y-3 rounded-lg border bg-card p-4 text-card-foreground transition-shadow duration-500"
+            :class="{
+                'ring-2 ring-primary ring-offset-2 ring-offset-background':
+                    highlightedId === question.id,
+            }"
         >
             <div class="flex items-start gap-3">
                 <Avatar class="size-8 shrink-0 overflow-hidden rounded-full">

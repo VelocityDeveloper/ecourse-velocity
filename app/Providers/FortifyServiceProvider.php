@@ -4,13 +4,19 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Http\Responses\LoginResponse as AppLoginResponse;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\TwoFactorLoginResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -21,7 +27,8 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LoginResponse::class, AppLoginResponse::class);
+        $this->app->singleton(TwoFactorLoginResponse::class, AppLoginResponse::class);
     }
 
     /**
@@ -41,6 +48,23 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+
+        // A suspended account is told so at login instead of getting a session.
+        Fortify::authenticateUsing(function (Request $request): ?User {
+            $user = User::query()->where('email', $request->string('email')->toString())->first();
+
+            if ($user === null || ! Hash::check($request->string('password')->toString(), $user->password)) {
+                return null;
+            }
+
+            if ($user->isSuspended()) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => __('Your account has been suspended. Please contact the admin.'),
+                ]);
+            }
+
+            return $user;
+        });
     }
 
     /**

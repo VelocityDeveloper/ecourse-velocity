@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Discussion Notifications
+    |--------------------------------------------------------------------------
+    |
+    | Whether a new lesson question or reply rings the notification bell of
+    | the instructor and the thread's participants. Off for now.
+    |
+    */
+
+    'discussion_notifications' => (bool) env('DISCUSSION_NOTIFICATIONS', false),
+
 ];

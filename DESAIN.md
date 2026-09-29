@@ -226,81 +226,81 @@ On a `bg-primary` background use `currentColor` + `opacity-20`. Do not use image
 
 The fixed Indonesian names for UI terms. The same concept always uses the same word.
 
-| EN                                            | ID                                             |
-| --------------------------------------------- | ---------------------------------------------- |
-| Course / Courses                              | Kursus                                         |
-| Lesson(s)                                     | Materi                                         |
-| Section(s)                                    | Bab                                            |
-| Quiz / Quizzes                                | Kuis                                           |
-| Question(s)                                   | Soal (di kuis) / Pertanyaan (di diskusi)       |
-| Option / Answer                               | Pilihan / Jawaban                              |
-| Attempt                                       | Percobaan                                      |
-| Score / Passing score                         | Nilai / Nilai lulus                            |
-| Time limit                                    | Batas waktu                                    |
-| Enroll / Enroll now                           | Daftar / Daftar sekarang                       |
-| Enrolled                                      | Terdaftar                                      |
-| Enrollment(s)                                 | Pendaftaran                                    |
-| Cancel enrollment                             | Batalkan pendaftaran                           |
-| Log in to enroll                              | Masuk untuk mendaftar                          |
-| Instructor(s)                                 | Instruktur                                     |
-| Student(s)                                    | Siswa                                          |
-| Catalog                                       | Katalog                                        |
-| Category / Categories                         | Kategori                                       |
-| My Courses                                    | Kursus Saya                                    |
-| My Learning / My learning                     | Belajar Saya                                   |
-| Overview                                      | Ringkasan                                      |
-| Notes                                         | Catatan                                        |
-| Bookmarks / Bookmark                          | Markah / Tandai                                |
-| Wishlist / Save to wishlist                   | Wishlist / Simpan ke wishlist                  |
-| Continue learning / Resume                    | Lanjutkan belajar / Lanjutkan                  |
-| Progress                                      | Progres                                        |
-| Completed / Mark as complete                  | Selesai / Tandai selesai                       |
-| Attachments                                   | Lampiran                                       |
-| Discussion / Reply                            | Diskusi / Balasan                              |
-| Review(s) / Rating                            | Ulasan / Penilaian                             |
-| No reviews yet                                | Belum ada ulasan                               |
-| Free                                          | Gratis                                         |
-| Price                                         | Harga                                          |
-| Level                                         | Tingkat                                        |
-| Beginner / Intermediate / Advanced            | Pemula / Menengah / Lanjutan                   |
+| EN                                            | ID                                                                         |
+| --------------------------------------------- | -------------------------------------------------------------------------- |
+| Course / Courses                              | Kursus                                                                     |
+| Lesson(s)                                     | Materi                                                                     |
+| Section(s)                                    | Bab                                                                        |
+| Quiz / Quizzes                                | Kuis                                                                       |
+| Question(s)                                   | Soal (di kuis) / Pertanyaan (di diskusi)                                   |
+| Option / Answer                               | Pilihan / Jawaban                                                          |
+| Attempt                                       | Percobaan                                                                  |
+| Score / Passing score                         | Nilai / Nilai lulus                                                        |
+| Time limit                                    | Batas waktu                                                                |
+| Enroll / Enroll now                           | Daftar / Daftar sekarang                                                   |
+| Enrolled                                      | Terdaftar                                                                  |
+| Enrollment(s)                                 | Pendaftaran                                                                |
+| Cancel enrollment                             | Batalkan pendaftaran                                                       |
+| Log in to enroll                              | Masuk untuk mendaftar                                                      |
+| Instructor(s)                                 | Instruktur                                                                 |
+| Student(s)                                    | Siswa                                                                      |
+| Catalog                                       | Katalog                                                                    |
+| Category / Categories                         | Kategori                                                                   |
+| My Courses                                    | Kursus Saya                                                                |
+| My Learning / My learning                     | Belajar Saya                                                               |
+| Overview                                      | Ringkasan                                                                  |
+| Notes                                         | Catatan                                                                    |
+| Bookmarks / Bookmark                          | Markah / Tandai                                                            |
+| Wishlist / Save to wishlist                   | Wishlist / Simpan ke wishlist                                              |
+| Continue learning / Resume                    | Lanjutkan belajar / Lanjutkan                                              |
+| Progress                                      | Progres                                                                    |
+| Completed / Mark as complete                  | Selesai / Tandai selesai                                                   |
+| Attachments                                   | Lampiran                                                                   |
+| Discussion / Reply                            | Diskusi / Balasan                                                          |
+| Review(s) / Rating                            | Ulasan / Penilaian                                                         |
+| No reviews yet                                | Belum ada ulasan                                                           |
+| Free                                          | Gratis                                                                     |
+| Price                                         | Harga                                                                      |
+| Level                                         | Tingkat                                                                    |
+| Beginner / Intermediate / Advanced            | Pemula / Menengah / Lanjutan                                               |
 | Draft / Pending Review / Published / Archived | Draft / Pending Review / Published / Archived (status badges stay English) |
-| Status                                        | Status                                         |
-| Actions                                       | Aksi                                           |
-| Users                                         | Pengguna                                       |
-| Role                                          | Peran                                          |
-| Settings / Profile / Security / Appearance    | Pengaturan / Profil / Keamanan / Tampilan      |
-| Light / Dark / System                         | Terang / Gelap / Sistem                        |
-| Log in / Register / Log out                   | Masuk / Daftar / Keluar                        |
-| Create a free account                         | Buat akun gratis                               |
-| Forgot password? / Reset password             | Lupa kata sandi? / Atur ulang kata sandi       |
-| Password / Confirm password                   | Kata sandi / Konfirmasi kata sandi             |
-| Remember me                                   | Ingat saya                                     |
-| Name / Email address                          | Nama / Alamat email                            |
-| Search / Search courses...                    | Cari / Cari kursus...                          |
-| All Categories / All Levels / All Statuses    | Semua Kategori / Semua Tingkat / Semua Status  |
-| Save / Saving... / Saved.                     | Simpan / Menyimpan... / Tersimpan.             |
-| Cancel                                        | Batal                                          |
-| Delete / Remove                               | Hapus                                          |
-| Edit                                          | Ubah (tombol) / "Ubah Kursus" (judul)          |
-| Create / Add                                  | Buat / Tambah                                  |
-| Back                                          | Kembali                                        |
-| View / View all                               | Lihat / Lihat semua                            |
-| Previous / Next                               | Sebelumnya / Berikutnya                        |
-| Page 1 of 2                                   | Halaman 1 dari 2                               |
-| Showing 1 to 10 of 18 courses                 | Menampilkan 1–10 dari 18 kursus                |
-| Submit                                        | Kirim                                          |
-| Upload                                        | Unggah                                         |
-| Thumbnail                                     | Gambar sampul                                  |
-| Description                                   | Deskripsi                                      |
-| Title                                         | Judul                                          |
-| Duration / min                                | Durasi / mnt                                   |
-| Last active / Last opened                     | Terakhir aktif / Terakhir dibuka               |
-| Home                                          | Beranda                                        |
-| How it works                                  | Cara kerja                                     |
-| View Site                                     | Lihat Situs                                    |
-| Repository / Documentation                    | Repositori / Dokumentasi                       |
-| Are you sure...?                              | Yakin ingin ...?                               |
-| This cannot be undone.                        | Tindakan ini tidak bisa dibatalkan.            |
+| Status                                        | Status                                                                     |
+| Actions                                       | Aksi                                                                       |
+| Users                                         | Pengguna                                                                   |
+| Role                                          | Peran                                                                      |
+| Settings / Profile / Security / Appearance    | Pengaturan / Profil / Keamanan / Tampilan                                  |
+| Light / Dark / System                         | Terang / Gelap / Sistem                                                    |
+| Log in / Register / Log out                   | Masuk / Daftar / Keluar                                                    |
+| Create a free account                         | Buat akun gratis                                                           |
+| Forgot password? / Reset password             | Lupa kata sandi? / Atur ulang kata sandi                                   |
+| Password / Confirm password                   | Kata sandi / Konfirmasi kata sandi                                         |
+| Remember me                                   | Ingat saya                                                                 |
+| Name / Email address                          | Nama / Alamat email                                                        |
+| Search / Search courses...                    | Cari / Cari kursus...                                                      |
+| All Categories / All Levels / All Statuses    | Semua Kategori / Semua Tingkat / Semua Status                              |
+| Save / Saving... / Saved.                     | Simpan / Menyimpan... / Tersimpan.                                         |
+| Cancel                                        | Batal                                                                      |
+| Delete / Remove                               | Hapus                                                                      |
+| Edit                                          | Ubah (tombol) / "Ubah Kursus" (judul)                                      |
+| Create / Add                                  | Buat / Tambah                                                              |
+| Back                                          | Kembali                                                                    |
+| View / View all                               | Lihat / Lihat semua                                                        |
+| Previous / Next                               | Sebelumnya / Berikutnya                                                    |
+| Page 1 of 2                                   | Halaman 1 dari 2                                                           |
+| Showing 1 to 10 of 18 courses                 | Menampilkan 1–10 dari 18 kursus                                            |
+| Submit                                        | Kirim                                                                      |
+| Upload                                        | Unggah                                                                     |
+| Thumbnail                                     | Gambar sampul                                                              |
+| Description                                   | Deskripsi                                                                  |
+| Title                                         | Judul                                                                      |
+| Duration / min                                | Durasi / mnt                                                               |
+| Last active / Last opened                     | Terakhir aktif / Terakhir dibuka                                           |
+| Home                                          | Beranda                                                                    |
+| How it works                                  | Cara kerja                                                                 |
+| View Site                                     | Lihat Situs                                                                |
+| Repository / Documentation                    | Repositori / Dokumentasi                                                   |
+| Are you sure...?                              | Yakin ingin ...?                                                           |
+| This cannot be undone.                        | Tindakan ini tidak bisa dibatalkan.                                        |
 
 ## 7. Public site look (after kursussipil.id, 2026-09-26)
 
@@ -322,24 +322,24 @@ The public site follows the look of kursussipil.id. These rules override the old
 
 Every page URL is Indonesian, follows the menu labels, and uses slugs instead of ids (route names stay English, e.g. `catalog.show`). Form actions behind a page (save, move, delete) and private records (quiz attempts, enrollments) keep ids. Old paths (`/catalog/{id}`, `/login`, `/learning`, `/dashboard`, `/courses/{id}`, `/admin/*`, `/settings/*`, …) redirect with 301 (`routes/legacy.php`).
 
-| Page | URL |
-| --- | --- |
-| Katalog (menu "Kursus"), filter kategori | `/kursus`, `/kursus?kategori={category-slug}` |
-| Detail kursus, like WordPress `/%category%/%postname%/` | `/{category-slug}/{course-slug}`; no category → `/kursus/{course-slug}` |
-| Profil instruktur | `/instruktur/{user-slug}` |
-| Beli kursus | `/beli/{course-slug}` |
-| Belajar Saya + tabs | `/belajar-saya`, `/belajar-saya/{kursus,catatan,markah,wishlist,pesanan}` |
-| Invoice, kirim bukti | `/belajar-saya/pesanan/{number}`, `…/konfirmasi-pembayaran` |
-| Ruang belajar | `/belajar/{course-slug}`, `…/materi/{lesson-slug}`, `…/kuis/{quiz-slug}` |
-| Masuk / Daftar / Lupa kata sandi | `/masuk`, `/daftar`, `/lupa-kata-sandi` |
-| Pengaturan akun (Profil, Keamanan, Tampilan) | `/pengaturan/{profil,keamanan,tampilan}` |
-| Dasbor | `/dasbor` |
-| Kursus (dasbor) | `/dasbor/kursus`, `…/buat`, `/dasbor/kursus/{course-slug}`, `…/ubah`, `…/progres`, `…/progres/{user-slug}`, `…/nilai` |
-| Materi / Kuis (dasbor) | `/dasbor/materi`, `/dasbor/kuis`; editor `/dasbor/kursus/{course-slug}/materi/{lesson-slug}/ubah`, `…/kuis/{quiz-slug}/ubah` |
-| Pendaftaran | `/dasbor/pendaftaran`, `/dasbor/pendaftaran/{id}` |
-| Pengguna, Kategori | `/dasbor/pengguna`, `…/tambah`, `…/{user-slug}/ubah`; `/dasbor/kategori`, `…/tambah`, `…/{category-slug}/ubah` |
-| Penjualan | `/dasbor/pesanan`, `/dasbor/pesanan/{number}`, `/dasbor/transaksi`, `/dasbor/pengaturan-pembayaran` |
-| Pengaturan Situs | `/dasbor/pengaturan-situs/{identitas,warna,hero,kontak}`, `…/banner-promo`, `…/testimoni` |
+| Page                                                    | URL                                                                                                                          |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Katalog (menu "Kursus"), filter kategori                | `/kursus`, `/kursus?kategori={category-slug}`                                                                                |
+| Detail kursus, like WordPress `/%category%/%postname%/` | `/{category-slug}/{course-slug}`; no category → `/kursus/{course-slug}`                                                      |
+| Profil instruktur                                       | `/instruktur/{user-slug}`                                                                                                    |
+| Beli kursus                                             | `/beli/{course-slug}`                                                                                                        |
+| Belajar Saya + tabs                                     | `/belajar-saya`, `/belajar-saya/{kursus,catatan,markah,wishlist,pesanan}`                                                    |
+| Invoice, kirim bukti                                    | `/belajar-saya/pesanan/{number}`, `…/konfirmasi-pembayaran`                                                                  |
+| Ruang belajar                                           | `/belajar/{course-slug}`, `…/materi/{lesson-slug}`, `…/kuis/{quiz-slug}`                                                     |
+| Masuk / Daftar / Lupa kata sandi                        | `/masuk`, `/daftar`, `/lupa-kata-sandi`                                                                                      |
+| Pengaturan akun (Profil, Keamanan, Tampilan)            | `/pengaturan/{profil,keamanan,tampilan}`                                                                                     |
+| Dasbor                                                  | `/dasbor`                                                                                                                    |
+| Kursus (dasbor)                                         | `/dasbor/kursus`, `…/buat`, `/dasbor/kursus/{course-slug}`, `…/ubah`, `…/progres`, `…/progres/{user-slug}`, `…/nilai`        |
+| Materi / Kuis (dasbor)                                  | `/dasbor/materi`, `/dasbor/kuis`; editor `/dasbor/kursus/{course-slug}/materi/{lesson-slug}/ubah`, `…/kuis/{quiz-slug}/ubah` |
+| Pendaftaran                                             | `/dasbor/pendaftaran`, `/dasbor/pendaftaran/{id}`                                                                            |
+| Pengguna, Kategori                                      | `/dasbor/pengguna`, `…/tambah`, `…/{user-slug}/ubah`; `/dasbor/kategori`, `…/tambah`, `…/{category-slug}/ubah`               |
+| Penjualan                                               | `/dasbor/pesanan`, `/dasbor/pesanan/{number}`, `/dasbor/transaksi`, `/dasbor/pengaturan-pembayaran`                          |
+| Pengaturan Situs                                        | `/dasbor/pengaturan-situs/{identitas,warna,hero,kontak}`, `…/banner-promo`, `…/testimoni`                                    |
 
 - Build course page links from the server's `url` (`Course::permalink()`), never by hand; a wrong category segment redirects to the canonical URL.
 - Slugs come from `App\Support\Slug` ("UI/UX Design" → `ui-ux-design`). Lesson and quiz slugs are unique per course and kept when the title changes; user slugs are made once from the name.

@@ -55,15 +55,17 @@ class DashboardController extends Controller
         $courses = fn (): Builder => Course::query()->manageableBy($actor);
         $enrollments = fn (): Builder => Enrollment::query()->manageableBy($actor);
         $transactions = fn (): Builder => Transaction::query()->manageableBy($actor);
+        // Instructors see their share after the platform commission.
+        $revenue = Transaction::revenueColumnFor($actor);
         $reviews = fn (): Builder => CourseReview::query()->whereHas('course', fn (Builder $course) => $course->manageableBy($actor));
 
         return Inertia::render('Dashboard', [
             'isAdmin' => $actor->isAdmin(),
             'stats' => [
                 'revenue' => [
-                    'month' => (int) $transactions()->where('paid_at', '>=', $monthStart)->sum('amount'),
-                    'previous' => (int) $transactions()->whereBetween('paid_at', [$previousMonthStart, $monthStart])->sum('amount'),
-                    'total' => (int) $transactions()->sum('amount'),
+                    'month' => (int) $transactions()->where('paid_at', '>=', $monthStart)->sum($revenue),
+                    'previous' => (int) $transactions()->whereBetween('paid_at', [$previousMonthStart, $monthStart])->sum($revenue),
+                    'total' => (int) $transactions()->sum($revenue),
                 ],
                 'enrollments' => [
                     'month' => $enrollments()->where('enrolled_at', '>=', $monthStart)->count(),
@@ -82,7 +84,7 @@ class DashboardController extends Controller
                     'new_this_month' => User::query()->where('created_at', '>=', $monthStart)->count(),
                 ] : null,
             ],
-            'chart' => $this->chart($enrollments(), $transactions()),
+            'chart' => $this->chart($enrollments(), $transactions(), $revenue),
             'awaitingOrders' => Order::query()
                 ->manageableBy($actor)
                 ->where('status', Order::STATUS_AWAITING_CONFIRMATION)
@@ -182,9 +184,10 @@ class DashboardController extends Controller
      *
      * @param  Builder<Enrollment>  $enrollments
      * @param  Builder<Transaction>  $transactions
+     * @param  string  $revenue  The transaction column that counts as revenue for the viewer.
      * @return list<array{date: string, enrollments: int, revenue: int}>
      */
-    private function chart(Builder $enrollments, Builder $transactions): array
+    private function chart(Builder $enrollments, Builder $transactions, string $revenue): array
     {
         $start = Date::today()->subDays(self::CHART_DAYS - 1);
 
@@ -195,9 +198,9 @@ class DashboardController extends Controller
 
         $revenuePerDay = $transactions
             ->where('paid_at', '>=', $start)
-            ->get(['amount', 'paid_at'])
+            ->get([$revenue, 'paid_at'])
             ->groupBy(fn (Transaction $transaction): string => $transaction->paid_at->toDateString())
-            ->map(fn ($day): int => (int) $day->sum('amount'));
+            ->map(fn ($day): int => (int) $day->sum($revenue));
 
         $days = [];
 

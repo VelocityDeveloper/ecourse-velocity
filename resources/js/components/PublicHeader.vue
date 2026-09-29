@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import NotificationBell from '@/components/NotificationBell.vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import {
     BookMarked,
@@ -192,6 +193,9 @@ function logoutFromMenu(): void {
                             >Belajar Saya</Button
                         >
                     </Link>
+                    <NotificationBell
+                        :button-class="`rounded-full ${onSurface}`"
+                    />
                     <Link
                         v-if="isLearner"
                         :href="learning.wishlist()"

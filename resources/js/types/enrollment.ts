@@ -112,6 +112,12 @@ export type EnrollmentRow = {
     can_cancel: boolean;
 };
 
+/** A student in the staff list, with every course of theirs the staff member manages. */
+export type StudentEnrollments = {
+    student: PersonSummary & { email: string };
+    enrollments: EnrollmentRow[];
+};
+
 export type EnrollmentActor = { id: number; name: string; role: UserRole };
 
 export type EnrollmentDetail = {

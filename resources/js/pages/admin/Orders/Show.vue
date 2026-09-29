@@ -3,12 +3,13 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     CircleCheck,
-    ExternalLink,
+    Maximize2,
     FileText,
     ShieldCheck,
 } from '@lucide/vue';
 import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
+import ProofDialog from '@/components/ProofDialog.vue';
 import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,9 @@ const props = defineProps<{
         transaction: {
             id: number;
             amount: number;
+            commission_rate: number;
+            commission_amount: number;
+            instructor_amount: number;
             note: string | null;
             paid_at: string;
             confirmer: { id: number; name: string } | null;
@@ -61,12 +65,14 @@ defineOptions({
     layout: {
         breadcrumbs: [
             { title: 'Dasbor', href: '/dasbor' },
-            { title: 'Pesanan', href: '/dasbor/pesanan' },
+            { title: 'Keuangan', href: '/dasbor/keuangan' },
+            { title: 'Pesanan', href: '/dasbor/keuangan/pesanan' },
             { title: 'Detail Pesanan', href: '#' },
         ],
     },
 });
 
+const proofOpen = ref(false);
 const dialog = ref<'confirm' | 'reject' | 'cancel' | null>(null);
 const confirmForm = useForm({ note: '' });
 const rejectForm = useForm({ reason: '' });
@@ -120,16 +126,15 @@ function cancelOrder(): void {
             <section class="flex flex-col gap-4 rounded-lg border p-4">
                 <div class="flex items-center justify-between gap-2">
                     <h3 class="font-medium">Bukti pembayaran</h3>
-                    <a
+                    <button
                         v-if="order.proof_url"
-                        :href="order.proof_url"
-                        target="_blank"
-                        rel="noopener"
+                        type="button"
                         class="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
+                        @click="proofOpen = true"
                     >
-                        <ExternalLink class="size-3.5" />
-                        Buka ukuran penuh
-                    </a>
+                        <Maximize2 class="size-3.5" />
+                        Lihat ukuran penuh
+                    </button>
                 </div>
 
                 <template
@@ -151,22 +156,28 @@ function cancelOrder(): void {
                             siswa, bukti hanya bisa dilihat dan diperiksa admin.
                         </p>
                     </div>
-                    <a
+                    <button
                         v-else-if="order.proof_is_pdf"
-                        :href="order.proof_url"
-                        target="_blank"
-                        rel="noopener"
-                        class="flex items-center gap-3 rounded-lg border p-4 text-sm hover:bg-muted/50"
+                        type="button"
+                        class="flex items-center gap-3 rounded-lg border p-4 text-left text-sm hover:bg-muted/50"
+                        @click="proofOpen = true"
                     >
                         <FileText class="size-8 text-primary" />
-                        Bukti berupa PDF. Klik untuk membuka.
-                    </a>
-                    <img
+                        Bukti berupa PDF. Klik untuk melihat.
+                    </button>
+                    <button
                         v-else
-                        :src="order.proof_url"
-                        alt="Bukti pembayaran"
-                        class="max-h-[70vh] w-full rounded-lg border bg-muted object-contain"
-                    />
+                        type="button"
+                        class="cursor-zoom-in"
+                        aria-label="Lihat bukti pembayaran ukuran penuh"
+                        @click="proofOpen = true"
+                    >
+                        <img
+                            :src="order.proof_url"
+                            alt="Bukti pembayaran"
+                            class="max-h-[70vh] w-full rounded-lg border bg-muted object-contain"
+                        />
+                    </button>
                     <dl class="grid gap-3 text-sm sm:grid-cols-2">
                         <div>
                             <dt class="text-muted-foreground">Metode</dt>
@@ -285,6 +296,42 @@ function cancelOrder(): void {
                             Catatan: {{ order.transaction.note }}
                         </template>
                     </p>
+                    <dl class="grid gap-1 border-t border-primary/20 pt-2">
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-muted-foreground">
+                                {{
+                                    canManage
+                                        ? 'Pemasukan platform'
+                                        : 'Potongan platform'
+                                }}
+                                ({{
+                                    order.transaction.commission_rate.toLocaleString(
+                                        'id-ID',
+                                        { maximumFractionDigits: 2 },
+                                    )
+                                }}%)
+                            </dt>
+                            <dd class="tabular-nums">
+                                {{
+                                    formatRupiah(
+                                        order.transaction.commission_amount,
+                                    )
+                                }}
+                            </dd>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-muted-foreground">
+                                Diterima instruktur
+                            </dt>
+                            <dd class="font-semibold text-primary tabular-nums">
+                                {{
+                                    formatRupiah(
+                                        order.transaction.instructor_amount,
+                                    )
+                                }}
+                            </dd>
+                        </div>
+                    </dl>
                 </section>
 
                 <p
@@ -416,5 +463,17 @@ function cancelOrder(): void {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <ProofDialog
+            v-model:open="proofOpen"
+            :url="order.proof_url"
+            :is-pdf="order.proof_is_pdf"
+            :title="`Bukti pembayaran ${order.number}`"
+            :description="
+                order.payer_name
+                    ? `Dikirim atas nama ${order.payer_name}`
+                    : undefined
+            "
+        />
     </div>
 </template>

@@ -1,6 +1,7 @@
 import type { Directive } from 'vue';
 import type { Auth } from '@/types/auth';
 import type { PublicSite } from '@/types/home';
+import type { AppNotification } from '@/types/notification';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -26,6 +27,13 @@ declare module '@inertiajs/core' {
             site: PublicSite;
             navCategories: { id: number; name: string; slug: string }[];
             wishlistCourseIds: number[];
+            pendingInstructorApplications: number;
+            pendingWithdrawals: number;
+            pendingOrders: number;
+            notifications: {
+                unread: number;
+                recent: AppNotification[];
+            } | null;
             [key: string]: unknown;
         };
     }

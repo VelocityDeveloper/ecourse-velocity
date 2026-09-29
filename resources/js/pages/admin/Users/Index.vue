@@ -1,20 +1,42 @@
 <script setup lang="ts">
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import {
+    Ban,
+    Eye,
+    LockOpen,
+    MoreHorizontal,
+    Pencil,
+    Plus,
+    Search,
+    ShieldOff,
+    ShoppingCart,
+    Trash2,
+    UserCheck,
+} from '@lucide/vue';
+import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
-import { Button } from '@/components/ui/button';
+import InputError from '@/components/InputError.vue';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
-    DialogClose,
     DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -22,8 +44,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Eye, Plus, Search, Trash2, Pencil } from '@lucide/vue';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
 import { getInitials } from '@/composables/useInitials';
 import adminUsers from '@/routes/admin/users';
 import userRoutes from '@/routes/users';
@@ -38,9 +59,23 @@ type UserRow = {
     headline: string | null;
     bio: string | null;
     email_verified_at: string | null;
+    suspended_at: string | null;
+    suspension_reason: string | null;
+    purchase_blocked_at: string | null;
+    purchase_block_reason: string | null;
     courses_count: number;
+    paid_orders_count: number;
     created_at: string;
 };
+
+type StatusFilter = 'all' | 'active' | 'suspended' | 'purchase_blocked';
+
+type Action =
+    | 'suspend'
+    | 'unsuspend'
+    | 'block-purchases'
+    | 'unblock-purchases'
+    | 'delete';
 
 defineOptions({
     layout: {
@@ -62,11 +97,48 @@ const props = defineProps<{
     filters: {
         search?: string;
         role?: string;
+        status?: StatusFilter;
     };
+    restrictionCounts: { suspended: number; purchase_blocked: number };
 }>();
 
+const page = usePage();
+const currentUserId = computed(() => page.props.auth.user?.id);
+
 const search = ref(props.filters.search || '');
-const selectedRole = ref(props.filters.role || '');
+const selectedRole = ref(props.filters.role || 'all');
+const status = computed<StatusFilter>(() => props.filters.status ?? 'all');
+
+const statusTabs = computed(() => [
+    { value: 'all', label: 'Semua' },
+    { value: 'active', label: 'Aktif' },
+    {
+        value: 'suspended',
+        label: 'Ditangguhkan',
+        count: props.restrictionCounts.suspended,
+    },
+    {
+        value: 'purchase_blocked',
+        label: 'Pembelian dibatasi',
+        count: props.restrictionCounts.purchase_blocked,
+    },
+]);
+
+function visit(overrides: Record<string, unknown> = {}) {
+    router.get(
+        adminUsers.index().url,
+        {
+            search: search.value || undefined,
+            role:
+                selectedRole.value && selectedRole.value !== 'all'
+                    ? selectedRole.value
+                    : undefined,
+            status: status.value !== 'all' ? status.value : undefined,
+            ...overrides,
+        },
+        { preserveState: true, preserveScroll: true, replace: true },
+    );
+}
 
 const viewedUser = ref<UserRow | null>(null);
 const isDetailOpen = ref(false);
@@ -76,22 +148,123 @@ function showDetail(user: UserRow) {
     isDetailOpen.value = true;
 }
 
-function applyFilters() {
-    router.get(
-        '/dasbor/pengguna',
-        {
-            search: search.value || undefined,
-            role:
-                selectedRole.value && selectedRole.value !== 'all'
-                    ? selectedRole.value
-                    : undefined,
-        },
-        { preserveState: true, replace: true },
-    );
+// Accounts with courses or paid orders keep their history: they can only be suspended.
+function canDelete(user: UserRow): boolean {
+    return user.courses_count === 0 && user.paid_orders_count === 0;
 }
 
-function deleteUser(slug: string) {
-    router.delete(adminUsers.destroy(slug).url);
+const pending = ref<{ user: UserRow; action: Action } | null>(null);
+const actionForm = useForm({ reason: '' });
+
+function open(user: UserRow, action: Action) {
+    actionForm.reset();
+    actionForm.clearErrors();
+    pending.value = { user, action };
+}
+
+type ActionDialog = {
+    title: string;
+    description: string;
+    reason?: string;
+    confirm: string | null;
+    destructive: boolean;
+};
+
+const dialog = computed<ActionDialog | null>(() => {
+    if (!pending.value) {
+        return null;
+    }
+
+    const { user, action } = pending.value;
+
+    switch (action) {
+        case 'suspend':
+            return {
+                title: `Tangguhkan ${user.name}?`,
+                description:
+                    'Akun tidak bisa masuk dan langsung keluar dari semua perangkat. Data, kursus, dan riwayat pembelian tetap tersimpan, dan akun bisa diaktifkan kembali kapan saja.',
+                reason: 'Alasan penangguhan (opsional, hanya terlihat admin)',
+                confirm: 'Tangguhkan',
+                destructive: true,
+            };
+        case 'unsuspend':
+            return {
+                title: `Aktifkan kembali ${user.name}?`,
+                description: 'Akun bisa masuk lagi seperti biasa.',
+                confirm: 'Aktifkan',
+                destructive: false,
+            };
+        case 'block-purchases':
+            return {
+                title: `Batasi pembelian ${user.name}?`,
+                description:
+                    'Akun tetap bisa masuk dan belajar di kursus yang sudah dimiliki, tetapi tidak bisa membeli kursus berbayar baru.',
+                reason: 'Alasan pembatasan (opsional, hanya terlihat admin)',
+                confirm: 'Batasi pembelian',
+                destructive: true,
+            };
+        case 'unblock-purchases':
+            return {
+                title: `Buka pembatasan ${user.name}?`,
+                description: 'Akun bisa membeli kursus lagi.',
+                confirm: 'Buka pembatasan',
+                destructive: false,
+            };
+        default:
+            return canDelete(user)
+                ? {
+                      title: `Hapus ${user.name}?`,
+                      description:
+                          'Akun beserta pendaftaran kursus, progres, catatan, dan pesanan yang belum dibayar akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.',
+                      confirm: 'Hapus permanen',
+                      destructive: true,
+                  }
+                : {
+                      title: `${user.name} tidak bisa dihapus`,
+                      description: `Akun ini memiliki ${user.courses_count} kursus dan ${user.paid_orders_count} pembelian yang sudah dibayar. Menghapusnya akan ikut menghapus data tersebut, jadi tangguhkan akunnya saja.`,
+                      confirm: user.suspended_at ? null : 'Tangguhkan saja',
+                      destructive: true,
+                  };
+    }
+});
+
+function submitAction() {
+    if (!pending.value) {
+        return;
+    }
+
+    const { user, action } = pending.value;
+    const options = {
+        preserveScroll: true,
+        onSuccess: () => {
+            pending.value = null;
+            isDetailOpen.value = false;
+        },
+    };
+
+    switch (action) {
+        case 'suspend':
+            actionForm.post(adminUsers.suspend(user.slug).url, options);
+            break;
+        case 'unsuspend':
+            actionForm.delete(adminUsers.unsuspend(user.slug).url, options);
+            break;
+        case 'block-purchases':
+            actionForm.post(adminUsers.blockPurchases(user.slug).url, options);
+            break;
+        case 'unblock-purchases':
+            actionForm.delete(
+                adminUsers.unblockPurchases(user.slug).url,
+                options,
+            );
+            break;
+        default:
+            if (canDelete(user)) {
+                actionForm.delete(adminUsers.destroy(user.slug).url, options);
+            } else {
+                open(user, 'suspend');
+            }
+    }
 }
 
 function roleBadgeVariant(role: string) {
@@ -128,13 +301,13 @@ function formatDate(date: string) {
     <Head title="Manajemen Pengguna" />
 
     <div class="flex flex-col space-y-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-start justify-between gap-4">
             <Heading
                 variant="small"
                 title="Manajemen Pengguna"
-                description="Kelola semua pengguna dan perannya"
+                description="Kelola pengguna, peran, dan izin akunnya: tangguhkan, batasi pembelian, atau hapus."
             />
-            <Link href="/dasbor/pengguna/tambah">
+            <Link :href="adminUsers.create()">
                 <Button>
                     <Plus class="mr-2 h-4 w-4" />
                     Tambah Pengguna
@@ -142,20 +315,57 @@ function formatDate(date: string) {
             </Link>
         </div>
 
-        <!-- Filters -->
-        <div class="flex items-center gap-3">
-            <div class="relative max-w-sm flex-1">
+        <div class="flex flex-wrap gap-1 self-start rounded-lg border p-1">
+            <button
+                v-for="tab in statusTabs"
+                :key="tab.value"
+                type="button"
+                class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                :class="
+                    status === tab.value
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted'
+                "
+                @click="
+                    visit({
+                        status: tab.value === 'all' ? undefined : tab.value,
+                        page: undefined,
+                    })
+                "
+            >
+                {{ tab.label }}
+                <span
+                    v-if="tab.count !== undefined"
+                    class="rounded-full px-1.5 text-xs tabular-nums"
+                    :class="
+                        status === tab.value
+                            ? 'bg-primary-foreground/20'
+                            : 'bg-muted'
+                    "
+                    >{{ tab.count }}</span
+                >
+            </button>
+        </div>
+
+        <form
+            class="flex flex-wrap items-center gap-3"
+            @submit.prevent="visit({ page: undefined })"
+        >
+            <div class="relative min-w-56 flex-1 sm:max-w-sm">
                 <Search
                     class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                 />
                 <Input
                     v-model="search"
+                    type="search"
                     placeholder="Cari nama atau email..."
                     class="pl-9"
-                    @keyup.enter="applyFilters"
                 />
             </div>
-            <Select v-model="selectedRole" @update:model-value="applyFilters">
+            <Select
+                v-model="selectedRole"
+                @update:model-value="visit({ page: undefined })"
+            >
                 <SelectTrigger class="w-[180px]">
                     <SelectValue placeholder="Semua Peran" />
                 </SelectTrigger>
@@ -166,39 +376,25 @@ function formatDate(date: string) {
                     <SelectItem value="student">Siswa</SelectItem>
                 </SelectContent>
             </Select>
-            <Button variant="outline" @click="applyFilters">Cari</Button>
-        </div>
+            <Button type="submit" variant="outline">Cari</Button>
+        </form>
 
-        <!-- Table -->
         <div class="rounded-lg border">
             <div class="overflow-x-auto">
                 <table class="w-full caption-bottom text-sm">
                     <thead class="border-b">
-                        <tr class="border-b transition-colors">
+                        <tr>
                             <th
-                                class="h-12 w-16 px-4 text-left align-middle font-medium text-muted-foreground"
+                                v-for="heading in [
+                                    'Pengguna',
+                                    'Peran',
+                                    'Status',
+                                    'Bergabung',
+                                ]"
+                                :key="heading"
+                                class="h-12 px-4 text-left align-middle font-medium whitespace-nowrap text-muted-foreground"
                             >
-                                Foto
-                            </th>
-                            <th
-                                class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
-                            >
-                                Nama
-                            </th>
-                            <th
-                                class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
-                            >
-                                Email
-                            </th>
-                            <th
-                                class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
-                            >
-                                Peran
-                            </th>
-                            <th
-                                class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
-                            >
-                                Bergabung
+                                {{ heading }}
                             </th>
                             <th
                                 class="h-12 px-4 text-right align-middle font-medium text-muted-foreground"
@@ -210,7 +406,7 @@ function formatDate(date: string) {
                     <tbody>
                         <tr v-if="users.data.length === 0">
                             <td
-                                colspan="6"
+                                colspan="5"
                                 class="py-8 text-center text-muted-foreground"
                             >
                                 Pengguna tidak ditemukan.
@@ -220,36 +416,84 @@ function formatDate(date: string) {
                             v-for="user in users.data"
                             :key="user.id"
                             class="border-b transition-colors hover:bg-muted/50"
+                            :class="{
+                                'bg-red-50/50 dark:bg-red-500/5':
+                                    user.suspended_at,
+                            }"
                         >
                             <td class="p-4 align-middle">
-                                <Avatar
-                                    class="size-9 overflow-hidden rounded-full"
-                                >
-                                    <AvatarImage
-                                        v-if="user.avatar"
-                                        :src="user.avatar"
-                                        :alt="user.name"
-                                    />
-                                    <AvatarFallback class="text-xs">
-                                        {{ getInitials(user.name) }}
-                                    </AvatarFallback>
-                                </Avatar>
+                                <div class="flex items-center gap-3">
+                                    <Avatar
+                                        class="size-9 shrink-0 overflow-hidden rounded-full"
+                                        :class="{
+                                            'opacity-50': user.suspended_at,
+                                        }"
+                                    >
+                                        <AvatarImage
+                                            v-if="user.avatar"
+                                            :src="user.avatar"
+                                            :alt="user.name"
+                                        />
+                                        <AvatarFallback class="text-xs">
+                                            {{ getInitials(user.name) }}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div class="min-w-0">
+                                        <p class="font-medium">
+                                            {{ user.name }}
+                                        </p>
+                                        <p
+                                            class="truncate text-xs text-muted-foreground"
+                                        >
+                                            {{ user.email }}
+                                        </p>
+                                    </div>
+                                </div>
                             </td>
-                            <td class="p-4 align-middle font-medium">
-                                {{ user.name }}
-                            </td>
-                            <td class="p-4 align-middle">{{ user.email }}</td>
                             <td class="p-4 align-middle">
                                 <Badge :variant="roleBadgeVariant(user.role)">
                                     {{ roleLabel(user.role) }}
                                 </Badge>
                             </td>
                             <td class="p-4 align-middle">
+                                <div class="flex flex-wrap gap-1">
+                                    <span
+                                        v-if="user.suspended_at"
+                                        class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-red-800 dark:bg-red-500/15 dark:text-red-300"
+                                        :title="
+                                            user.suspension_reason ?? undefined
+                                        "
+                                    >
+                                        <Ban class="size-3" />
+                                        Ditangguhkan
+                                    </span>
+                                    <span
+                                        v-if="user.purchase_blocked_at"
+                                        class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-amber-800 dark:bg-amber-500/15 dark:text-amber-300"
+                                        :title="
+                                            user.purchase_block_reason ??
+                                            undefined
+                                        "
+                                    >
+                                        <ShoppingCart class="size-3" />
+                                        Pembelian dibatasi
+                                    </span>
+                                    <span
+                                        v-if="
+                                            !user.suspended_at &&
+                                            !user.purchase_blocked_at
+                                        "
+                                        class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300"
+                                        >Aktif</span
+                                    >
+                                </div>
+                            </td>
+                            <td class="p-4 align-middle whitespace-nowrap">
                                 {{ formatDate(user.created_at) }}
                             </td>
                             <td class="p-4 text-right align-middle">
                                 <div
-                                    class="flex items-center justify-end gap-2"
+                                    class="flex items-center justify-end gap-1"
                                 >
                                     <Button
                                         variant="ghost"
@@ -260,63 +504,93 @@ function formatDate(date: string) {
                                         <Eye class="h-4 w-4" />
                                     </Button>
                                     <Link :href="adminUsers.edit(user.slug)">
-                                        <Button variant="ghost" size="sm">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            :aria-label="`Ubah ${user.name}`"
+                                        >
                                             <Pencil class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Dialog
-                                        v-if="
-                                            user.id !==
-                                            (usePage().props.auth as any).user
-                                                .id
-                                        "
+                                    <DropdownMenu
+                                        v-if="user.id !== currentUserId"
                                     >
-                                        <DialogTrigger as-child>
-                                            <Button variant="ghost" size="sm">
-                                                <Trash2
-                                                    class="h-4 w-4 text-destructive"
+                                        <DropdownMenuTrigger as-child>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                :aria-label="`Izin akun ${user.name}`"
+                                            >
+                                                <MoreHorizontal
+                                                    class="h-4 w-4"
                                                 />
                                             </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle
-                                                    >Hapus Pengguna</DialogTitle
-                                                >
-                                                <DialogDescription>
-                                                    Yakin ingin menghapus
-                                                    <strong>{{
-                                                        user.name
-                                                    }}</strong
-                                                    >? Tindakan ini tidak bisa
-                                                    dibatalkan.
-                                                </DialogDescription>
-                                            </DialogHeader>
-                                            <DialogFooter class="gap-2">
-                                                <DialogClose as-child>
-                                                    <Button variant="secondary"
-                                                        >Batal</Button
-                                                    >
-                                                </DialogClose>
-                                                <Button
-                                                    variant="destructive"
-                                                    @click="
-                                                        deleteUser(user.slug)
-                                                    "
-                                                >
-                                                    Hapus
-                                                </Button>
-                                            </DialogFooter>
-                                        </DialogContent>
-                                    </Dialog>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            align="end"
+                                            class="w-60"
+                                        >
+                                            <DropdownMenuLabel
+                                                >Izin akun</DropdownMenuLabel
+                                            >
+                                            <DropdownMenuItem
+                                                v-if="user.suspended_at"
+                                                @select="
+                                                    open(user, 'unsuspend')
+                                                "
+                                            >
+                                                <UserCheck />
+                                                Aktifkan kembali
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                v-else
+                                                @select="open(user, 'suspend')"
+                                            >
+                                                <Ban />
+                                                Tangguhkan akun
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                v-if="user.purchase_blocked_at"
+                                                @select="
+                                                    open(
+                                                        user,
+                                                        'unblock-purchases',
+                                                    )
+                                                "
+                                            >
+                                                <LockOpen />
+                                                Buka pembatasan pembelian
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                v-else
+                                                @select="
+                                                    open(
+                                                        user,
+                                                        'block-purchases',
+                                                    )
+                                                "
+                                            >
+                                                <ShieldOff />
+                                                Batasi pembelian
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                variant="destructive"
+                                                @select="open(user, 'delete')"
+                                            >
+                                                <Trash2 />
+                                                Hapus pengguna
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
                             </td>
                         </tr>
                     </tbody>
-                    <tfoot class="border-t">
+                    <tfoot v-if="users.total > 0" class="border-t">
                         <tr>
                             <td
-                                colspan="6"
+                                colspan="5"
                                 class="h-12 px-4 text-sm text-muted-foreground"
                             >
                                 Menampilkan
@@ -336,6 +610,81 @@ function formatDate(date: string) {
                 </table>
             </div>
         </div>
+
+        <!-- Pagination -->
+        <div
+            v-if="users.last_page > 1"
+            class="flex items-center justify-end gap-2"
+        >
+            <Button
+                variant="outline"
+                size="sm"
+                :disabled="users.current_page <= 1"
+                @click="visit({ page: users.current_page - 1 })"
+            >
+                Sebelumnya
+            </Button>
+            <span class="text-sm text-muted-foreground">
+                Halaman {{ users.current_page }} dari {{ users.last_page }}
+            </span>
+            <Button
+                variant="outline"
+                size="sm"
+                :disabled="users.current_page >= users.last_page"
+                @click="visit({ page: users.current_page + 1 })"
+            >
+                Berikutnya
+            </Button>
+        </div>
+
+        <!-- Permission action -->
+        <Dialog
+            :open="pending !== null"
+            @update:open="(value) => !value && (pending = null)"
+        >
+            <DialogContent v-if="pending && dialog">
+                <DialogHeader>
+                    <DialogTitle>{{ dialog.title }}</DialogTitle>
+                    <DialogDescription>{{
+                        dialog.description
+                    }}</DialogDescription>
+                </DialogHeader>
+
+                <form
+                    id="user-action-form"
+                    class="grid gap-2"
+                    @submit.prevent="submitAction"
+                >
+                    <template v-if="dialog.reason">
+                        <Label for="reason">{{ dialog.reason }}</Label>
+                        <Textarea
+                            id="reason"
+                            v-model="actionForm.reason"
+                            rows="3"
+                            maxlength="500"
+                        />
+                        <InputError :message="actionForm.errors.reason" />
+                    </template>
+                </form>
+
+                <DialogFooter class="gap-2">
+                    <Button variant="outline" @click="pending = null"
+                        >Batal</Button
+                    >
+                    <Button
+                        v-if="dialog.confirm"
+                        type="submit"
+                        form="user-action-form"
+                        :variant="
+                            dialog.destructive ? 'destructive' : 'default'
+                        "
+                        :disabled="actionForm.processing"
+                    >
+                        {{ dialog.confirm }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
         <!-- User detail -->
         <Dialog v-model:open="isDetailOpen">
@@ -375,6 +724,31 @@ function formatDate(date: string) {
                             {{ roleLabel(viewedUser.role) }}
                         </Badge>
                     </div>
+                </div>
+
+                <div
+                    v-if="
+                        viewedUser.suspended_at ||
+                        viewedUser.purchase_blocked_at
+                    "
+                    class="space-y-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
+                >
+                    <p v-if="viewedUser.suspended_at">
+                        <span class="font-semibold"
+                            >Ditangguhkan sejak
+                            {{ formatDate(viewedUser.suspended_at) }}.</span
+                        >
+                        {{ viewedUser.suspension_reason }}
+                    </p>
+                    <p v-if="viewedUser.purchase_blocked_at">
+                        <span class="font-semibold"
+                            >Pembelian dibatasi sejak
+                            {{
+                                formatDate(viewedUser.purchase_blocked_at)
+                            }}.</span
+                        >
+                        {{ viewedUser.purchase_block_reason }}
+                    </p>
                 </div>
 
                 <div class="flex flex-col gap-1">
@@ -419,6 +793,12 @@ function formatDate(date: string) {
                         </dd>
                     </div>
                     <div class="flex items-center justify-between gap-4">
+                        <dt class="text-muted-foreground">Pembelian dibayar</dt>
+                        <dd class="text-right">
+                            {{ viewedUser.paid_orders_count }}
+                        </dd>
+                    </div>
+                    <div class="flex items-center justify-between gap-4">
                         <dt class="text-muted-foreground">Bergabung</dt>
                         <dd class="text-right">
                             {{ formatDate(viewedUser.created_at) }}
@@ -439,45 +819,5 @@ function formatDate(date: string) {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-
-        <!-- Pagination -->
-        <div
-            v-if="users.last_page > 1"
-            class="flex items-center justify-end gap-2"
-        >
-            <Button
-                variant="outline"
-                size="sm"
-                :disabled="users.current_page <= 1"
-                @click="
-                    router.get(
-                        `/dasbor/pengguna?page=${users.current_page - 1}`,
-                        {
-                            preserveState: true,
-                        },
-                    )
-                "
-            >
-                Sebelumnya
-            </Button>
-            <span class="text-sm text-muted-foreground">
-                Halaman {{ users.current_page }} dari {{ users.last_page }}
-            </span>
-            <Button
-                variant="outline"
-                size="sm"
-                :disabled="users.current_page >= users.last_page"
-                @click="
-                    router.get(
-                        `/dasbor/pengguna?page=${users.current_page + 1}`,
-                        {
-                            preserveState: true,
-                        },
-                    )
-                "
-            >
-                Berikutnya
-            </Button>
-        </div>
     </div>
 </template>

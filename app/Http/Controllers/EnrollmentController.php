@@ -17,47 +17,72 @@ use Inertia\Response;
 class EnrollmentController extends Controller
 {
     /**
-     * List the enrollments in the courses the user manages.
+     * List the students in the courses the user manages, one row per student
+     * with every course they take.
      */
     public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Enrollment::class);
 
-        $actor = $this->actor($request);
         $search = $request->string('search')->toString();
-        $status = $request->string('status')->toString();
 
-        $enrollments = Enrollment::query()
-            ->manageableBy($actor)
-            ->with(['user:id,name,email,avatar_path', 'course:id,slug,title,instructor_id', 'enrolledBy:id,name'])
-            ->when($search !== '', fn (Builder $query) => $query->where(
-                fn (Builder $inner) => $inner
-                    ->whereHas('user', fn (Builder $user) => $user
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%"))
-                    ->orWhereHas('course', fn (Builder $course) => $course->where('title', 'like', "%{$search}%"))
-            ))
-            ->when($request->filled('course_id'), fn (Builder $query) => $query->where('course_id', $request->integer('course_id')))
-            ->when(in_array($status, Enrollment::STATUSES, true), fn (Builder $query) => $query->where('status', $status))
+        $students = User::query()
+            ->whereHas('enrollments', fn (Builder $query) => $this->scopeEnrollments($query, $request))
+            ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $inner) => $inner
+                ->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhereHas('enrollments', fn (Builder $enrollment) => $this->scopeEnrollments($enrollment, $request)
+                    ->whereHas('course', fn (Builder $course) => $course->where('title', 'like', "%{$search}%")))))
+            ->select('users.*')
+            ->addSelect([
+                'last_enrolled_at' => $this->scopeEnrollments(Enrollment::query(), $request)
+                    ->selectRaw('max(enrolled_at)')
+                    ->whereColumn('enrollments.user_id', 'users.id'),
+            ])
+            ->orderByDesc('last_enrolled_at')
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
+
+        $enrollments = $this->scopeEnrollments(Enrollment::query(), $request)
+            ->whereIn('user_id', $students->getCollection()->modelKeys())
+            ->with(['course:id,slug,title,instructor_id', 'enrolledBy:id,name'])
             ->latest('enrolled_at')
             ->latest('id')
-            ->paginate(15)
-            ->withQueryString()
-            ->through(fn (Enrollment $enrollment): array => [
-                'id' => $enrollment->id,
-                'status' => $enrollment->status,
-                'enrolled_at' => $enrollment->enrolled_at->toIso8601String(),
-                'cancelled_at' => $enrollment->cancelled_at?->toIso8601String(),
-                'is_self_enrolled' => $enrollment->isSelfEnrolled(),
-                'enrolled_by' => $enrollment->enrolledBy?->only(['id', 'name']),
-                'student' => $enrollment->user->only(['id', 'name', 'email', 'avatar']),
-                'course' => $enrollment->course->only(['id', 'slug', 'title']),
-                'can_cancel' => Gate::allows('cancel', $enrollment),
-            ]);
+            ->get()
+            ->groupBy('user_id');
+
+        $students->through(function (User $student) use ($enrollments, $search): array {
+            $own = $enrollments->get($student->id, collect());
+
+            // Found by a course title rather than by the student: show just those courses.
+            if ($search !== '' && ! str_contains(mb_strtolower($student->name.' '.$student->email), mb_strtolower($search))) {
+                $own = $own->filter(fn (Enrollment $enrollment): bool => str_contains(mb_strtolower($enrollment->course->title), mb_strtolower($search)));
+            }
+
+            $person = $student->only(['id', 'name', 'email', 'avatar']);
+
+            return [
+                'student' => $person,
+                'enrollments' => $own->values()->map(fn (Enrollment $enrollment): array => [
+                    'id' => $enrollment->id,
+                    'status' => $enrollment->status,
+                    'enrolled_at' => $enrollment->enrolled_at->toIso8601String(),
+                    'cancelled_at' => $enrollment->cancelled_at?->toIso8601String(),
+                    'is_self_enrolled' => $enrollment->isSelfEnrolled(),
+                    'enrolled_by' => $enrollment->enrolledBy?->only(['id', 'name']),
+                    'student' => $person,
+                    'course' => $enrollment->course->only(['id', 'slug', 'title']),
+                    'can_cancel' => Gate::allows('cancel', $enrollment),
+                ])->all(),
+            ];
+        });
+
+        $actor = $this->actor($request);
 
         return Inertia::render('enrollments/Index', [
-            'enrollments' => $enrollments,
-            'filters' => $request->only(['search', 'course_id', 'status']),
+            'learners' => $students,
+            'filters' => (object) $request->only(['search', 'course_id', 'status']),
             'statuses' => Enrollment::STATUSES,
             'courses' => Course::query()
                 ->manageableBy($actor)
@@ -71,6 +96,22 @@ class EnrollmentController extends Controller
                 ->map(fn (User $student): array => $student->only(['id', 'name', 'email']))
                 ->all()),
         ]);
+    }
+
+    /**
+     * Narrow enrollments to the ones the user manages and the requested course and status.
+     *
+     * @param  Builder<Enrollment>  $query
+     * @return Builder<Enrollment>
+     */
+    private function scopeEnrollments(Builder $query, Request $request): Builder
+    {
+        $status = $request->string('status')->toString();
+
+        return $query
+            ->manageableBy($this->actor($request))
+            ->when($request->filled('course_id'), fn (Builder $query) => $query->where('enrollments.course_id', $request->integer('course_id')))
+            ->when(in_array($status, Enrollment::STATUSES, true), fn (Builder $query) => $query->where('enrollments.status', $status));
     }
 
     /**

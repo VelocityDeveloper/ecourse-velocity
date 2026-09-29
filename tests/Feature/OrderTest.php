@@ -157,14 +157,16 @@ test('the student uploads a proof and the admin confirms it, which enrolls the s
         ->and($course->enrollments()->active()->where('user_id', $student->id)->exists())->toBeTrue();
 
     $this->actingAs($admin)
-        ->get(route('admin.transactions.index'))
+        ->get(route('admin.orders.index', ['status' => Order::STATUS_PAID]))
         ->assertInertia(fn ($page) => $page
-            ->where('summary.all_time', $order->total)
-            ->where('transactions.data.0.order.number', $order->number)
+            ->where('paid.count', 1)
+            ->where('paid.amount', $order->total)
+            ->where('orders.data.0.number', $order->number)
+            ->where('orders.data.0.payment.instructor_amount', $transaction->instructor_amount)
         );
 
-    $csv = $this->actingAs($admin)->get(route('admin.transactions.export'))->streamedContent();
-    expect($csv)->toContain($order->number)->toContain((string) $order->total);
+    $csv = $this->actingAs($admin)->get(route('admin.orders.export', ['status' => Order::STATUS_PAID]))->streamedContent();
+    expect($csv)->toContain($order->number)->toContain((string) $order->total)->toContain('Lunas');
 });
 
 test('a rejected proof sends the order back to the student with the reason', function () {
@@ -293,11 +295,11 @@ test('instructors see only the orders and sales of their own courses, without ac
             ->where('canManage', false));
 
     $this->actingAs($instructor)
-        ->get(route('admin.transactions.index'))
+        ->get(route('admin.orders.index', ['status' => Order::STATUS_PAID]))
         ->assertInertia(fn ($page) => $page
-            ->has('transactions.data', 1)
-            ->where('transactions.data.0.order.number', $ownOrder->number)
-            ->where('summary.all_time', $ownOrder->refresh()->total));
+            ->has('orders.data', 1)
+            ->where('orders.data.0.number', $ownOrder->number)
+            ->where('paid.amount', $ownOrder->refresh()->total));
 
     $this->actingAs($instructor)->post(route('admin.orders.cancel', $ownOrder))->assertForbidden();
 
@@ -315,4 +317,20 @@ test('instructors see only the orders and sales of their own courses, without ac
     $this->actingAs($instructor)->get(route('orders.proof.show', $ownOrder))->assertForbidden();
     $this->actingAs($instructor)->get(route('orders.proof.show', $otherOrder))->assertForbidden();
     $this->actingAs($instructor)->get(route('admin.payment-settings.edit'))->assertForbidden();
+});
+
+test('the order list filters by date: payment date for paid orders, order date for the rest', function () {
+    $admin = User::factory()->admin()->create();
+
+    $paidInRange = Order::factory()->create(['status' => Order::STATUS_PAID, 'paid_at' => '2026-09-10 10:00:00', 'created_at' => '2026-08-01 10:00:00']);
+    Order::factory()->create(['status' => Order::STATUS_PAID, 'paid_at' => '2026-08-15 10:00:00', 'created_at' => '2026-09-10 10:00:00']);
+    $openInRange = Order::factory()->create(['status' => Order::STATUS_PENDING, 'created_at' => '2026-09-12 10:00:00', 'expires_at' => now()->addDay()]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.orders.index', ['from' => '2026-09-01', 'to' => '2026-09-30']))
+        ->assertInertia(fn ($page) => $page
+            ->has('orders.data', 2)
+            ->where('orders.data', fn ($rows) => collect($rows)->pluck('number')->sort()->values()->all()
+                === collect([$paidInRange->number, $openInRange->number])->sort()->values()->all())
+        );
 });

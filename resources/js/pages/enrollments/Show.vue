@@ -26,7 +26,7 @@ defineOptions({
     layout: {
         breadcrumbs: [
             { title: 'Dasbor', href: '/dasbor' },
-            { title: 'User Terdaftar', href: '/dasbor/pendaftaran' },
+            { title: 'Siswa', href: '/dasbor/pendaftaran' },
             { title: 'Detail', href: '#' },
         ],
     },
@@ -72,13 +72,13 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
 
 <template>
     <div class="flex flex-col space-y-6">
-        <Head :title="`User Terdaftar #${enrollment.id}`" />
+        <Head :title="`Pendaftaran Siswa #${enrollment.id}`" />
 
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="flex items-start gap-3">
                 <Heading
                     variant="small"
-                    :title="`User Terdaftar #${enrollment.id}`"
+                    :title="`Pendaftaran Siswa #${enrollment.id}`"
                     :description="`${enrollment.student.name} di ${enrollment.course.title}`"
                 />
                 <Badge :variant="enrollmentStatusVariant(enrollment.status)">

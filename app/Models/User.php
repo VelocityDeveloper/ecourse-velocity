@@ -13,7 +13,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification as BaseNotification;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -25,6 +27,10 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $avatar_path
  * @property string|null $headline
  * @property string|null $bio
+ * @property Carbon|null $suspended_at Set while an admin has locked the account out.
+ * @property string|null $suspension_reason
+ * @property Carbon|null $purchase_blocked_at Set while the user may not buy courses.
+ * @property string|null $purchase_block_reason
  * @property-read string|null $avatar
  * @property Carbon|null $email_verified_at
  * @property string $password
@@ -76,6 +82,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'suspended_at' => 'datetime',
+            'purchase_blocked_at' => 'datetime',
         ];
     }
 
@@ -118,6 +126,33 @@ class User extends Authenticatable
     public function canLearn(): bool
     {
         return $this->isStudent() || $this->isInstructor();
+    }
+
+    /**
+     * Send a notification to every admin who can still sign in.
+     */
+    public static function notifyAdmins(BaseNotification $notification): void
+    {
+        Notification::send(
+            self::query()->where('role', self::ROLE_ADMIN)->whereNull('suspended_at')->get(),
+            $notification,
+        );
+    }
+
+    /**
+     * Determine whether an admin has locked the account out.
+     */
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
+    }
+
+    /**
+     * Determine whether an admin has stopped the user from buying courses.
+     */
+    public function isPurchaseBlocked(): bool
+    {
+        return $this->purchase_blocked_at !== null;
     }
 
     /**
@@ -216,6 +251,26 @@ class User extends Authenticatable
     public function courses(): HasMany
     {
         return $this->hasMany(Course::class, 'instructor_id');
+    }
+
+    /**
+     * Get every request this user sent to become an instructor.
+     *
+     * @return HasMany<InstructorApplication, $this>
+     */
+    public function instructorApplications(): HasMany
+    {
+        return $this->hasMany(InstructorApplication::class);
+    }
+
+    /**
+     * Get every payout this instructor asked for.
+     *
+     * @return HasMany<Withdrawal, $this>
+     */
+    public function withdrawals(): HasMany
+    {
+        return $this->hasMany(Withdrawal::class);
     }
 
     /**

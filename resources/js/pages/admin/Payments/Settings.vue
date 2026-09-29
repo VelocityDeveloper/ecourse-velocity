@@ -6,17 +6,20 @@ import {
     Eye,
     ImageUp,
     Landmark,
+    Percent,
     Plus,
     QrCode,
     Trash2,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
+import SiteSettingsNav from '@/components/site-settings/SiteSettingsNav.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { formatRupiah } from '@/lib/course';
 import { oversizedImageError } from '@/lib/imageUpload';
 import paymentSettings from '@/routes/admin/payment-settings';
 import type { BankAccount } from '@/types';
@@ -28,6 +31,9 @@ const props = defineProps<{
     instructions: string | null;
     expiryHours: number;
     maxBankAccounts: number;
+    commissionRate: number;
+    uncommissionedCount: number;
+    withdrawalMinimum: number;
 }>();
 
 defineOptions({
@@ -35,8 +41,12 @@ defineOptions({
         breadcrumbs: [
             { title: 'Dasbor', href: '/dasbor' },
             {
-                title: 'Pengaturan Pembayaran',
-                href: '/dasbor/pengaturan-pembayaran',
+                title: 'Pengaturan Situs',
+                href: '/dasbor/pengaturan-situs/identitas',
+            },
+            {
+                title: 'Pembayaran',
+                href: '/dasbor/pengaturan-situs/pembayaran',
             },
         ],
     },
@@ -52,6 +62,9 @@ const form = useForm<{
     qris_name: string;
     instructions: string;
     expiry_hours: number | string;
+    commission_rate: number | string;
+    withdrawal_minimum: number | string;
+    apply_to_past: boolean;
 }>({
     bank_accounts: props.bankAccounts.map((account) => ({ ...account })),
     qris: null,
@@ -59,6 +72,19 @@ const form = useForm<{
     qris_name: props.qrisName ?? '',
     instructions: props.instructions ?? '',
     expiry_hours: props.expiryHours,
+    commission_rate: props.commissionRate,
+    withdrawal_minimum: props.withdrawalMinimum,
+    apply_to_past: false,
+});
+
+// A sample sale that shows the admin how the commission splits it.
+const EXAMPLE_PRICE = 100000;
+
+const commissionExample = computed(() => {
+    const rate = Math.min(Math.max(Number(form.commission_rate) || 0, 0), 100);
+    const platform = Math.round((EXAMPLE_PRICE * rate) / 100);
+
+    return { platform, instructor: EXAMPLE_PRICE - platform };
 });
 
 const qrisPreview = ref<string | null>(props.qrisUrl);
@@ -114,6 +140,7 @@ function save(): void {
         preserveScroll: true,
         onSuccess: () => {
             form.qris = null;
+            form.apply_to_past = false;
         },
     });
 }
@@ -121,12 +148,14 @@ function save(): void {
 
 <template>
     <div class="flex flex-col gap-6">
-        <Head title="Pengaturan Pembayaran" />
+        <Head title="Pembayaran · Pengaturan Situs" />
+
+        <SiteSettingsNav />
 
         <Heading
             variant="small"
-            title="Pengaturan Pembayaran"
-            description="Rekening dan QRIS yang ditampilkan ke siswa saat membeli kursus. Pembayaran dikonfirmasi manual di menu Pesanan."
+            title="Pembayaran"
+            description="Rekening dan QRIS untuk siswa, batas waktu bayar, pemasukan platform, dan minimal penarikan dana. Pembayaran dikonfirmasi di Keuangan → Pesanan."
         />
 
         <form
@@ -463,6 +492,144 @@ function save(): void {
                                 membayar.
                             </p>
                             <InputError :message="form.errors.instructions" />
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Platform commission -->
+                <section
+                    class="overflow-hidden rounded-xl border bg-card"
+                    aria-labelledby="commission-heading"
+                >
+                    <header
+                        class="flex items-center gap-3 border-b p-4 sm:px-5"
+                    >
+                        <span
+                            class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
+                        >
+                            <Percent class="size-4.5" />
+                        </span>
+                        <div>
+                            <h2 id="commission-heading" class="font-semibold">
+                                Pemasukan platform
+                            </h2>
+                            <p class="text-sm text-muted-foreground">
+                                Bagian platform dari tiap kursus yang terjual;
+                                sisanya menjadi pendapatan instruktur.
+                            </p>
+                        </div>
+                    </header>
+
+                    <div class="grid gap-5 p-4 sm:grid-cols-2 sm:p-5">
+                        <div class="grid content-start gap-1.5">
+                            <Label for="commission">Persentase</Label>
+                            <div class="relative w-full max-w-48">
+                                <Input
+                                    id="commission"
+                                    v-model="form.commission_rate"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    class="pr-9"
+                                    required
+                                />
+                                <span
+                                    class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
+                                    >%</span
+                                >
+                            </div>
+                            <p class="text-xs text-muted-foreground">
+                                0–100%. Berlaku untuk pembayaran yang
+                                dikonfirmasi setelah disimpan. Transaksi yang
+                                sudah dihitung tidak ikut berubah.
+                            </p>
+                            <InputError
+                                :message="form.errors.commission_rate"
+                            />
+
+                            <label
+                                v-if="uncommissionedCount > 0"
+                                class="mt-2 flex items-start gap-2.5 rounded-lg border bg-muted/40 p-3 text-sm"
+                            >
+                                <input
+                                    v-model="form.apply_to_past"
+                                    type="checkbox"
+                                    class="mt-0.5 size-4 accent-primary"
+                                />
+                                <span>
+                                    <span class="font-medium"
+                                        >Terapkan juga ke pembelian lama</span
+                                    >
+                                    <span
+                                        class="block text-xs text-muted-foreground"
+                                    >
+                                        {{ uncommissionedCount }} transaksi
+                                        belum dihitung pemasukan platformnya.
+                                        Saat disimpan, persentase di atas ikut
+                                        diterapkan ke transaksi itu.
+                                    </span>
+                                </span>
+                            </label>
+                        </div>
+
+                        <dl
+                            class="grid content-start gap-2 rounded-lg border bg-muted/40 p-4 text-sm"
+                        >
+                            <dt class="text-xs text-muted-foreground">
+                                Contoh kursus seharga
+                                {{ formatRupiah(EXAMPLE_PRICE) }}
+                            </dt>
+                            <div class="flex justify-between gap-4">
+                                <dt>Pemasukan platform</dt>
+                                <dd class="font-semibold tabular-nums">
+                                    {{
+                                        formatRupiah(commissionExample.platform)
+                                    }}
+                                </dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt>Diterima instruktur</dt>
+                                <dd
+                                    class="font-semibold text-primary tabular-nums"
+                                >
+                                    {{
+                                        formatRupiah(
+                                            commissionExample.instructor,
+                                        )
+                                    }}
+                                </dd>
+                            </div>
+                        </dl>
+
+                        <div
+                            class="grid content-start gap-1.5 border-t pt-5 sm:col-span-2"
+                        >
+                            <Label for="withdrawal-minimum"
+                                >Minimal penarikan dana instruktur</Label
+                            >
+                            <div class="relative w-full max-w-56">
+                                <span
+                                    class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted-foreground"
+                                    >Rp</span
+                                >
+                                <Input
+                                    id="withdrawal-minimum"
+                                    v-model="form.withdrawal_minimum"
+                                    type="number"
+                                    min="0"
+                                    step="1000"
+                                    class="pl-10"
+                                    required
+                                />
+                            </div>
+                            <p class="text-xs text-muted-foreground">
+                                Instruktur baru bisa mengajukan penarikan bila
+                                jumlahnya minimal sebesar ini.
+                            </p>
+                            <InputError
+                                :message="form.errors.withdrawal_minimum"
+                            />
                         </div>
                     </div>
                 </section>

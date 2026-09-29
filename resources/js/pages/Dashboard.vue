@@ -139,7 +139,9 @@ function trend(current: number, previous: number): number | null {
 
 const cards = computed(() => [
     {
-        label: 'Pendapatan bulan ini',
+        label: props.isAdmin
+            ? 'Pendapatan bulan ini'
+            : 'Pendapatan bersih bulan ini',
         value: formatRupiah(props.stats.revenue.month),
         note: `Total ${formatRupiah(props.stats.revenue.total)}`,
         trend: trend(props.stats.revenue.month, props.stats.revenue.previous),

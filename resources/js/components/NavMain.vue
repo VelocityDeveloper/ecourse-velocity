@@ -61,8 +61,14 @@ function isGroupOpen(item: NavItem): boolean {
                             <SidebarMenuButton :tooltip="item.title">
                                 <component :is="item.icon" />
                                 <span>{{ item.title }}</span>
+                                <span
+                                    v-if="item.badge"
+                                    class="ml-auto rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular-nums"
+                                    >{{ item.badge }}</span
+                                >
                                 <ChevronRight
-                                    class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                                    :class="{ 'ml-auto': !item.badge }"
+                                    class="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                                 />
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
@@ -78,6 +84,11 @@ function isGroupOpen(item: NavItem): boolean {
                                     >
                                         <Link :href="child.href">
                                             <span>{{ child.title }}</span>
+                                            <span
+                                                v-if="child.badge"
+                                                class="ml-auto rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular-nums"
+                                                >{{ child.badge }}</span
+                                            >
                                         </Link>
                                     </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
@@ -100,6 +111,11 @@ function isGroupOpen(item: NavItem): boolean {
                         <Link :href="item.href">
                             <component :is="item.icon" />
                             <span>{{ item.title }}</span>
+                            <span
+                                v-if="item.badge"
+                                class="ml-auto rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular-nums"
+                                >{{ item.badge }}</span
+                            >
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

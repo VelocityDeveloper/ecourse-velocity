@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     Contact,
+    CreditCard,
     GalleryHorizontal,
     Image,
     MessageSquareQuote,
@@ -11,6 +12,7 @@ import {
 import Heading from '@/components/Heading.vue';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import banners from '@/routes/admin/banners';
+import paymentSettings from '@/routes/admin/payment-settings';
 import siteSettings from '@/routes/admin/settings';
 import testimonials from '@/routes/admin/testimonials';
 
@@ -55,6 +57,12 @@ const tabs = [
         href: siteSettings.edit('kontak'),
         Icon: Contact,
     },
+    {
+        label: 'Pembayaran',
+        short: 'Pembayaran',
+        href: paymentSettings.edit(),
+        Icon: CreditCard,
+    },
 ];
 </script>
 
@@ -63,11 +71,11 @@ const tabs = [
         <Heading
             variant="small"
             title="Pengaturan Situs"
-            description="Identitas, warna, beranda, dan footer situs publik"
+            description="Identitas, warna, beranda, footer, dan pembayaran"
         />
-        <!-- Phones: a 3 × 2 grid of boxes, tablets one row of six. Wide screens: one underlined row. -->
+        <!-- Phones: a 4 + 3 grid of boxes, tablets one row of seven. Wide screens: one underlined row. -->
         <nav
-            class="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1 sm:grid-cols-6 xl:flex xl:rounded-none xl:border-b xl:bg-transparent xl:p-0"
+            class="grid grid-cols-4 gap-1 rounded-lg bg-muted p-1 sm:grid-cols-7 xl:flex xl:rounded-none xl:border-b xl:bg-transparent xl:p-0"
             aria-label="Pengaturan Situs"
         >
             <Link

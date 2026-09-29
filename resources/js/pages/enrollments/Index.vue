@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Eye, Plus, Search, UserMinus } from '@lucide/vue';
+import { ChevronDown, Eye, Plus, Search, UserMinus } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CancelEnrollmentDialog from '@/components/CancelEnrollmentDialog.vue';
 import Heading from '@/components/Heading.vue';
-import SalesTabs from '@/components/SalesTabs.vue';
 import InputError from '@/components/InputError.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +36,7 @@ import type {
     EnrollmentRow,
     EnrollmentStatus,
     Paginated,
+    StudentEnrollments,
     StudentOption,
 } from '@/types';
 
@@ -44,8 +44,7 @@ defineOptions({
     layout: {
         breadcrumbs: [
             { title: 'Dasbor', href: '/dasbor' },
-            { title: 'Penjualan', href: '/dasbor/pesanan' },
-            { title: 'User Terdaftar', href: '/dasbor/pendaftaran' },
+            { title: 'Siswa', href: '/dasbor/pendaftaran' },
         ],
     },
 });
@@ -53,7 +52,7 @@ defineOptions({
 const ANY = 'all';
 
 const props = defineProps<{
-    enrollments: Paginated<EnrollmentRow>;
+    learners: Paginated<StudentEnrollments>;
     filters: { search?: string; course_id?: string | number; status?: string };
     statuses: EnrollmentStatus[];
     courses: Array<{ id: number; title: string }>;
@@ -84,6 +83,31 @@ function goToPage(page: number) {
     router.get(enrollmentRoutes.index().url, currentQuery(page), {
         preserveState: true,
     });
+}
+
+// Courses named in a student's row; the rest sit behind "+N lainnya" and the details.
+const PREVIEW_COURSES = 2;
+
+const expanded = ref(new Set<number>());
+
+function isExpanded(learner: StudentEnrollments): boolean {
+    return expanded.value.has(learner.student.id);
+}
+
+function toggle(learner: StudentEnrollments): void {
+    const next = new Set(expanded.value);
+
+    if (!next.delete(learner.student.id)) {
+        next.add(learner.student.id);
+    }
+
+    expanded.value = next;
+}
+
+function activeCount(learner: StudentEnrollments): number {
+    return learner.enrollments.filter(
+        (enrollment) => enrollment.status === 'active',
+    ).length;
 }
 
 const cancelTarget = ref<EnrollmentRow | null>(null);
@@ -167,14 +191,12 @@ function submitEnrollment(): void {
 
 <template>
     <div class="flex flex-col space-y-6">
-        <Head title="User Terdaftar" />
-
-        <SalesTabs />
+        <Head title="Siswa" />
 
         <div class="flex items-center justify-between gap-4">
             <Heading
                 variant="small"
-                title="User Terdaftar"
+                title="Siswa"
                 description="Siswa yang terdaftar di kursus yang Anda kelola"
             />
             <Button @click="openEnrollDialog">
@@ -233,157 +255,305 @@ function submitEnrollment(): void {
 
         <div class="rounded-lg border">
             <div class="overflow-x-auto">
-                <table class="w-full caption-bottom text-sm">
+                <table class="w-full text-sm">
                     <thead class="border-b">
-                        <tr class="border-b transition-colors">
+                        <tr>
                             <th
-                                class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
+                                class="h-12 px-4 text-left align-middle font-medium whitespace-nowrap text-muted-foreground"
                             >
                                 Siswa
                             </th>
                             <th
-                                class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
+                                class="h-12 px-4 text-left align-middle font-medium whitespace-nowrap text-muted-foreground"
                             >
-                                Kursus
+                                Kursus yang diikuti
                             </th>
                             <th
-                                class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
+                                class="h-12 px-4 text-left align-middle font-medium whitespace-nowrap text-muted-foreground"
                             >
                                 Status
                             </th>
                             <th
-                                class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
+                                class="h-12 px-4 text-left align-middle font-medium whitespace-nowrap text-muted-foreground"
                             >
-                                Terdaftar
+                                Terakhir daftar
                             </th>
-                            <th
-                                class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"
-                            >
-                                Metode
-                            </th>
-                            <th
-                                class="h-12 px-4 text-right align-middle font-medium text-muted-foreground"
-                            >
-                                Aksi
-                            </th>
+                            <th class="h-12 w-28 px-4" aria-label="Rincian" />
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-if="enrollments.data.length === 0">
+                        <tr v-if="learners.data.length === 0">
                             <td
-                                colspan="6"
+                                colspan="5"
                                 class="py-8 text-center text-muted-foreground"
                             >
-                                User terdaftar tidak ditemukan.
+                                Siswa tidak ditemukan.
                             </td>
                         </tr>
-                        <tr
-                            v-for="enrollment in enrollments.data"
-                            :key="enrollment.id"
-                            class="border-b transition-colors hover:bg-muted/50"
+                        <template
+                            v-for="learner in learners.data"
+                            :key="learner.student.id"
                         >
-                            <td class="p-4 align-middle">
-                                <div class="flex items-center gap-3">
-                                    <Avatar
-                                        class="size-9 overflow-hidden rounded-full"
+                            <tr
+                                class="border-b transition-colors hover:bg-muted/50"
+                                :class="{
+                                    'bg-muted/40': isExpanded(learner),
+                                }"
+                            >
+                                <td class="p-4 align-middle">
+                                    <div
+                                        class="flex min-w-52 items-center gap-3"
                                     >
-                                        <AvatarImage
-                                            v-if="enrollment.student.avatar"
-                                            :src="enrollment.student.avatar"
-                                            :alt="enrollment.student.name"
-                                        />
-                                        <AvatarFallback class="text-xs">
-                                            {{
-                                                getInitials(
-                                                    enrollment.student.name,
-                                                )
-                                            }}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div class="min-w-0">
-                                        <p class="truncate font-medium">
-                                            {{ enrollment.student.name }}
-                                        </p>
-                                        <p
-                                            class="truncate text-xs text-muted-foreground"
+                                        <Avatar
+                                            class="size-9 shrink-0 overflow-hidden rounded-full"
                                         >
-                                            {{ enrollment.student.email }}
-                                        </p>
+                                            <AvatarImage
+                                                v-if="learner.student.avatar"
+                                                :src="learner.student.avatar"
+                                                :alt="learner.student.name"
+                                            />
+                                            <AvatarFallback class="text-xs">
+                                                {{
+                                                    getInitials(
+                                                        learner.student.name,
+                                                    )
+                                                }}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div class="min-w-0">
+                                            <p class="truncate font-medium">
+                                                {{ learner.student.name }}
+                                            </p>
+                                            <p
+                                                class="truncate text-xs text-muted-foreground"
+                                            >
+                                                {{ learner.student.email }}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td class="p-4 align-middle">
-                                {{ enrollment.course.title }}
-                            </td>
-                            <td class="p-4 align-middle">
-                                <Badge
-                                    :variant="
-                                        enrollmentStatusVariant(
-                                            enrollment.status,
-                                        )
-                                    "
+                                </td>
+                                <td class="p-4 align-middle">
+                                    <div
+                                        class="flex w-[26rem] items-center gap-1.5"
+                                    >
+                                        <span
+                                            v-for="enrollment in learner.enrollments.slice(
+                                                0,
+                                                PREVIEW_COURSES,
+                                            )"
+                                            :key="enrollment.id"
+                                            class="max-w-44 min-w-0 truncate rounded-md border bg-background px-2 py-0.5 text-xs"
+                                            :class="{
+                                                'border-dashed text-muted-foreground':
+                                                    enrollment.status !==
+                                                    'active',
+                                            }"
+                                            :title="enrollment.course.title"
+                                        >
+                                            {{ enrollment.course.title }}
+                                        </span>
+                                        <button
+                                            v-if="
+                                                learner.enrollments.length >
+                                                PREVIEW_COURSES
+                                            "
+                                            type="button"
+                                            class="shrink-0 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-primary hover:bg-primary/15"
+                                            @click="toggle(learner)"
+                                        >
+                                            +{{
+                                                learner.enrollments.length -
+                                                PREVIEW_COURSES
+                                            }}
+                                            lainnya
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="p-4 align-middle whitespace-nowrap">
+                                    <span class="font-medium tabular-nums">{{
+                                        activeCount(learner)
+                                    }}</span>
+                                    <span class="text-muted-foreground">
+                                        /
+                                        {{ learner.enrollments.length }}
+                                        aktif</span
+                                    >
+                                </td>
+                                <td
+                                    class="p-4 align-middle whitespace-nowrap text-muted-foreground"
                                 >
                                     {{
-                                        enrollmentStatusLabel(enrollment.status)
+                                        formatDate(
+                                            learner.enrollments[0]
+                                                ?.enrolled_at ?? null,
+                                        )
                                     }}
-                                </Badge>
-                            </td>
-                            <td class="p-4 align-middle">
-                                {{ formatDate(enrollment.enrolled_at) }}
-                            </td>
-                            <td class="p-4 align-middle text-muted-foreground">
-                                {{
-                                    enrollment.is_self_enrolled
-                                        ? 'Daftar mandiri'
-                                        : `Oleh ${enrollment.enrolled_by?.name ?? 'staf'}`
-                                }}
-                            </td>
-                            <td class="p-4 text-right align-middle">
-                                <div
-                                    class="flex items-center justify-end gap-1"
-                                >
-                                    <Link
-                                        :href="
-                                            enrollmentRoutes.show(enrollment.id)
-                                        "
-                                    >
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            aria-label="Lihat pendaftaran"
-                                        >
-                                            <Eye class="h-4 w-4" />
-                                        </Button>
-                                    </Link>
+                                </td>
+                                <td class="p-4 text-right align-middle">
                                     <Button
-                                        v-if="enrollment.can_cancel"
-                                        variant="ghost"
+                                        variant="outline"
                                         size="sm"
-                                        aria-label="Batalkan pendaftaran"
-                                        @click="askCancel(enrollment)"
+                                        :aria-expanded="isExpanded(learner)"
+                                        @click="toggle(learner)"
                                     >
-                                        <UserMinus
-                                            class="h-4 w-4 text-destructive"
+                                        Rincian
+                                        <ChevronDown
+                                            class="ml-1 size-4 transition-transform"
+                                            :class="{
+                                                'rotate-180':
+                                                    isExpanded(learner),
+                                            }"
                                         />
                                     </Button>
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                            <tr
+                                v-if="isExpanded(learner)"
+                                class="border-b bg-muted/20"
+                            >
+                                <td colspan="5" class="px-4 pt-1 pb-4">
+                                    <table
+                                        class="w-full overflow-hidden rounded-md border bg-background text-sm"
+                                    >
+                                        <thead class="border-b bg-muted/40">
+                                            <tr
+                                                class="text-xs text-muted-foreground"
+                                            >
+                                                <th
+                                                    class="px-3 py-2 text-left font-medium"
+                                                >
+                                                    Kursus
+                                                </th>
+                                                <th
+                                                    class="w-28 px-3 py-2 text-left font-medium"
+                                                >
+                                                    Status
+                                                </th>
+                                                <th
+                                                    class="w-32 px-3 py-2 text-left font-medium"
+                                                >
+                                                    Terdaftar
+                                                </th>
+                                                <th
+                                                    class="w-48 px-3 py-2 text-left font-medium"
+                                                >
+                                                    Cara daftar
+                                                </th>
+                                                <th
+                                                    class="w-24 px-3 py-2 text-right font-medium"
+                                                >
+                                                    Aksi
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="enrollment in learner.enrollments"
+                                                :key="enrollment.id"
+                                                class="border-b last:border-0"
+                                            >
+                                                <td
+                                                    class="px-3 py-2 font-medium"
+                                                >
+                                                    {{
+                                                        enrollment.course.title
+                                                    }}
+                                                </td>
+                                                <td class="px-3 py-2">
+                                                    <Badge
+                                                        :variant="
+                                                            enrollmentStatusVariant(
+                                                                enrollment.status,
+                                                            )
+                                                        "
+                                                    >
+                                                        {{
+                                                            enrollmentStatusLabel(
+                                                                enrollment.status,
+                                                            )
+                                                        }}
+                                                    </Badge>
+                                                </td>
+                                                <td
+                                                    class="px-3 py-2 whitespace-nowrap"
+                                                >
+                                                    {{
+                                                        formatDate(
+                                                            enrollment.enrolled_at,
+                                                        )
+                                                    }}
+                                                </td>
+                                                <td
+                                                    class="px-3 py-2 text-muted-foreground"
+                                                >
+                                                    {{
+                                                        enrollment.is_self_enrolled
+                                                            ? 'Daftar mandiri'
+                                                            : `Oleh ${enrollment.enrolled_by?.name ?? 'staf'}`
+                                                    }}
+                                                </td>
+                                                <td
+                                                    class="px-3 py-1 text-right"
+                                                >
+                                                    <div
+                                                        class="flex items-center justify-end gap-1"
+                                                    >
+                                                        <Link
+                                                            :href="
+                                                                enrollmentRoutes.show(
+                                                                    enrollment.id,
+                                                                )
+                                                            "
+                                                        >
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                aria-label="Lihat pendaftaran"
+                                                            >
+                                                                <Eye
+                                                                    class="h-4 w-4"
+                                                                />
+                                                            </Button>
+                                                        </Link>
+                                                        <Button
+                                                            v-if="
+                                                                enrollment.can_cancel
+                                                            "
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            aria-label="Batalkan pendaftaran"
+                                                            @click="
+                                                                askCancel(
+                                                                    enrollment,
+                                                                )
+                                                            "
+                                                        >
+                                                            <UserMinus
+                                                                class="h-4 w-4 text-destructive"
+                                                            />
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </template>
                     </tbody>
                     <tfoot class="border-t">
                         <tr>
                             <td
-                                colspan="6"
+                                colspan="5"
                                 class="h-12 px-4 text-sm text-muted-foreground"
                             >
-                                <template v-if="enrollments.total > 0">
-                                    Menampilkan
-                                    {{ enrollments.from }}–{{
-                                        enrollments.to
+                                <template v-if="learners.total > 0">
+                                    Menampilkan {{ learners.from }}–{{
+                                        learners.to
                                     }}
-                                    dari {{ enrollments.total }} pendaftaran
+                                    dari {{ learners.total }} siswa
                                 </template>
-                                <template v-else>0 pendaftaran</template>
+                                <template v-else>0 siswa</template>
                             </td>
                         </tr>
                     </tfoot>
@@ -392,26 +562,26 @@ function submitEnrollment(): void {
         </div>
 
         <div
-            v-if="enrollments.last_page > 1"
+            v-if="learners.last_page > 1"
             class="flex items-center justify-end gap-2"
         >
             <Button
                 variant="outline"
                 size="sm"
-                :disabled="enrollments.current_page <= 1"
-                @click="goToPage(enrollments.current_page - 1)"
+                :disabled="learners.current_page <= 1"
+                @click="goToPage(learners.current_page - 1)"
             >
                 Sebelumnya
             </Button>
             <span class="text-sm text-muted-foreground">
-                Halaman {{ enrollments.current_page }} dari
-                {{ enrollments.last_page }}
+                Halaman {{ learners.current_page }} dari
+                {{ learners.last_page }}
             </span>
             <Button
                 variant="outline"
                 size="sm"
-                :disabled="enrollments.current_page >= enrollments.last_page"
-                @click="goToPage(enrollments.current_page + 1)"
+                :disabled="learners.current_page >= learners.last_page"
+                @click="goToPage(learners.current_page + 1)"
             >
                 Berikutnya
             </Button>

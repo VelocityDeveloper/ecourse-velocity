@@ -3,13 +3,16 @@ import {
     GraduationCap,
     Heart,
     LayoutGrid,
+    Presentation,
     SquareUser,
     Wallet,
 } from '@lucide/vue';
 import type { Component } from 'vue';
 import { dashboard } from '@/routes';
-import adminOrders from '@/routes/admin/orders';
+import finance from '@/routes/admin/finance';
+import withdrawals from '@/routes/admin/withdrawals';
 import courses from '@/routes/courses';
+import instructorApplications from '@/routes/instructor-applications';
 import learning from '@/routes/learning';
 import myCourses from '@/routes/my-courses';
 import users from '@/routes/users';
@@ -49,7 +52,14 @@ export function accountLinks(user: User): AccountLink[] {
     ];
 
     if (user.role === 'student') {
-        return learningLinks;
+        return [
+            ...learningLinks,
+            {
+                label: 'Jadi Instruktur',
+                href: instructorApplications.create().url,
+                icon: Presentation,
+            },
+        ];
     }
 
     const links: AccountLink[] = [
@@ -62,7 +72,14 @@ export function accountLinks(user: User): AccountLink[] {
             href: courses.index().url,
             icon: BookMarked,
         },
-        { label: 'Penjualan', href: adminOrders.index().url, icon: Wallet },
+        {
+            label: 'Keuangan',
+            href:
+                user.role === 'admin'
+                    ? finance.index().url
+                    : withdrawals.index().url,
+            icon: Wallet,
+        },
     ];
 
     if (user.role === 'instructor') {

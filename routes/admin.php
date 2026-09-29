@@ -2,13 +2,17 @@
 
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\FinanceController;
+use App\Http\Controllers\Admin\InstructorApplicationController;
+use App\Http\Controllers\Admin\InstructorController;
+use App\Http\Controllers\Admin\InstructorFinanceController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PaymentSettingController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\TestimonialController;
-use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\WithdrawalController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,6 +25,21 @@ Route::middleware(['auth', 'staff', 'admin'])->prefix('dasbor')->name('admin.')-
     Route::get('pengguna/{user:slug}/ubah', [UserController::class, 'edit'])->name('users.edit');
     Route::put('pengguna/{user:slug}', [UserController::class, 'update'])->name('users.update');
     Route::delete('pengguna/{user:slug}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('pengguna/{user:slug}/tangguhkan', [UserController::class, 'suspend'])->name('users.suspend');
+    Route::delete('pengguna/{user:slug}/tangguhkan', [UserController::class, 'unsuspend'])->name('users.unsuspend');
+    Route::post('pengguna/{user:slug}/batasi-pembelian', [UserController::class, 'blockPurchases'])->name('users.block-purchases');
+    Route::delete('pengguna/{user:slug}/batasi-pembelian', [UserController::class, 'unblockPurchases'])->name('users.unblock-purchases');
+
+    Route::get('instruktur', [InstructorController::class, 'index'])->name('instructors.index');
+    Route::get('instruktur/pengajuan', [InstructorApplicationController::class, 'index'])->name('instructor-applications.index');
+    Route::post('instruktur/pengajuan/{application}/setujui', [InstructorApplicationController::class, 'approve'])->name('instructor-applications.approve');
+    Route::post('instruktur/pengajuan/{application}/tolak', [InstructorApplicationController::class, 'reject'])->name('instructor-applications.reject');
+    // An instructor's money moved to Keuangan; keep old links working.
+    Route::get('instruktur/{slug}', fn (string $slug) => redirect('/dasbor/keuangan/instruktur/'.$slug, 301))->where('slug', '[a-z0-9-]+');
+
+    Route::get('keuangan/instruktur', [InstructorFinanceController::class, 'index'])->name('finance.instructors.index');
+    Route::get('keuangan/instruktur/ekspor', [InstructorFinanceController::class, 'export'])->name('finance.instructors.export');
+    Route::get('keuangan/instruktur/{user:slug}', [InstructorFinanceController::class, 'show'])->name('finance.instructors.show');
 
     Route::get('kategori', [CategoryController::class, 'index'])->name('categories.index');
     Route::get('kategori/tambah', [CategoryController::class, 'create'])->name('categories.create');
@@ -56,20 +75,39 @@ Route::middleware(['auth', 'staff', 'admin'])->prefix('dasbor')->name('admin.')-
     Route::post('pengaturan-situs/testimoni/{testimonial}/pindah', [TestimonialController::class, 'move'])->name('testimonials.move');
     Route::delete('pengaturan-situs/testimoni/{testimonial}', [TestimonialController::class, 'destroy'])->name('testimonials.destroy');
 
-    Route::post('pesanan/{order}/konfirmasi', [OrderController::class, 'confirm'])->name('orders.confirm');
-    Route::post('pesanan/{order}/tolak', [OrderController::class, 'reject'])->name('orders.reject');
-    Route::post('pesanan/{order}/batalkan', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::post('keuangan/pesanan/{order}/konfirmasi', [OrderController::class, 'confirm'])->name('orders.confirm');
+    Route::post('keuangan/pesanan/{order}/tolak', [OrderController::class, 'reject'])->name('orders.reject');
+    Route::post('keuangan/pesanan/{order}/batalkan', [OrderController::class, 'cancel'])->name('orders.cancel');
 
-    Route::get('pengaturan-pembayaran', [PaymentSettingController::class, 'edit'])->name('payment-settings.edit');
-    Route::post('pengaturan-pembayaran', [PaymentSettingController::class, 'update'])->name('payment-settings.update');
+    Route::post('keuangan/penarikan-dana/{withdrawal}/bayar', [WithdrawalController::class, 'pay'])->name('withdrawals.pay');
+    Route::post('keuangan/penarikan-dana/{withdrawal}/tolak', [WithdrawalController::class, 'reject'])->name('withdrawals.reject');
+
+    Route::get('pengaturan-situs/pembayaran', [PaymentSettingController::class, 'edit'])->name('payment-settings.edit');
+    Route::post('pengaturan-situs/pembayaran', [PaymentSettingController::class, 'update'])->name('payment-settings.update');
+    Route::permanentRedirect('pengaturan-pembayaran', '/dasbor/pengaturan-situs/pembayaran');
 });
 
 /*
- * Sales pages instructors see too, limited to the orders and payments of their own courses.
+ * Keuangan: every page about money in one place. Instructors see it too, limited
+ * to the orders, payments and withdrawals of their own courses.
  */
 Route::middleware(['auth', 'staff'])->prefix('dasbor')->name('admin.')->group(function () {
-    Route::get('pesanan', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('pesanan/{order}', [OrderController::class, 'show'])->name('orders.show');
-    Route::get('transaksi', [TransactionController::class, 'index'])->name('transactions.index');
-    Route::get('transaksi/ekspor', [TransactionController::class, 'export'])->name('transactions.export');
+    Route::get('keuangan', [FinanceController::class, 'index'])->name('finance.index');
+
+    Route::get('keuangan/pesanan', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('keuangan/pesanan/ekspor', [OrderController::class, 'export'])->name('orders.export');
+    Route::get('keuangan/pesanan/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+    Route::get('keuangan/penarikan-dana', [WithdrawalController::class, 'index'])->name('withdrawals.index');
+    Route::post('keuangan/penarikan-dana', [WithdrawalController::class, 'store'])->middleware('throttle:6,1')->name('withdrawals.store');
+    Route::post('keuangan/penarikan-dana/{withdrawal}/batalkan', [WithdrawalController::class, 'cancel'])->name('withdrawals.cancel');
+    Route::get('keuangan/penarikan-dana/{withdrawal}/bukti', [WithdrawalController::class, 'proof'])->name('withdrawals.proof');
+
+    // Where these pages lived before Keuangan.
+    Route::permanentRedirect('pesanan', '/dasbor/keuangan/pesanan');
+    Route::get('pesanan/{order}', fn (string $order) => redirect('/dasbor/keuangan/pesanan/'.$order, 301))->where('order', '[A-Za-z0-9-]+');
+    // Transactions are paid orders now, shown in the order list.
+    Route::permanentRedirect('keuangan/transaksi', '/dasbor/keuangan/pesanan?status=paid');
+    Route::permanentRedirect('transaksi', '/dasbor/keuangan/pesanan?status=paid');
+    Route::permanentRedirect('penarikan-dana', '/dasbor/keuangan/penarikan-dana');
 });

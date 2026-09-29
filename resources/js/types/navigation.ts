@@ -14,4 +14,6 @@ export type NavItem = {
     items?: NavItem[];
     /** Other pages (or URL prefixes) that should also highlight this item. */
     activeFor?: NonNullable<InertiaLinkProps['href']>[];
+    /** A count shown beside the title, e.g. requests waiting for review. */
+    badge?: number;
 };

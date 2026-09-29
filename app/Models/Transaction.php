@@ -15,6 +15,9 @@ use Illuminate\Support\Carbon;
  * @property int $order_id
  * @property int $user_id
  * @property int $amount
+ * @property string $commission_rate Percentage kept by the platform, e.g. "10.00".
+ * @property int $commission_amount
+ * @property int $instructor_amount
  * @property string $payment_method
  * @property array<string, string>|null $payment_details
  * @property int|null $confirmed_by
@@ -23,7 +26,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['order_id', 'user_id', 'amount', 'payment_method', 'payment_details', 'confirmed_by', 'note', 'paid_at'])]
+#[Fillable(['order_id', 'user_id', 'amount', 'commission_rate', 'commission_amount', 'instructor_amount', 'payment_method', 'payment_details', 'confirmed_by', 'note', 'paid_at'])]
 class Transaction extends Model
 {
     /**
@@ -37,10 +40,40 @@ class Transaction extends Model
             'order_id' => 'integer',
             'user_id' => 'integer',
             'amount' => 'integer',
+            'commission_rate' => 'decimal:2',
+            'commission_amount' => 'integer',
+            'instructor_amount' => 'integer',
             'payment_details' => 'array',
             'confirmed_by' => 'integer',
             'paid_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Split a payment into the platform's commission and the instructor's share.
+     * The commission is rounded to whole rupiah; the instructor gets the rest.
+     *
+     * @return array{commission_rate: string, commission_amount: int, instructor_amount: int}
+     */
+    public static function split(int $amount, float $rate): array
+    {
+        $rate = max(0.0, min(100.0, $rate));
+        $commission = (int) round($amount * $rate / 100);
+
+        return [
+            'commission_rate' => number_format($rate, 2, '.', ''),
+            'commission_amount' => $commission,
+            'instructor_amount' => $amount - $commission,
+        ];
+    }
+
+    /**
+     * The column that counts as revenue for the user: instructors earn their share,
+     * admins see the full amount paid.
+     */
+    public static function revenueColumnFor(User $user): string
+    {
+        return $user->isAdmin() ? 'amount' : 'instructor_amount';
     }
 
     /**

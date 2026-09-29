@@ -7,6 +7,7 @@ use App\Http\Requests\SubmitPaymentProofRequest;
 use App\Models\Course;
 use App\Models\Order;
 use App\Models\User;
+use App\Notifications\PaymentProofSubmitted;
 use App\Support\PaymentSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -157,6 +158,8 @@ class OrderController extends Controller
             'rejection_reason' => null,
         ]);
 
+        User::notifyAdmins(new PaymentProofSubmitted($order));
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Payment proof sent. We will confirm it soon.')]);
 
         return to_route('orders.show', $order);
@@ -241,6 +244,12 @@ class OrderController extends Controller
         Gate::authorize('enroll', $course);
 
         $student = $this->actor($request);
+
+        if ($student->isPurchaseBlocked()) {
+            Inertia::flash('toast', ['type' => 'warning', 'message' => __('Your account cannot buy courses right now. Please contact the admin.')]);
+
+            return to_route('catalog.show', $course->permalinkParameters());
+        }
 
         if ($course->enrollments()->active()->where('user_id', $student->id)->exists()) {
             Inertia::flash('toast', ['type' => 'info', 'message' => __('You are already enrolled in this course.')]);

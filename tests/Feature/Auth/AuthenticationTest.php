@@ -22,6 +22,29 @@ test('users can authenticate using the login screen', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
+test('instructors land on the homepage after logging in', function () {
+    $instructor = User::factory()->instructor()->create();
+
+    $this->post(route('login.store'), ['email' => $instructor->email, 'password' => 'password'])
+        ->assertRedirect(route('home'));
+});
+
+test('admins land on the dashboard after logging in', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->post(route('login.store'), ['email' => $admin->email, 'password' => 'password'])
+        ->assertRedirect(route('dashboard', absolute: false));
+});
+
+test('instructors go back to the page that asked them to log in', function () {
+    $instructor = User::factory()->instructor()->create();
+
+    $this->get(route('courses.index'))->assertRedirect(route('login'));
+
+    $this->post(route('login.store'), ['email' => $instructor->email, 'password' => 'password'])
+        ->assertRedirect(route('courses.index'));
+});
+
 test('users with two factor enabled are redirected to two factor challenge', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 

@@ -7,3 +7,5 @@ export * from './home';
 export * from './learn';
 export * from './order';
 export * from './blog';
+export * from './instructor';
+export * from './notification';

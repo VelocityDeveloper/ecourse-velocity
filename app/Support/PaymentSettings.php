@@ -22,6 +22,18 @@ class PaymentSettings
     public const string EXPIRY_HOURS = 'payment_expiry_hours';
 
     /**
+     * The percentage of each sale the platform keeps; the instructor gets the rest.
+     */
+    public const string COMMISSION_RATE = 'platform_commission_rate';
+
+    /**
+     * The smallest payout an instructor may ask for, in rupiah.
+     */
+    public const string WITHDRAWAL_MINIMUM = 'withdrawal_minimum';
+
+    public const int DEFAULT_WITHDRAWAL_MINIMUM = 50000;
+
+    /**
      * Where the QRIS image is stored.
      */
     public const string QRIS_DISK = 'public';
@@ -81,6 +93,26 @@ class PaymentSettings
         $hours = (int) (SiteSetting::get(self::EXPIRY_HOURS) ?? self::DEFAULT_EXPIRY_HOURS);
 
         return $hours > 0 ? $hours : self::DEFAULT_EXPIRY_HOURS;
+    }
+
+    /**
+     * Get the platform commission as a percentage from 0 to 100 (0 when not set).
+     */
+    public static function commissionRate(): float
+    {
+        $rate = (float) (SiteSetting::get(self::COMMISSION_RATE) ?? 0);
+
+        return max(0.0, min(100.0, $rate));
+    }
+
+    /**
+     * Get the smallest payout an instructor may ask for.
+     */
+    public static function withdrawalMinimum(): int
+    {
+        $minimum = SiteSetting::get(self::WITHDRAWAL_MINIMUM);
+
+        return $minimum === null ? self::DEFAULT_WITHDRAWAL_MINIMUM : max(0, (int) $minimum);
     }
 
     /**

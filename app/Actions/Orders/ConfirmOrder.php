@@ -6,16 +6,20 @@ use App\Models\Enrollment;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Notifications\CourseSold;
+use App\Notifications\OrderPaid;
+use App\Support\PaymentSettings;
 use Illuminate\Support\Facades\DB;
 
 class ConfirmOrder
 {
     /**
-     * Mark the order paid, record the payment and enroll the student.
+     * Mark the order paid, record the payment and enroll the student, then
+     * tell the student and the course's instructor.
      */
     public function __invoke(Order $order, User $admin, ?string $note = null): Transaction
     {
-        return DB::transaction(function () use ($order, $admin, $note): Transaction {
+        $transaction = DB::transaction(function () use ($order, $admin, $note): Transaction {
             $order->update([
                 'status' => Order::STATUS_PAID,
                 'paid_at' => now(),
@@ -26,6 +30,7 @@ class ConfirmOrder
             $transaction = $order->transaction()->create([
                 'user_id' => $order->user_id,
                 'amount' => $order->total,
+                ...Transaction::split($order->total, PaymentSettings::commissionRate()),
                 'payment_method' => $order->payment_method ?? Order::METHOD_BANK_TRANSFER,
                 'payment_details' => $order->payment_details,
                 'confirmed_by' => $admin->id,
@@ -43,5 +48,16 @@ class ConfirmOrder
 
             return $transaction;
         });
+
+        $order->user->notify(new OrderPaid($order));
+
+        // The instructor hears about the sale, unless an admin sold their own course.
+        $instructor = $order->course?->instructor;
+
+        if ($instructor !== null && $instructor->isInstructor()) {
+            $instructor->notify(new CourseSold($transaction));
+        }
+
+        return $transaction;
     }
 }
