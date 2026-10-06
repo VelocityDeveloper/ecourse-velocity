@@ -73,13 +73,7 @@ async function copyLink(): Promise<void> {
 
 <template>
     <div>
-        <Head :title="post.title">
-            <meta
-                head-key="description"
-                name="description"
-                :content="post.summary"
-            />
-        </Head>
+        <Head :title="post.title" />
 
         <div
             v-if="!post.is_live"

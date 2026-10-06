@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ChevronDown, Eye, Plus, Search, UserMinus } from '@lucide/vue';
+import { ChevronDown, Eye, Plus, Search, Trash2, UserMinus } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CancelEnrollmentDialog from '@/components/CancelEnrollmentDialog.vue';
+import DeleteEnrollmentDialog from '@/components/DeleteEnrollmentDialog.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -116,6 +117,14 @@ const cancelDialogOpen = ref(false);
 function askCancel(enrollment: EnrollmentRow): void {
     cancelTarget.value = enrollment;
     cancelDialogOpen.value = true;
+}
+
+const deleteTarget = ref<EnrollmentRow | null>(null);
+const deleteDialogOpen = ref(false);
+
+function askDelete(enrollment: EnrollmentRow): void {
+    deleteTarget.value = enrollment;
+    deleteDialogOpen.value = true;
 }
 
 const enrollDialogOpen = ref(false);
@@ -532,6 +541,23 @@ function submitEnrollment(): void {
                                                                 class="h-4 w-4 text-destructive"
                                                             />
                                                         </Button>
+                                                        <Button
+                                                            v-if="
+                                                                enrollment.can_delete
+                                                            "
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            aria-label="Hapus pendaftaran"
+                                                            @click="
+                                                                askDelete(
+                                                                    enrollment,
+                                                                )
+                                                            "
+                                                        >
+                                                            <Trash2
+                                                                class="h-4 w-4 text-destructive"
+                                                            />
+                                                        </Button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -696,6 +722,13 @@ function submitEnrollment(): void {
             v-model:open="cancelDialogOpen"
             :enrollment-id="cancelTarget?.id ?? null"
             :description="`Batalkan pendaftaran ${cancelTarget?.student.name ?? 'siswa ini'} di ${cancelTarget?.course.title ?? 'kursus ini'}? Siswa akan kehilangan akses ke kursus.`"
+        />
+
+        <DeleteEnrollmentDialog
+            v-model:open="deleteDialogOpen"
+            :enrollment-id="deleteTarget?.id ?? null"
+            :student-name="deleteTarget?.student.name ?? 'siswa ini'"
+            :course-title="deleteTarget?.course.title ?? 'kursus ini'"
         />
     </div>
 </template>

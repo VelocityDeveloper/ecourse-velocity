@@ -50,4 +50,6 @@ export type PostFormValues = {
     cover_url: string | null;
     published_at: string | null;
     is_live: boolean;
+    seo_title: string | null;
+    seo_description: string | null;
 };

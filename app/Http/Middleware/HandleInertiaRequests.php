@@ -8,6 +8,7 @@ use App\Models\InstructorApplication;
 use App\Models\Order;
 use App\Models\SiteSetting;
 use App\Models\Withdrawal;
+use App\Support\VisitorStatistics;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -56,6 +57,10 @@ class HandleInertiaRequests extends Middleware
                 'paletteCss' => SiteSetting::paletteCss(),
             ],
             'site' => SiteSetting::publicSite(),
+            // The footer's visitor counts; null when the admin hides that column.
+            'visitorStats' => fn (): ?array => SiteSetting::footer()['statistics']['show']
+                ? VisitorStatistics::summary()
+                : null,
             // Categories with published courses, for the "Kursus" submenu of the public header.
             'navCategories' => fn () => Category::query()
                 ->whereHas('courses', fn (Builder $query) => $query->published())

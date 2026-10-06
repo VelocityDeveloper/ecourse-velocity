@@ -86,7 +86,7 @@ class PostController extends Controller
     {
         return Inertia::render('admin/Posts/Edit', [
             'post' => [
-                ...$post->only(['id', 'title', 'slug', 'excerpt', 'content', 'status', 'cover_url']),
+                ...$post->only(['id', 'title', 'slug', 'excerpt', 'content', 'status', 'cover_url', 'seo_title', 'seo_description']),
                 'published_at' => $post->published_at?->toIso8601String(),
                 'is_live' => $post->isPublished(),
             ],
@@ -127,7 +127,7 @@ class PostController extends Controller
      */
     private function fill(Post $post, PostRequest $request, SanitizeLessonContent $sanitize): void
     {
-        $post->fill($request->safe()->only(['title', 'slug', 'excerpt', 'status']));
+        $post->fill($request->safe()->only(['title', 'slug', 'excerpt', 'status', 'seo_title', 'seo_description']));
         $post->content = $sanitize($request->string('content')->toString());
 
         $publishedAt = $request->filled('published_at')

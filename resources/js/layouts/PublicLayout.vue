@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FloatingActions from '@/components/FloatingActions.vue';
 import PublicFooter from '@/components/PublicFooter.vue';
 import PublicHeader from '@/components/PublicHeader.vue';
 import { setDarkModeAllowed } from '@/composables/useAppearance';
@@ -23,5 +24,6 @@ setDarkModeAllowed(false);
             <slot />
         </main>
         <PublicFooter class="print:hidden" />
+        <FloatingActions class="print:hidden" />
     </div>
 </template>

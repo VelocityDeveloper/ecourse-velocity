@@ -68,4 +68,5 @@ Route::middleware(['auth', 'staff'])->prefix('dasbor')->group(function () {
     Route::get('pendaftaran', [EnrollmentController::class, 'index'])->name('enrollments.index');
     Route::post('pendaftaran', [EnrollmentController::class, 'store'])->name('enrollments.store');
     Route::get('pendaftaran/{enrollment}', [EnrollmentController::class, 'show'])->name('enrollments.show');
+    Route::delete('pendaftaran/{enrollment}', [EnrollmentController::class, 'destroy'])->name('enrollments.destroy');
 });

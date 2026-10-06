@@ -1,28 +1,39 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
-import { Pencil, Search } from '@lucide/vue';
-import { ref } from 'vue';
-import Heading from '@/components/Heading.vue';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Head, Link, router } from "@inertiajs/vue3";
+import { Pencil, Plus, Search } from "@lucide/vue";
+import { computed, reactive, ref } from "vue";
+import Heading from "@/components/Heading.vue";
+import InputError from "@/components/InputError.vue";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
-import { formatTimeLimit } from '@/lib/course';
-import quizRoutes from '@/routes/quizzes';
-import type { Paginated } from '@/types';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { formatTimeLimit } from "@/lib/course";
+import quizRoutes from "@/routes/quizzes";
+import type { Paginated } from "@/types";
 
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Dasbor', href: '/dasbor' },
-            { title: 'Kursus', href: '/dasbor/kursus' },
-            { title: 'Kuis', href: '/dasbor/kuis' },
+            { title: "Dasbor", href: "/dasbor" },
+            { title: "Kursus", href: "/dasbor/kursus" },
+            { title: "Kuis", href: "/dasbor/kuis" },
         ],
     },
 });
@@ -38,15 +49,21 @@ type QuizRow = {
     course: { id: number; slug: string; title: string };
 };
 
-const ANY = 'all';
+type CourseOption = {
+    id: number;
+    title: string;
+    sections: Array<{ id: number; title: string }>;
+};
+
+const ANY = "all";
 
 const props = defineProps<{
     quizzes: Paginated<QuizRow>;
     filters: { search?: string; course_id?: string | number };
-    courses: Array<{ id: number; title: string }>;
+    courses: CourseOption[];
 }>();
 
-const search = ref(props.filters.search ?? '');
+const search = ref(props.filters.search ?? "");
 const courseId = ref(String(props.filters.course_id ?? ANY) || ANY);
 
 function currentQuery(page?: number) {
@@ -64,6 +81,70 @@ function applyFilters() {
     });
 }
 
+const createOpen = ref(false);
+const processing = ref(false);
+const errors = ref<Record<string, string>>({});
+const createForm = reactive({
+    course_id: "",
+    section_id: "",
+    title: "",
+    description: "",
+    time_limit_minutes: "",
+});
+
+const createSections = computed(
+    () =>
+        props.courses.find(
+            (course) => String(course.id) === createForm.course_id,
+        )?.sections ?? [],
+);
+
+function openCreate() {
+    const filtered = courseId.value === ANY ? "" : courseId.value;
+
+    createForm.course_id = filtered;
+    createForm.section_id = "";
+    createForm.title = "";
+    createForm.description = "";
+    createForm.time_limit_minutes = "";
+    errors.value = {};
+    pickFirstSection();
+    createOpen.value = true;
+}
+
+function pickFirstSection() {
+    const first = createSections.value[0];
+
+    createForm.section_id = first ? String(first.id) : "";
+}
+
+function submitCreate() {
+    if (createForm.section_id === "") {
+        return;
+    }
+
+    processing.value = true;
+    errors.value = {};
+
+    router.post(
+        quizRoutes.store(Number(createForm.section_id)).url,
+        {
+            title: createForm.title,
+            description: createForm.description,
+            time_limit_minutes: createForm.time_limit_minutes,
+            open_builder: true,
+        },
+        {
+            onError: (formErrors) => {
+                errors.value = formErrors;
+            },
+            onFinish: () => {
+                processing.value = false;
+            },
+        },
+    );
+}
+
 function goToPage(page: number) {
     router.get(quizRoutes.index().url, currentQuery(page), {
         preserveState: true,
@@ -75,11 +156,17 @@ function goToPage(page: number) {
     <Head title="Kuis" />
 
     <div class="flex flex-col space-y-6">
-        <Heading
-            variant="small"
-            title="Kuis"
-            description="Semua kuis dari kursus yang Anda kelola"
-        />
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <Heading
+                variant="small"
+                title="Kuis"
+                description="Semua kuis dari kursus yang Anda kelola"
+            />
+            <Button :disabled="courses.length === 0" @click="openCreate">
+                <Plus class="h-4 w-4" />
+                Buat Kuis
+            </Button>
+        </div>
 
         <div class="flex flex-wrap items-center gap-3">
             <div class="relative max-w-sm flex-1">
@@ -246,5 +333,133 @@ function goToPage(page: number) {
                 Berikutnya
             </Button>
         </div>
+        <Dialog v-model:open="createOpen">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Buat Kuis</DialogTitle>
+                    <DialogDescription>
+                        Pilih kursus dan bab tempat kuis ini berada. Setelah
+                        disimpan, Anda langsung diarahkan ke penyusun soal.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form @submit.prevent="submitCreate" class="space-y-4">
+                    <div class="grid gap-2">
+                        <Label for="create-quiz-course">Kursus</Label>
+                        <Select
+                            v-model="createForm.course_id"
+                            @update:model-value="pickFirstSection"
+                        >
+                            <SelectTrigger
+                                id="create-quiz-course"
+                                class="w-full"
+                            >
+                                <SelectValue placeholder="Pilih kursus" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="course in courses"
+                                    :key="course.id"
+                                    :value="String(course.id)"
+                                >
+                                    {{ course.title }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="create-quiz-section">Bab</Label>
+                        <Select
+                            v-model="createForm.section_id"
+                            :disabled="createSections.length === 0"
+                        >
+                            <SelectTrigger
+                                id="create-quiz-section"
+                                class="w-full"
+                            >
+                                <SelectValue placeholder="Pilih bab" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="section in createSections"
+                                    :key="section.id"
+                                    :value="String(section.id)"
+                                >
+                                    {{ section.title }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <p
+                            v-if="
+                                createForm.course_id !== '' &&
+                                createSections.length === 0
+                            "
+                            class="text-xs text-muted-foreground"
+                        >
+                            Kursus ini belum punya bab. Tambahkan bab dulu di
+                            halaman kursus.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="create-quiz-title">Judul</Label>
+                        <Input
+                            id="create-quiz-title"
+                            v-model="createForm.title"
+                            required
+                            placeholder="Kuis Bab 1"
+                        />
+                        <InputError :message="errors.title" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="create-quiz-description">Deskripsi</Label>
+                        <Textarea
+                            id="create-quiz-description"
+                            v-model="createForm.description"
+                            rows="3"
+                            placeholder="Ringkasan kuis ini (opsional)"
+                        />
+                        <InputError :message="errors.description" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="create-quiz-time-limit"
+                            >Batas waktu (menit)</Label
+                        >
+                        <Input
+                            id="create-quiz-time-limit"
+                            v-model="createForm.time_limit_minutes"
+                            type="number"
+                            min="1"
+                            max="600"
+                            placeholder="Tanpa batas"
+                        />
+                        <p class="text-xs text-muted-foreground">
+                            Kosongkan jika tanpa batas waktu.
+                        </p>
+                        <InputError :message="errors.time_limit_minutes" />
+                    </div>
+
+                    <DialogFooter class="gap-2">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            @click="createOpen = false"
+                        >
+                            Batal
+                        </Button>
+                        <Button
+                            :disabled="
+                                processing || createForm.section_id === ''
+                            "
+                        >
+                            {{ processing ? "Menyimpan..." : "Buat Kuis" }}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>

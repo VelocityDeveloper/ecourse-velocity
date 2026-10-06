@@ -1,13 +1,22 @@
 <?php
 
+use App\Http\Controllers\CaptchaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstructorApplicationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\UserProfileController;
+use App\Support\Captcha;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::get('sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('robots.txt', [SitemapController::class, 'robots'])->name('robots');
+Route::get('captcha/{form}', CaptchaController::class)
+    ->whereIn('form', Captcha::FORMS)
+    ->middleware('throttle:30,1')
+    ->name('captcha');
 
 Route::middleware(['auth', 'verified', 'staff'])->group(function () {
     Route::get('dasbor', DashboardController::class)->name('dashboard');
@@ -25,6 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::get('notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifikasi/baca-semua', [NotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::post('notifikasi/{notification}', [NotificationController::class, 'open'])->whereUuid('notification')->name('notifications.open');
+    Route::delete('notifikasi/sudah-dibaca', [NotificationController::class, 'destroyRead'])->name('notifications.destroy-read');
+    Route::delete('notifikasi/{notification}', [NotificationController::class, 'destroy'])->whereUuid('notification')->name('notifications.destroy');
 });
 
 Route::get('instruktur/{user:slug}', [UserProfileController::class, 'show'])->name('users.show');

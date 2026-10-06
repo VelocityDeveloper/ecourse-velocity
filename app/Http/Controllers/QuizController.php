@@ -67,15 +67,22 @@ class QuizController extends Controller
 
     /**
      * Append a quiz to the section.
+     *
+     * The quiz list asks to open the builder right away, so questions can be
+     * added next; the curriculum stays where it is.
      */
     public function store(QuizRequest $request, Section $section): RedirectResponse
     {
         Gate::authorize('update', $section->course);
 
-        $section->quizzes()->create([
+        $quiz = $section->quizzes()->create([
             ...$request->validated(),
             'position' => ((int) $section->quizzes()->max('position')) + 1,
         ]);
+
+        if ($request->boolean('open_builder')) {
+            return to_route('quizzes.edit', ['course' => $section->course, 'quiz' => $quiz]);
+        }
 
         return back();
     }
@@ -218,7 +225,7 @@ class QuizController extends Controller
     }
 
     /**
-     * Get the courses the user may manage, as select options.
+     * Get the courses the user may manage, with their sections, as select options.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -226,9 +233,17 @@ class QuizController extends Controller
     {
         return Course::query()
             ->manageableBy($actor)
+            ->with('sections:id,course_id,title,position')
             ->orderBy('title')
             ->get(['id', 'title'])
-            ->toArray();
+            ->map(fn (Course $course): array => [
+                'id' => $course->id,
+                'title' => $course->title,
+                'sections' => $course->sections
+                    ->map(fn (Section $section): array => ['id' => $section->id, 'title' => $section->title])
+                    ->all(),
+            ])
+            ->all();
     }
 
     /**

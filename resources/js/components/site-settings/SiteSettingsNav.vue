@@ -7,6 +7,9 @@ import {
     Image,
     MessageSquareQuote,
     Palette,
+    PanelBottom,
+    Search,
+    ShieldCheck,
     Stamp,
 } from '@lucide/vue';
 import Heading from '@/components/Heading.vue';
@@ -19,7 +22,7 @@ import testimonials from '@/routes/admin/testimonials';
 const { isCurrentUrl } = useCurrentUrl();
 
 // Every Pengaturan Situs page, shown as tabs instead of a sidebar submenu.
-// `short` is the label below xl, where the tabs are boxes in a grid.
+// `short` is the label below 2xl: in the grid of boxes, and in the row while it is still narrow.
 const tabs = [
     {
         label: 'Identitas & Logo',
@@ -52,14 +55,32 @@ const tabs = [
         Icon: MessageSquareQuote,
     },
     {
-        label: 'Kontak & Footer',
+        label: 'Kontak & Sosmed',
         short: 'Kontak',
         href: siteSettings.edit('kontak'),
         Icon: Contact,
     },
     {
+        label: 'Footer',
+        short: 'Footer',
+        href: siteSettings.edit('footer'),
+        Icon: PanelBottom,
+    },
+    {
+        label: 'SEO',
+        short: 'SEO',
+        href: siteSettings.edit('seo'),
+        Icon: Search,
+    },
+    {
+        label: 'Keamanan',
+        short: 'Keamanan',
+        href: siteSettings.edit('keamanan'),
+        Icon: ShieldCheck,
+    },
+    {
         label: 'Pembayaran',
-        short: 'Pembayaran',
+        short: 'Bayar',
         href: paymentSettings.edit(),
         Icon: CreditCard,
     },
@@ -71,18 +92,18 @@ const tabs = [
         <Heading
             variant="small"
             title="Pengaturan Situs"
-            description="Identitas, warna, beranda, footer, dan pembayaran"
+            description="Identitas, warna, beranda, footer, SEO, keamanan, dan pembayaran"
         />
-        <!-- Phones: a 4 + 3 grid of boxes, tablets one row of seven. Wide screens: one underlined row. -->
+        <!-- Below xl: two rows of five boxes. Wide screens: one underlined row, full labels from 2xl. -->
         <nav
-            class="grid grid-cols-4 gap-1 rounded-lg bg-muted p-1 sm:grid-cols-7 xl:flex xl:rounded-none xl:border-b xl:bg-transparent xl:p-0"
+            class="grid grid-cols-5 gap-1 rounded-lg bg-muted p-1 xl:flex xl:rounded-none xl:border-b xl:bg-transparent xl:p-0"
             aria-label="Pengaturan Situs"
         >
             <Link
                 v-for="tab in tabs"
                 :key="tab.label"
                 :href="tab.href"
-                class="flex min-w-0 flex-col items-center gap-1 rounded-md px-1 py-2 text-xs font-medium whitespace-nowrap transition-colors xl:-mb-px xl:flex-row xl:gap-2 xl:rounded-none xl:border-b-2 xl:px-3 xl:py-2.5 xl:text-sm"
+                class="flex min-w-0 flex-col items-center gap-1 rounded-md px-0.5 py-2 text-[11px] font-medium whitespace-nowrap transition-colors sm:text-xs xl:-mb-px xl:flex-row xl:gap-2 xl:rounded-none xl:border-b-2 xl:px-3 xl:py-2.5 xl:text-sm"
                 :class="
                     isCurrentUrl(tab.href)
                         ? 'bg-background text-foreground shadow-sm xl:border-primary xl:bg-transparent xl:shadow-none'
@@ -95,8 +116,10 @@ const tabs = [
                     class="size-4 shrink-0"
                     :class="isCurrentUrl(tab.href) ? 'text-primary' : ''"
                 />
-                <span class="xl:hidden">{{ tab.short }}</span>
-                <span class="hidden xl:inline">{{ tab.label }}</span>
+                <span class="max-w-full truncate 2xl:hidden">{{
+                    tab.short
+                }}</span>
+                <span class="hidden 2xl:inline">{{ tab.label }}</span>
             </Link>
         </nav>
     </div>

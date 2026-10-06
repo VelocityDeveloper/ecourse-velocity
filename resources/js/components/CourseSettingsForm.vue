@@ -2,6 +2,7 @@
 import { router } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
+import SeoFields from '@/components/SeoFields.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,13 +23,14 @@ import type {
     CourseStatus,
 } from '@/types';
 
-export type CourseFormTab = 'info' | 'price' | 'thumbnail' | 'status';
+export type CourseFormTab = 'info' | 'price' | 'thumbnail' | 'seo' | 'status';
 
 // Which tab holds each field, so a failed save can jump to the right one.
 const TAB_FIELDS: Record<CourseFormTab, string[]> = {
     info: ['title', 'slug', 'description', 'category_id', 'instructor_id'],
     price: ['price', 'level'],
     thumbnail: ['thumbnail'],
+    seo: ['seo_title', 'seo_description'],
     status: ['status'],
 };
 
@@ -60,6 +62,8 @@ const form = reactive({
     level: props.course.level,
     status: props.course.status,
     thumbnail: null as File | null,
+    seo_title: props.course.seo_title ?? '',
+    seo_description: props.course.seo_description ?? '',
 });
 
 const errors = ref<Record<string, string>>({});
@@ -278,6 +282,27 @@ function submit() {
                 </p>
                 <InputError :message="errors.thumbnail" />
             </div>
+        </div>
+
+        <div
+            v-show="tab === 'seo'"
+            id="panel-seo"
+            role="tabpanel"
+            aria-labelledby="tab-seo"
+        >
+            <p class="mb-5 text-sm text-muted-foreground">
+                Tampilan halaman kursus di hasil pencarian Google dan saat
+                tautannya dibagikan. Gambar yang dibagikan memakai gambar
+                sampul.
+            </p>
+            <SeoFields
+                v-model:title="form.seo_title"
+                v-model:description="form.seo_description"
+                :fallback-title="form.title"
+                :fallback-description="form.description"
+                :path="course.permalink"
+                :errors="errors"
+            />
         </div>
 
         <div

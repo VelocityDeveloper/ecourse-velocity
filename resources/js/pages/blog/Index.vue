@@ -26,13 +26,7 @@ function visit(page?: number): void {
 
 <template>
     <div>
-        <Head title="Blog">
-            <meta
-                head-key="description"
-                name="description"
-                content="Artikel, tips belajar, dan kabar terbaru seputar dunia teknologi."
-            />
-        </Head>
+        <Head title="Blog" />
 
         <section
             class="relative isolate overflow-hidden bg-surface text-surface-foreground"

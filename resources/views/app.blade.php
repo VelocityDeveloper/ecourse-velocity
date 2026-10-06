@@ -43,8 +43,13 @@
              app.ts keeps this element in sync on client-side navigation. --}}
         <style id="brand-palette">{!! \App\Models\SiteSetting::paletteCss() ?? '' !!}</style>
 
+        {{-- Public pages pass their search and sharing tags with ->withViewData(['seo' => Seo::…()]). --}}
+        @isset($seo)
+            @include('partials.seo')
+        @endisset
+
         <x-inertia::head>
-            <title>{{ config('app.name', 'Laravel') }}</title>
+            <title>{{ $seo['title'] ?? config('app.name', 'Laravel') }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

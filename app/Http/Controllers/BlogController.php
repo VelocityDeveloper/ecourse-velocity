@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Support\Seo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -36,10 +37,13 @@ class BlogController extends Controller
             ->withQueryString()
             ->through(fn (Post $post): array => $this->card($post));
 
+        $seo = Seo::blog($search !== '', $posts->currentPage());
+
         return Inertia::render('blog/Index', [
+            'seoTitle' => $seo['title'],
             'posts' => $posts,
             'filters' => $request->only(['search']),
-        ]);
+        ])->withViewData(['seo' => $seo]);
     }
 
     /**
@@ -51,9 +55,11 @@ class BlogController extends Controller
 
         abort_unless($post->isPublished() || $isAdmin, 404);
 
-        $post->load('author:id,name,slug,avatar_path,headline');
+        $post->load('author:id,name,slug,avatar_path,headline,role');
+        $seo = Seo::post($post);
 
         return Inertia::render('blog/Show', [
+            'seoTitle' => $seo['title'],
             'post' => [
                 ...$this->card($post),
                 'excerpt' => $post->excerpt,
@@ -77,7 +83,7 @@ class BlogController extends Controller
             'can' => [
                 'edit' => $isAdmin,
             ],
-        ]);
+        ])->withViewData(['seo' => $seo]);
     }
 
     /**

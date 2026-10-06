@@ -12,6 +12,7 @@ use App\Models\Quiz;
 use App\Models\Section;
 use App\Models\User;
 use App\Support\CatalogCourseCard;
+use App\Support\Seo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,7 +66,17 @@ class CatalogController extends Controller
             ->withQueryString()
             ->through(fn (Course $course): array => CatalogCourseCard::from($course));
 
+        $category = $request->filled('kategori')
+            ? Category::query()->where('slug', $request->string('kategori')->toString())->first()
+            : null;
+        $seo = Seo::catalog(
+            $category,
+            isVariant: $search !== '' || $request->filled('level') || $request->filled('sort') || ($request->filled('kategori') && $category === null),
+            page: $courses->currentPage(),
+        );
+
         return Inertia::render('catalog/Index', [
+            'seoTitle' => $seo['title'],
             'courses' => $courses,
             'filters' => [...$request->only(['search', 'kategori', 'level']), 'sort' => $sort],
             'categories' => Category::query()
@@ -81,7 +92,7 @@ class CatalogController extends Controller
             'levels' => Course::LEVELS,
             'sorts' => self::SORTS,
             'total' => Course::query()->published()->count(),
-        ]);
+        ])->withViewData(['seo' => $seo]);
     }
 
     /**
@@ -114,7 +125,11 @@ class CatalogController extends Controller
             ? null
             : $course->enrollments()->where('user_id', $viewer->id)->first();
 
+        $rating = CourseReview::summarize($course->reviews());
+        $seo = Seo::course($course, $rating);
+
         return Inertia::render('catalog/Show', [
+            'seoTitle' => $seo['title'],
             'course' => [
                 'id' => $course->id,
                 'slug' => $course->slug,
@@ -174,7 +189,7 @@ class CatalogController extends Controller
                 'enrolled_at' => $enrollment->enrolled_at->toIso8601String(),
                 'cancelled_at' => $enrollment->cancelled_at?->toIso8601String(),
             ],
-            'rating' => CourseReview::summarize($course->reviews()),
+            'rating' => $rating,
             'reviews' => $course->reviews()
                 ->with('user:id,name,avatar_path')
                 ->whereNotNull('comment')
@@ -200,7 +215,7 @@ class CatalogController extends Controller
                 'learn' => $viewer !== null && Gate::allows('learn', $course),
                 'review' => Gate::allows('review', $course),
             ],
-        ]);
+        ])->withViewData(['seo' => $seo]);
     }
 
     /**
@@ -218,7 +233,7 @@ class CatalogController extends Controller
             return to_route('catalog.show', $course->permalinkParameters());
         }
 
-        if ($course->isPaid() && ! $actor->orders()->where('course_id', $course->id)->where('status', Order::STATUS_PAID)->exists()) {
+        if ($course->isPaid() && ! $actor->orders()->where('course_id', $course->id)->grantingAccess()->exists()) {
             Inertia::flash('toast', ['type' => 'info', 'message' => __('This is a paid course. Buy it to start learning.')]);
 
             return to_route('catalog.show', $course->permalinkParameters());
@@ -243,7 +258,7 @@ class CatalogController extends Controller
         $open = $viewer->orders()->open()->where('course_id', $course->id)->latest('id')->first();
 
         return [
-            'paid' => $viewer->orders()->where('course_id', $course->id)->where('status', Order::STATUS_PAID)->exists(),
+            'paid' => $viewer->orders()->where('course_id', $course->id)->grantingAccess()->exists(),
             'open_order' => $open === null ? null : ['number' => $open->number, 'status' => $open->status],
         ];
     }

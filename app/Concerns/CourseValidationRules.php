@@ -37,6 +37,8 @@ trait CourseValidationRules
             'level' => ['required', 'string', Rule::in(Course::LEVELS)],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
             'status' => $this->statusRules($actor, $course),
+            'seo_title' => ['sometimes', 'nullable', 'string', 'max:70'],
+            'seo_description' => ['sometimes', 'nullable', 'string', 'max:300'],
         ];
     }
 

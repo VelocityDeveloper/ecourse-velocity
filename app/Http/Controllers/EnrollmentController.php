@@ -74,6 +74,7 @@ class EnrollmentController extends Controller
                     'student' => $person,
                     'course' => $enrollment->course->only(['id', 'slug', 'title']),
                     'can_cancel' => Gate::allows('cancel', $enrollment),
+                    'can_delete' => Gate::allows('delete', $enrollment),
                 ])->all(),
             ];
         });
@@ -157,6 +158,7 @@ class EnrollmentController extends Controller
             ],
             'can' => [
                 'cancel' => Gate::allows('cancel', $enrollment),
+                'delete' => Gate::allows('delete', $enrollment),
             ],
         ]);
     }
@@ -191,6 +193,24 @@ class EnrollmentController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Enrollment cancelled.')]);
 
         return back();
+    }
+
+    /**
+     * Delete an enrollment, so the student has to buy a paid course again.
+     */
+    public function destroy(Enrollment $enrollment): RedirectResponse
+    {
+        Gate::authorize('delete', $enrollment);
+
+        $enrollment->loadMissing(['user:id,name', 'course:id,title']);
+        $enrollment->purge();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __(':student has been removed from :course.', ['student' => $enrollment->user->name, 'course' => $enrollment->course->title]),
+        ]);
+
+        return to_route('enrollments.index');
     }
 
     /**

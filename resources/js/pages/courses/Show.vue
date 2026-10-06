@@ -5,6 +5,7 @@ import {
     ImageIcon,
     Link2,
     ListTree,
+    Search,
     Tag,
     ToggleRight,
     Trash2,
@@ -109,6 +110,13 @@ const TABS: Array<{
         label: 'Sampul',
         short: 'Sampul',
         icon: ImageIcon,
+    },
+    {
+        key: 'seo',
+        slug: 'seo',
+        label: 'SEO',
+        short: 'SEO',
+        icon: Search,
     },
     {
         key: 'status',

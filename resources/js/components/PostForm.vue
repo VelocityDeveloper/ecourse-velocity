@@ -4,6 +4,7 @@ import { ExternalLink, ImageIcon } from '@lucide/vue';
 import { computed, onBeforeUnmount, reactive, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import RichTextEditor from '@/components/RichTextEditor.vue';
+import SeoFields from '@/components/SeoFields.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,7 +56,13 @@ const form = reactive({
     published_at: toLocalInput(props.post?.published_at),
     cover: null as File | null,
     remove_cover: false,
+    seo_title: props.post?.seo_title ?? '',
+    seo_description: props.post?.seo_description ?? '',
 });
+
+const articlePath = computed(
+    () => `/blog/${form.slug.trim() || props.post?.slug || 'judul-artikel'}`,
+);
 
 const errors = ref<Record<string, string>>({});
 const processing = ref(false);
@@ -206,6 +213,29 @@ function submit(): void {
                 </p>
                 <InputError :message="errors.content" />
             </div>
+
+            <section
+                class="space-y-4 rounded-lg border p-4"
+                aria-labelledby="post-seo-heading"
+            >
+                <div>
+                    <h3 id="post-seo-heading" class="text-sm font-semibold">
+                        SEO
+                    </h3>
+                    <p class="text-xs text-muted-foreground">
+                        Tampilan artikel di hasil pencarian Google dan saat
+                        dibagikan. Gambar yang dibagikan memakai gambar sampul.
+                    </p>
+                </div>
+                <SeoFields
+                    v-model:title="form.seo_title"
+                    v-model:description="form.seo_description"
+                    :fallback-title="form.title"
+                    :fallback-description="form.excerpt || form.content"
+                    :path="articlePath"
+                    :errors="errors"
+                />
+            </section>
         </div>
 
         <aside class="space-y-6 lg:sticky lg:top-4 lg:self-start">

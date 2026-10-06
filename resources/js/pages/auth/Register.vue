@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import CaptchaField from '@/components/CaptchaField.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -12,7 +14,11 @@ import { store } from '@/routes/register';
 
 defineProps<{
     passwordRules: string;
+    /** Whether the form asks for the numbers in a picture. */
+    captcha: boolean;
 }>();
+
+const captchaField = ref<InstanceType<typeof CaptchaField> | null>(null);
 
 defineOptions({
     layout: {
@@ -28,6 +34,8 @@ defineOptions({
     <Form
         v-bind="store.form()"
         :reset-on-success="['password', 'password_confirmation']"
+        :reset-on-error="['captcha']"
+        @error="captchaField?.refresh()"
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"
     >
@@ -93,10 +101,18 @@ defineOptions({
                 <InputError :message="errors.password_confirmation" />
             </div>
 
+            <CaptchaField
+                v-if="captcha"
+                ref="captchaField"
+                form="register"
+                :error="errors.captcha"
+                :tabindex="5"
+            />
+
             <Button
                 type="submit"
                 class="mt-2 h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
-                tabindex="5"
+                tabindex="6"
                 :disabled="processing"
                 data-test="register-user-button"
             >
@@ -110,7 +126,7 @@ defineOptions({
             <TextLink
                 :href="login()"
                 class="font-bold text-primary decoration-primary/40"
-                :tabindex="6"
+                :tabindex="7"
                 >Masuk</TextLink
             >
         </p>

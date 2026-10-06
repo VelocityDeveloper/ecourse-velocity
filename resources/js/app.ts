@@ -11,7 +11,14 @@ import { initializeFlashToast } from '@/lib/flashToast';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 void createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    // Public pages send their full SEO title (the same one the server rendered, see App\Support\Seo);
+    // other pages get the site name appended.
+    title: (title, page) =>
+        typeof page?.props.seoTitle === 'string'
+            ? page.props.seoTitle
+            : title
+              ? `${title} - ${appName}`
+              : appName,
     layout: (name) => {
         switch (true) {
             case name === 'Welcome':

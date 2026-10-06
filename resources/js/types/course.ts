@@ -45,6 +45,10 @@ export type CourseFormValues = {
     level: CourseLevel;
     status: CourseStatus;
     thumbnail_url: string | null;
+    seo_title: string | null;
+    seo_description: string | null;
+    /** The public page, such as /web-development/laravel-12-dari-nol. */
+    permalink: string;
 };
 
 export type Category = {

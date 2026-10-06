@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -118,6 +119,40 @@ class Enrollment extends Model
             'cancelled_by' => $canceller->id,
             'cancellation_reason' => $reason,
         ]);
+    }
+
+    /**
+     * Remove the student from the course entirely, as if they never took it.
+     *
+     * Their progress, quiz attempts, notes and bookmarks in the course go too, and
+     * the payment that gave access no longer does, so they have to buy the course
+     * again. The order and transaction stay as financial records, and a certificate
+     * already issued stays verifiable.
+     */
+    public function purge(): void
+    {
+        DB::transaction(function (): void {
+            $lessonIds = Lesson::query()
+                ->whereHas('section', fn (Builder $section) => $section->where('course_id', $this->course_id))
+                ->pluck('id');
+            $quizIds = Quiz::query()
+                ->whereHas('section', fn (Builder $section) => $section->where('course_id', $this->course_id))
+                ->pluck('id');
+
+            foreach (['lesson_completions', 'lesson_bookmarks', 'lesson_notes'] as $table) {
+                DB::table($table)->where('user_id', $this->user_id)->whereIn('lesson_id', $lessonIds)->delete();
+            }
+
+            QuizAttempt::query()->where('user_id', $this->user_id)->whereIn('quiz_id', $quizIds)->delete();
+
+            Order::query()
+                ->where('user_id', $this->user_id)
+                ->where('course_id', $this->course_id)
+                ->grantingAccess()
+                ->update(['access_revoked_at' => now()]);
+
+            $this->delete();
+        });
     }
 
     /**

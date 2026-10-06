@@ -1,5 +1,6 @@
 {
     ":student has been enrolled in :course.": ":student telah didaftarkan ke :course.",
+    ":student has been removed from :course.": ":student telah dihapus dari :course.",
     "All rights reserved.": "Hak cipta dilindungi.",
     "Banner added.": "Banner ditambahkan.",
     "Banner deleted.": "Banner dihapus.",
@@ -9,6 +10,9 @@
     "Choose an image no larger than :size MB.": "Pilih gambar yang ukurannya tidak lebih dari :size MB.",
     "Enroll in this course to open its lessons.": "Daftar ke kursus ini untuk membuka materinya.",
     "Enrollment cancelled.": "Pendaftaran dibatalkan.",
+    "Notification deleted.": "Notifikasi dihapus.",
+    "Use a path on this site starting with / or a full link starting with https://.": "Gunakan alamat di situs ini yang diawali / atau tautan lengkap yang diawali https://.",
+    ":count read notification deleted.|:count read notifications deleted.": ":count notifikasi yang sudah dibaca dihapus.",
     "Enter a full link starting with https://.": "Masukkan tautan lengkap yang diawali https://.",
     "Hello!": "Halo!",
     "If you did not create an account, no further action is required.": "Jika Anda tidak membuat akun, abaikan email ini.",
@@ -105,5 +109,9 @@
     "This withdrawal has already been processed.": "Penarikan ini sudah diproses.",
     "Withdrawal cancelled.": "Penarikan dibatalkan.",
     "Withdrawal marked as paid.": "Penarikan ditandai sudah ditransfer.",
-    "Withdrawal rejected. The amount is back in the instructor balance.": "Penarikan ditolak. Jumlahnya kembali ke saldo instruktur."
+    "Withdrawal rejected. The amount is back in the instructor balance.": "Penarikan ditolak. Jumlahnya kembali ke saldo instruktur.",
+    "Use an image of at least 200 × 200 pixels.": "Gunakan gambar minimal 200 × 200 piksel.",
+    "Paste the code from Google Search Console, or the whole meta tag.": "Tempel kode dari Google Search Console, atau seluruh tag meta-nya.",
+    "Type the numbers shown in the picture.": "Ketik angka yang ada pada gambar.",
+    "The security code is wrong. Type the numbers in the new picture.": "Kode keamanan salah. Ketik angka pada gambar yang baru."
 }

@@ -1,21 +1,12 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import {
-    ArrowRight,
-    ArrowUp,
-    Clock,
-    Mail,
-    MapPin,
-    MessageCircle,
-} from '@lucide/vue';
+import { ArrowRight, Clock, Mail, MapPin, MessageCircle } from '@lucide/vue';
 import { computed } from 'vue';
 import SiteLogo from '@/components/SiteLogo.vue';
 import SocialIcon from '@/components/SocialIcon.vue';
 import { accountLinks } from '@/composables/useAccountLinks';
 import { home, login, register } from '@/routes';
-import blogRoutes from '@/routes/blog';
 import catalogRoutes from '@/routes/catalog';
-import instructorApplications from '@/routes/instructor-applications';
 import passwordRoutes from '@/routes/password';
 
 type FooterLink = { label: string; href: string };
@@ -23,8 +14,65 @@ type FooterLink = { label: string; href: string };
 const page = usePage();
 const appName = computed(() => page.props.name);
 const site = computed(() => page.props.site);
-const categories = computed(() => (page.props.navCategories ?? []).slice(0, 6));
-const year = new Date().getFullYear();
+// Columns, links and the bottom bar come from Pengaturan Situs → Footer.
+const layout = computed(() => site.value.footer);
+const categories = computed(() =>
+    layout.value.categories.show
+        ? (page.props.navCategories ?? []).slice(
+              0,
+              layout.value.categories.limit,
+          )
+        : [],
+);
+const exploreLinks = computed(() =>
+    layout.value.explore.show ? layout.value.explore.links : [],
+);
+// Visitor counts, laid out like velocity-addons' [velocity-statistics] list.
+const statistics = computed(() => {
+    const stats = page.props.visitorStats;
+
+    if (!layout.value.statistics.show || !stats) {
+        return [];
+    }
+
+    return [
+        { label: 'Kunjungan hari ini', value: stats.today_visits },
+        { label: 'Pengunjung hari ini', value: stats.today_visitors },
+        { label: 'Total kunjungan', value: stats.total_visits },
+        { label: 'Total pengunjung', value: stats.total_visitors },
+        ...(layout.value.statistics.online
+            ? [{ label: 'Pengunjung online', value: stats.online }]
+            : []),
+    ];
+});
+const copyright = computed(() =>
+    layout.value.copyright
+        .replaceAll('{tahun}', String(new Date().getFullYear()))
+        .replaceAll('{nama}', appName.value),
+);
+
+// The brand column takes the room of any column the admin hides.
+const linkColumns = computed(
+    () =>
+        Number(categories.value.length > 0) +
+        Number(exploreLinks.value.length > 0) +
+        Number(layout.value.account.show) +
+        Number(statistics.value.length > 0),
+);
+const gridClass = computed(
+    () =>
+        ({
+            0: 'lg:grid-cols-1',
+            1: 'md:grid-cols-3 lg:grid-cols-[2fr_1fr]',
+            2: 'md:grid-cols-3 lg:grid-cols-[1.6fr_1fr_1fr]',
+            3: 'md:grid-cols-3 lg:grid-cols-[1.6fr_1fr_1fr_1fr]',
+            4: 'md:grid-cols-4 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1.3fr]',
+        })[linkColumns.value],
+);
+
+function isExternal(url: string): boolean {
+    return /^https?:\/\//.test(url);
+}
 
 const headingClass = 'mb-4 text-sm font-bold tracking-wider uppercase';
 const linkClass =
@@ -37,16 +85,6 @@ const NETWORK_LABELS: Record<string, string> = {
     facebook: 'Facebook',
     linkedin: 'LinkedIn',
 };
-
-const exploreLinks: FooterLink[] = [
-    { label: 'Semua Kursus', href: catalogRoutes.index().url },
-    { label: 'Jalur Belajar', href: '/#categories' },
-    { label: 'Cara Kerja', href: '/#how-it-works' },
-    { label: 'Instruktur', href: '/#instructors' },
-    { label: 'Jadi Instruktur', href: instructorApplications.create().url },
-    { label: 'Cerita Alumni', href: '/#testimonials' },
-    { label: 'Blog', href: blogRoutes.index().url },
-];
 
 // Guests get the way in; logged-in users get the same shortcuts as their account menu.
 const accountColumn = computed<FooterLink[]>(() => {
@@ -72,22 +110,18 @@ const hasContact = computed(
         Boolean(site.value.phone) ||
         Boolean(site.value.hours),
 );
-
-function backToTop(): void {
-    const reduceMotion = window.matchMedia(
-        '(prefers-reduced-motion: reduce)',
-    ).matches;
-
-    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
-}
 </script>
 
 <template>
     <footer class="bg-surface text-surface-foreground">
         <div
-            class="mx-auto grid w-full max-w-site grid-cols-2 gap-x-8 gap-y-10 px-4 pt-14 pb-12 sm:px-6 md:grid-cols-3 lg:grid-cols-[1.6fr_1fr_1fr_1fr]"
+            class="mx-auto grid w-full max-w-site grid-cols-2 gap-x-8 gap-y-10 px-4 pt-14 pb-12 sm:px-6"
+            :class="gridClass"
         >
-            <div class="col-span-2 space-y-5 md:col-span-3 lg:col-span-1">
+            <div
+                class="col-span-2 space-y-5 md:col-span-3 lg:col-span-1"
+                :class="{ 'md:col-span-4': linkColumns === 4 }"
+            >
                 <Link :href="home()" class="inline-flex">
                     <SiteLogo wordmark />
                 </Link>
@@ -159,7 +193,7 @@ function backToTop(): void {
             </div>
 
             <nav v-if="categories.length > 0" aria-label="Kategori kursus">
-                <h2 :class="headingClass">Kategori</h2>
+                <h2 :class="headingClass">{{ layout.categories.title }}</h2>
                 <ul class="space-y-3 text-sm">
                     <li v-for="category in categories" :key="category.id">
                         <Link
@@ -178,26 +212,40 @@ function backToTop(): void {
                             :href="catalogRoutes.index()"
                             class="inline-flex items-center gap-1 font-semibold text-brand transition-colors hover:text-surface-foreground"
                         >
-                            Lihat semua
+                            {{ layout.categories.see_all_label }}
                             <ArrowRight class="size-3.5" />
                         </Link>
                     </li>
                 </ul>
             </nav>
 
-            <nav aria-label="Jelajahi">
-                <h2 :class="headingClass">Jelajahi</h2>
+            <nav
+                v-if="exploreLinks.length > 0"
+                :aria-label="layout.explore.title"
+            >
+                <h2 :class="headingClass">{{ layout.explore.title }}</h2>
                 <ul class="space-y-3 text-sm">
-                    <li v-for="link in exploreLinks" :key="link.label">
-                        <a :href="link.href" :class="linkClass">
+                    <li
+                        v-for="(link, index) in exploreLinks"
+                        :key="`${index}-${link.url}`"
+                    >
+                        <a
+                            :href="link.url"
+                            :class="linkClass"
+                            v-bind="
+                                isExternal(link.url)
+                                    ? { target: '_blank', rel: 'noopener' }
+                                    : {}
+                            "
+                        >
                             {{ link.label }}
                         </a>
                     </li>
                 </ul>
             </nav>
 
-            <nav aria-label="Akun">
-                <h2 :class="headingClass">Akun</h2>
+            <nav v-if="layout.account.show" :aria-label="layout.account.title">
+                <h2 :class="headingClass">{{ layout.account.title }}</h2>
                 <ul class="space-y-3 text-sm">
                     <li v-for="link in accountColumn" :key="link.label">
                         <Link :href="link.href" :class="linkClass">
@@ -206,21 +254,44 @@ function backToTop(): void {
                     </li>
                 </ul>
             </nav>
+
+            <section
+                v-if="statistics.length > 0"
+                :aria-label="layout.statistics.title"
+            >
+                <h2 :class="headingClass">{{ layout.statistics.title }}</h2>
+                <dl class="text-sm">
+                    <div
+                        v-for="item in statistics"
+                        :key="item.label"
+                        class="flex items-baseline justify-between gap-4 border-b border-surface-muted py-2 first:pt-0 last:border-b-0"
+                    >
+                        <dt class="text-surface-foreground/65">
+                            {{ item.label }}
+                        </dt>
+                        <dd class="font-bold text-brand tabular-nums">
+                            {{ item.value.toLocaleString('id-ID') }}
+                        </dd>
+                    </div>
+                </dl>
+            </section>
         </div>
 
         <div class="border-t border-surface-muted">
             <div
-                class="mx-auto flex w-full max-w-site flex-col-reverse items-center gap-4 px-4 py-6 text-xs text-surface-foreground/55 sm:flex-row sm:justify-between sm:px-6"
+                class="mx-auto flex w-full max-w-site flex-col items-center gap-4 px-4 py-6 text-xs text-surface-foreground/55 sm:flex-row sm:justify-between sm:px-6"
             >
-                <p>© {{ year }} {{ appName }}. Hak cipta dilindungi.</p>
-                <button
-                    type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-surface-muted px-3 py-2 font-semibold text-surface-foreground/80 transition-colors hover:bg-primary hover:text-primary-foreground"
-                    @click="backToTop"
-                >
-                    <ArrowUp class="size-3.5" />
-                    Kembali ke atas
-                </button>
+                <p>{{ copyright }}</p>
+                <p>
+                    Design by
+                    <a
+                        href="https://velocitydeveloper.com"
+                        target="_blank"
+                        rel="noopener"
+                        class="font-semibold text-surface-foreground/80 transition-colors hover:text-surface-foreground"
+                        >Velocity Developer</a
+                    >
+                </p>
             </div>
         </div>
     </footer>

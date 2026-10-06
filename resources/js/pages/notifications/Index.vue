@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { CheckCheck } from '@lucide/vue';
-import { computed } from 'vue';
+import { CheckCheck, Trash2 } from '@lucide/vue';
+import { computed, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import NotificationItem from '@/components/NotificationItem.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import notificationRoutes from '@/routes/notifications';
 import type { AppNotification, Paginated } from '@/types';
 import { usePage } from '@inertiajs/vue3';
@@ -12,6 +20,7 @@ import { usePage } from '@inertiajs/vue3';
 const props = defineProps<{
     items: Paginated<AppNotification>;
     filter: 'all' | 'unread';
+    readCount: number;
 }>();
 
 defineOptions({
@@ -40,6 +49,22 @@ function show(filter: 'all' | 'unread', number?: number): void {
 function readAll(): void {
     router.post(notificationRoutes.readAll().url, {}, { preserveScroll: true });
 }
+
+const clearDialogOpen = ref(false);
+const clearing = ref(false);
+
+function clearRead(): void {
+    clearing.value = true;
+    router.delete(notificationRoutes.destroyRead().url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            clearDialogOpen.value = false;
+        },
+        onFinish: () => {
+            clearing.value = false;
+        },
+    });
+}
 </script>
 
 <template>
@@ -52,15 +77,27 @@ function readAll(): void {
                 title="Notifikasi"
                 description="Kabar tentang pembayaran, penjualan, pengajuan, dan penarikan dana."
             />
-            <Button
-                v-if="unread > 0"
-                variant="outline"
-                size="sm"
-                @click="readAll"
-            >
-                <CheckCheck class="mr-2 size-4" />
-                Tandai semua dibaca
-            </Button>
+            <div class="flex flex-wrap gap-2">
+                <Button
+                    v-if="unread > 0"
+                    variant="outline"
+                    size="sm"
+                    @click="readAll"
+                >
+                    <CheckCheck class="mr-2 size-4" />
+                    Tandai semua dibaca
+                </Button>
+                <Button
+                    v-if="readCount > 0"
+                    variant="outline"
+                    size="sm"
+                    class="text-destructive hover:text-destructive"
+                    @click="clearDialogOpen = true"
+                >
+                    <Trash2 class="mr-2 size-4" />
+                    Hapus yang sudah dibaca
+                </Button>
+            </div>
         </div>
 
         <div class="flex gap-2">
@@ -101,6 +138,7 @@ function readAll(): void {
                     v-for="item in items.data"
                     :key="item.id"
                     :notification="item"
+                    deletable
                 />
             </div>
         </div>
@@ -130,5 +168,35 @@ function readAll(): void {
                 Berikutnya
             </Button>
         </div>
+
+        <Dialog v-model:open="clearDialogOpen">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle
+                        >Hapus notifikasi yang sudah dibaca</DialogTitle
+                    >
+                    <DialogDescription>
+                        {{ readCount }} notifikasi yang sudah dibaca akan
+                        dihapus permanen. Notifikasi yang belum dibaca tetap
+                        disimpan.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter class="gap-2">
+                    <Button
+                        variant="secondary"
+                        @click="clearDialogOpen = false"
+                    >
+                        Batal
+                    </Button>
+                    <Button
+                        variant="destructive"
+                        :disabled="clearing"
+                        @click="clearRead"
+                    >
+                        {{ clearing ? 'Menghapus...' : 'Hapus' }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>

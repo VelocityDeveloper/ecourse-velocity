@@ -110,6 +110,7 @@ export type EnrollmentRow = {
     student: PersonSummary & { email: string };
     course: { id: number; slug: string; title: string };
     can_cancel: boolean;
+    can_delete: boolean;
 };
 
 /** A student in the staff list, with every course of theirs the staff member manages. */

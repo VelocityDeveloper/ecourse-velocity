@@ -27,7 +27,7 @@ test('a suspended user cannot log in', function () {
 
     auth()->logout();
 
-    $this->post(route('login.store'), ['email' => $student->email, 'password' => 'password'])
+    $this->post(route('login.store'), [...captcha(), 'email' => $student->email, 'password' => 'password'])
         ->assertSessionHasErrors('email');
 
     $this->assertGuest();
@@ -51,7 +51,7 @@ test('an unsuspended user can log in again', function () {
 
     auth()->logout();
 
-    $this->post(route('login.store'), ['email' => $student->email, 'password' => 'password']);
+    $this->post(route('login.store'), [...captcha(), 'email' => $student->email, 'password' => 'password']);
 
     $this->assertAuthenticatedAs($student->fresh());
 });

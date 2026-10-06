@@ -38,6 +38,16 @@ class EnrollmentPolicy
     }
 
     /**
+     * Determine whether the user can delete the enrollment outright.
+     *
+     * Only admins may, since it also revokes the payment that gave access.
+     */
+    public function delete(User $user, Enrollment $enrollment): bool
+    {
+        return $user->isAdmin();
+    }
+
+    /**
      * Determine whether the user manages the course the enrollment belongs to.
      */
     private function manages(User $user, Enrollment $enrollment): bool

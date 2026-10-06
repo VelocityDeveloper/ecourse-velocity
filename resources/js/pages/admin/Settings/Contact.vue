@@ -13,7 +13,7 @@ defineOptions({
                 href: '/dasbor/pengaturan-situs/identitas',
             },
             {
-                title: 'Kontak & Footer',
+                title: 'Kontak & Sosmed',
                 href: '/dasbor/pengaturan-situs/kontak',
             },
         ],
@@ -27,18 +27,18 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Kontak & Footer · Pengaturan Situs" />
+    <Head title="Kontak & Sosmed · Pengaturan Situs" />
 
     <div class="flex flex-col space-y-6">
         <SiteSettingsNav />
 
         <Heading
             variant="small"
-            title="Kontak & Footer"
-            description="Deskripsi, kontak, dan media sosial yang tampil di footer setiap halaman"
+            title="Kontak & Sosmed"
+            description="Deskripsi, kontak, dan media sosial yang tampil di kolom pertama footer"
         />
 
-        <div class="max-w-2xl">
+        <div>
             <ContactSettings
                 :values="values"
                 :default-description="defaultDescription"

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft, BookOpen, UserMinus } from '@lucide/vue';
+import { ArrowLeft, BookOpen, Trash2, UserMinus } from '@lucide/vue';
 import { ref } from 'vue';
 import CancelEnrollmentDialog from '@/components/CancelEnrollmentDialog.vue';
+import DeleteEnrollmentDialog from '@/components/DeleteEnrollmentDialog.vue';
 import Heading from '@/components/Heading.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -34,10 +35,11 @@ defineOptions({
 
 defineProps<{
     enrollment: EnrollmentDetail;
-    can: { cancel: boolean };
+    can: { cancel: boolean; delete: boolean };
 }>();
 
 const cancelDialogOpen = ref(false);
+const deleteDialogOpen = ref(false);
 
 function formatDateTime(date: string | null): string {
     if (date === null) {
@@ -100,6 +102,15 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
                 >
                     <UserMinus class="mr-2 h-4 w-4" />
                     Batalkan pendaftaran
+                </Button>
+                <Button
+                    v-if="can.delete"
+                    variant="destructive"
+                    size="sm"
+                    @click="deleteDialogOpen = true"
+                >
+                    <Trash2 class="mr-2 h-4 w-4" />
+                    Hapus pendaftaran
                 </Button>
             </div>
         </div>
@@ -249,6 +260,13 @@ function actorLabel(actor: EnrollmentActor | null, fallback: string): string {
             v-model:open="cancelDialogOpen"
             :enrollment-id="enrollment.id"
             :description="`Batalkan pendaftaran ${enrollment.student.name} di ${enrollment.course.title}? Siswa akan kehilangan akses ke kursus.`"
+        />
+
+        <DeleteEnrollmentDialog
+            v-model:open="deleteDialogOpen"
+            :enrollment-id="enrollment.id"
+            :student-name="enrollment.student.name"
+            :course-title="enrollment.course.title"
         />
     </div>
 </template>

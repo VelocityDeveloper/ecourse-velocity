@@ -1,6 +1,6 @@
 import type { Directive } from 'vue';
 import type { Auth } from '@/types/auth';
-import type { PublicSite } from '@/types/home';
+import type { PublicSite, VisitorStats } from '@/types/home';
 import type { AppNotification } from '@/types/notification';
 
 // Extend ImportMeta interface for Vite...
@@ -25,6 +25,7 @@ declare module '@inertiajs/core' {
             canRegister: boolean;
             branding: { logoUrl: string | null; paletteCss: string | null };
             site: PublicSite;
+            visitorStats: VisitorStats | null;
             navCategories: { id: number; name: string; slug: string }[];
             wishlistCourseIds: number[];
             pendingInstructorApplications: number;

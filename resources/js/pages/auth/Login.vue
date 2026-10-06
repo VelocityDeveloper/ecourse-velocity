@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import CaptchaField from '@/components/CaptchaField.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -23,9 +24,12 @@ defineOptions({
 defineProps<{
     status?: string;
     canResetPassword: boolean;
+    /** Whether the form asks for the numbers in a picture. */
+    captcha: boolean;
 }>();
 
 const canRegister = computed(() => usePage().props.canRegister);
+const captchaField = ref<InstanceType<typeof CaptchaField> | null>(null);
 </script>
 
 <template>
@@ -41,6 +45,8 @@ const canRegister = computed(() => usePage().props.canRegister);
     <Form
         v-bind="store.form()"
         :reset-on-success="['password']"
+        :reset-on-error="['captcha']"
+        @error="captchaField?.refresh()"
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"
     >
@@ -68,7 +74,7 @@ const canRegister = computed(() => usePage().props.canRegister);
                         v-if="canResetPassword"
                         :href="request()"
                         class="text-sm font-semibold text-primary decoration-primary/40"
-                        :tabindex="5"
+                        :tabindex="6"
                     >
                         Lupa kata sandi?
                     </TextLink>
@@ -85,18 +91,26 @@ const canRegister = computed(() => usePage().props.canRegister);
                 <InputError :message="errors.password" />
             </div>
 
+            <CaptchaField
+                v-if="captcha"
+                ref="captchaField"
+                form="login"
+                :error="errors.captcha"
+                :tabindex="3"
+            />
+
             <Label
                 for="remember"
                 class="flex w-fit items-center gap-2.5 font-normal text-muted-foreground"
             >
-                <Checkbox id="remember" name="remember" :tabindex="3" />
+                <Checkbox id="remember" name="remember" :tabindex="4" />
                 Ingat saya
             </Label>
 
             <Button
                 type="submit"
                 class="mt-2 h-12 w-full rounded-xl text-base font-bold shadow-lg shadow-primary/25"
-                :tabindex="4"
+                :tabindex="5"
                 :disabled="processing"
                 data-test="login-button"
             >
@@ -112,7 +126,7 @@ const canRegister = computed(() => usePage().props.canRegister);
             Belum punya akun?
             <TextLink
                 :href="register()"
-                :tabindex="5"
+                :tabindex="6"
                 class="font-bold text-primary decoration-primary/40"
                 >Daftar gratis</TextLink
             >

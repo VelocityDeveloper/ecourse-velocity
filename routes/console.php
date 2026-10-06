@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Order;
+use App\Support\VisitorStatistics;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -14,3 +15,9 @@ Artisan::command('orders:expire', function () {
 })->purpose('Expire unpaid orders whose payment deadline has passed');
 
 Schedule::command('orders:expire')->everyFifteenMinutes();
+
+Artisan::command('visitors:prune', function () {
+    $this->info(VisitorStatistics::prune().' visitor presence(s) pruned.');
+})->purpose('Remove visitor presence rows older than the footer statistics need');
+
+Schedule::command('visitors:prune')->daily();

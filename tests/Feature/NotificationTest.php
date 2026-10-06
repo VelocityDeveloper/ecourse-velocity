@@ -160,6 +160,41 @@ test('the notification page lists, filters and marks all read', function () {
     $this->get('/notifikasi')->assertRedirect(route('login'));
 });
 
+test('anyone can delete notifications they have read, but not unread ones', function () {
+    $student = User::factory()->student()->create();
+    $student->notify(new OrderCancelled(Order::factory()->for($student)->create()));
+    $student->notify(new OrderCancelled(Order::factory()->for($student)->create()));
+    [$read, $unread] = $student->notifications()->get()->all();
+    $read->markAsRead();
+
+    $this->actingAs($student)->delete(route('notifications.destroy', $unread->id))->assertNotFound();
+    $this->actingAs(User::factory()->admin()->create())->delete(route('notifications.destroy', $read->id))->assertNotFound();
+
+    $this->actingAs($student)->delete(route('notifications.destroy', $read->id))->assertRedirect();
+
+    expect($student->notifications()->pluck('id')->all())->toBe([$unread->id]);
+});
+
+test('deleting all read notifications keeps the unread ones', function () {
+    $instructor = User::factory()->instructor()->create();
+    $other = User::factory()->student()->create();
+    foreach ([$instructor, $instructor, $instructor, $other] as $user) {
+        $user->notify(new OrderCancelled(Order::factory()->create()));
+    }
+    $instructor->notifications()->limit(2)->get()->each->markAsRead();
+    $other->notifications()->sole()->markAsRead();
+
+    $this->actingAs($instructor)
+        ->get(route('notifications.index'))
+        ->assertInertia(fn ($page) => $page->where('readCount', 2));
+
+    $this->actingAs($instructor)->delete(route('notifications.destroy-read'))->assertRedirect();
+
+    expect($instructor->notifications()->count())->toBe(1)
+        ->and($instructor->unreadNotifications()->count())->toBe(1)
+        ->and($other->notifications()->count())->toBe(1);
+});
+
 test('guests have no bell', function () {
     $this->get(route('home'))->assertInertia(fn ($page) => $page->where('notifications', null));
 });

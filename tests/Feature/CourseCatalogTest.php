@@ -220,6 +220,7 @@ test('a guest returns to the course after logging in', function () {
     $this->get(route('catalog.show', $course->permalinkParameters()))->assertOk();
 
     $this->post(route('login.store'), [
+        ...captcha(),
         'email' => $student->email,
         'password' => 'password',
     ])->assertRedirect(route('catalog.show', $course->permalinkParameters()));

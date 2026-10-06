@@ -47,6 +47,8 @@ class PostRequest extends FormRequest
             'published_at' => ['nullable', 'date'],
             'cover' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:3072', 'dimensions:max_width=4000,max_height=4000'],
             'remove_cover' => ['sometimes', 'boolean'],
+            'seo_title' => ['nullable', 'string', 'max:70'],
+            'seo_description' => ['nullable', 'string', 'max:300'],
         ];
     }
 

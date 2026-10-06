@@ -33,6 +33,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $expires_at
  * @property Carbon|null $paid_at
  * @property Carbon|null $cancelled_at
+ * @property Carbon|null $access_revoked_at
  * @property int|null $handled_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -40,7 +41,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'number', 'user_id', 'course_id', 'course_title', 'price', 'total', 'status',
     'payment_method', 'payment_details', 'proof_path', 'payer_name', 'payer_note', 'proof_uploaded_at',
-    'rejection_reason', 'expires_at', 'paid_at', 'cancelled_at', 'handled_by',
+    'rejection_reason', 'expires_at', 'paid_at', 'cancelled_at', 'access_revoked_at', 'handled_by',
 ])]
 class Order extends Model
 {
@@ -131,6 +132,7 @@ class Order extends Model
             'expires_at' => 'datetime',
             'paid_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'access_revoked_at' => 'datetime',
             'handled_by' => 'integer',
         ];
     }
@@ -200,6 +202,19 @@ class Order extends Model
     public function scopeOpen(Builder $query): void
     {
         $query->whereIn('status', self::OPEN_STATUSES);
+    }
+
+    /**
+     * Scope to paid orders that still entitle the student to the course.
+     *
+     * An admin who deletes the student's enrollment revokes the access the
+     * payment gave, so the student has to buy the course again.
+     *
+     * @param  Builder<Order>  $query
+     */
+    public function scopeGrantingAccess(Builder $query): void
+    {
+        $query->where('status', self::STATUS_PAID)->whereNull('access_revoked_at');
     }
 
     /**

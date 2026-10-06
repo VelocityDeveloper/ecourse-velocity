@@ -37,6 +37,7 @@ import type {
 } from '@/types';
 
 const props = defineProps<{
+    seoTitle: string;
     stats: HomeStats;
     featuredCourses: CatalogCourse[];
     categories: HomeCategory[];
@@ -107,7 +108,7 @@ function searchCatalog(): void {
 
 <template>
     <div>
-        <Head title="Selamat Datang" />
+        <Head :title="seoTitle" />
 
         <!-- Hero: dark band, the admin's banner image as a photo background -->
         <section

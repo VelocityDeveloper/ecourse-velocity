@@ -33,7 +33,7 @@ test('the database seeder creates demo data for every role and can be run twice'
         ->and($demoStudent->completedLessons()->count())->toBeGreaterThan(0)
         ->and($demoStudent->enrollments()->active()->whereNotNull('last_lesson_id')->exists())->toBeTrue();
 
-    $this->post(route('login.store'), ['email' => 'student@ecourse.com', 'password' => 'password'])
+    $this->post(route('login.store'), [...captcha(), 'email' => 'student@ecourse.com', 'password' => 'password'])
         ->assertRedirect(route('dashboard'));
     $this->assertAuthenticatedAs($demoStudent);
 });

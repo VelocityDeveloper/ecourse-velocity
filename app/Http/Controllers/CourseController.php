@@ -106,7 +106,7 @@ class CourseController extends Controller
         Gate::authorize('view', $course);
 
         $course->load([
-            'category:id,name',
+            'category:id,name,slug',
             'instructor:id,name,slug,email',
             'sections.lessons',
             'sections.quizzes.questions.scores',
@@ -140,6 +140,9 @@ class CourseController extends Controller
                 'level' => $course->level,
                 'status' => $course->status,
                 'thumbnail_url' => $course->thumbnail_url,
+                'seo_title' => $course->seo_title,
+                'seo_description' => $course->seo_description,
+                'permalink' => $course->permalink(),
             ],
             'categories' => $this->categoryOptions(),
             'instructors' => $this->actor($request)->isAdmin() ? $this->instructorOptions() : [],

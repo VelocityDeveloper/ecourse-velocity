@@ -101,8 +101,40 @@ export type PublicSite = {
     email: string | null;
     phone: string | null;
     whatsapp_url: string | null;
+    /** The floating chat button's link, or null when it is off or has no number. */
+    floating_whatsapp_url: string | null;
     hours: string | null;
     socials: { network: string; url: string }[];
+    footer: FooterLayout;
+};
+
+export type FooterLink = { label: string; url: string };
+
+/** The footer's visitor counts, after velocity-addons' [velocity-statistics]. */
+export type VisitorStats = {
+    today_visits: number;
+    today_visitors: number;
+    total_visits: number;
+    total_visitors: number;
+    online: number;
+};
+
+/** The footer columns and bottom bar, as set under Pengaturan Situs → Footer. */
+export type FooterLayout = {
+    categories: {
+        show: boolean;
+        title: string;
+        limit: number;
+        see_all_label: string;
+    };
+    explore: { show: boolean; title: string; links: FooterLink[] };
+    account: { show: boolean; title: string };
+    statistics: { show: boolean; title: string; online: boolean };
+    /** May hold {tahun} and {nama}, filled in with the year and site name. */
+    copyright: string;
+    whatsapp: { show: boolean; number: string; message: string };
+    back_to_top: { show: boolean; label: string };
+    floating_position: 'right' | 'left';
 };
 
 /**

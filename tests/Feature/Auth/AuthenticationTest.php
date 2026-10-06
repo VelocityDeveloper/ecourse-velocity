@@ -14,6 +14,7 @@ test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), [
+        ...captcha(),
         'email' => $user->email,
         'password' => 'password',
     ]);
@@ -25,14 +26,14 @@ test('users can authenticate using the login screen', function () {
 test('instructors land on the homepage after logging in', function () {
     $instructor = User::factory()->instructor()->create();
 
-    $this->post(route('login.store'), ['email' => $instructor->email, 'password' => 'password'])
+    $this->post(route('login.store'), [...captcha(), 'email' => $instructor->email, 'password' => 'password'])
         ->assertRedirect(route('home'));
 });
 
 test('admins land on the dashboard after logging in', function () {
     $admin = User::factory()->admin()->create();
 
-    $this->post(route('login.store'), ['email' => $admin->email, 'password' => 'password'])
+    $this->post(route('login.store'), [...captcha(), 'email' => $admin->email, 'password' => 'password'])
         ->assertRedirect(route('dashboard', absolute: false));
 });
 
@@ -41,7 +42,7 @@ test('instructors go back to the page that asked them to log in', function () {
 
     $this->get(route('courses.index'))->assertRedirect(route('login'));
 
-    $this->post(route('login.store'), ['email' => $instructor->email, 'password' => 'password'])
+    $this->post(route('login.store'), [...captcha(), 'email' => $instructor->email, 'password' => 'password'])
         ->assertRedirect(route('courses.index'));
 });
 
@@ -56,6 +57,7 @@ test('users with two factor enabled are redirected to two factor challenge', fun
     $user = User::factory()->withTwoFactor()->create();
 
     $response = $this->post(route('login'), [
+        ...captcha(),
         'email' => $user->email,
         'password' => 'password',
     ]);
@@ -69,6 +71,7 @@ test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
     $this->post(route('login.store'), [
+        ...captcha(),
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);
@@ -92,6 +95,7 @@ test('users are rate limited', function () {
     RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
 
     $response = $this->post(route('login.store'), [
+        ...captcha(),
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);

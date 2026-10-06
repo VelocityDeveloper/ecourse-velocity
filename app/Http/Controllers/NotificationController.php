@@ -10,7 +10,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The bell: every user's in-app notifications, read one by one or all at once.
+ * The bell: every user's in-app notifications, read one by one or all at once,
+ * and cleared away once read.
  */
 class NotificationController extends Controller
 {
@@ -32,6 +33,7 @@ class NotificationController extends Controller
         return Inertia::render('notifications/Index', [
             'items' => $notifications,
             'filter' => $unreadOnly ? 'unread' : 'all',
+            'readCount' => $user->readNotifications()->count(),
         ]);
     }
 
@@ -54,6 +56,30 @@ class NotificationController extends Controller
     public function readAll(Request $request): RedirectResponse
     {
         $this->user($request)->unreadNotifications()->update(['read_at' => now()]);
+
+        return back();
+    }
+
+    /**
+     * Delete one notification the user has already read.
+     */
+    public function destroy(Request $request, string $notification): RedirectResponse
+    {
+        $this->user($request)->readNotifications()->whereKey($notification)->firstOrFail()->delete();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Notification deleted.')]);
+
+        return back();
+    }
+
+    /**
+     * Delete every notification the user has already read; unread ones stay.
+     */
+    public function destroyRead(Request $request): RedirectResponse
+    {
+        $deleted = $this->user($request)->readNotifications()->delete();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => trans_choice(':count read notification deleted.|:count read notifications deleted.', $deleted, ['count' => $deleted])]);
 
         return back();
     }

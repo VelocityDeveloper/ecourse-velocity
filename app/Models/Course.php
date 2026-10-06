@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Storage;
  * @property string $title
  * @property string $slug
  * @property string|null $description
+ * @property string|null $seo_title
+ * @property string|null $seo_description
  * @property int|null $category_id
  * @property int $instructor_id
  * @property string $price
@@ -36,7 +38,7 @@ use Illuminate\Support\Facades\Storage;
  * @property Carbon|null $updated_at
  */
 #[Appends(['thumbnail_url'])]
-#[Fillable(['title', 'slug', 'description', 'category_id', 'instructor_id', 'price', 'level', 'thumbnail_path', 'status', 'passing_grade'])]
+#[Fillable(['title', 'slug', 'description', 'category_id', 'instructor_id', 'price', 'level', 'thumbnail_path', 'status', 'passing_grade', 'seo_title', 'seo_description'])]
 class Course extends Model
 {
     /** @use HasFactory<CourseFactory> */

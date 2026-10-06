@@ -81,7 +81,7 @@ test('a confirmed sale keeps the commission in force at the time', function () {
 
     $this->actingAs($instructor)
         ->get(route('dashboard'))
-        ->assertInertia(fn ($page) => $page->where('stats.revenue.total', 340000));
+        ->assertInertia(fn ($page) => $page->where('balance.earned', 340000));
 
     $this->actingAs($admin)
         ->get(route('admin.finance.instructors.show', $instructor->slug))

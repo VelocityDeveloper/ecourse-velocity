@@ -77,9 +77,70 @@ class SiteSetting extends Model
     public const string DEFAULT_SITE_DESCRIPTION = 'Platform belajar online dengan materi terstruktur, kuis, dan instruktur praktisi di bidangnya.';
 
     /**
+     * The key holding the footer layout (columns, links, bottom bar) as JSON.
+     */
+    public const string FOOTER = 'footer';
+
+    /**
+     * The most links the "Jelajahi" column may hold.
+     */
+    public const int FOOTER_MAX_LINKS = 12;
+
+    /**
+     * The footer as it looks until an admin changes it.
+     *
+     * The copyright text may use {tahun} and {nama} for the current year and site name.
+     *
+     * @var array<string, mixed>
+     */
+    public const array FOOTER_DEFAULTS = [
+        'categories' => ['show' => true, 'title' => 'Kategori', 'limit' => 6, 'see_all_label' => 'Lihat semua'],
+        'explore' => [
+            'show' => true,
+            'title' => 'Jelajahi',
+            'links' => [
+                ['label' => 'Semua Kursus', 'url' => '/kursus'],
+                ['label' => 'Jalur Belajar', 'url' => '/#categories'],
+                ['label' => 'Cara Kerja', 'url' => '/#how-it-works'],
+                ['label' => 'Instruktur', 'url' => '/#instructors'],
+                ['label' => 'Jadi Instruktur', 'url' => '/jadi-instruktur'],
+                ['label' => 'Cerita Alumni', 'url' => '/#testimonials'],
+                ['label' => 'Blog', 'url' => '/blog'],
+            ],
+        ],
+        'account' => ['show' => true, 'title' => 'Akun'],
+        // Visitor counts, after velocity-addons' [velocity-statistics].
+        'statistics' => ['show' => true, 'title' => 'Statistik Pengunjung', 'online' => true],
+        'copyright' => '© {tahun} {nama}. Hak cipta dilindungi.',
+        // The floating buttons in the corner of every public page.
+        'whatsapp' => ['show' => true, 'number' => '', 'message' => ''],
+        'back_to_top' => ['show' => true, 'label' => 'Kembali ke atas'],
+        'floating_position' => 'right',
+    ];
+
+    /**
+     * The corners the floating buttons may sit in.
+     *
+     * @var list<string>
+     */
+    public const array FLOATING_POSITIONS = ['right', 'left'];
+
+    /**
      * The key holding the storage path of the homepage hero image.
      */
     public const string HERO_IMAGE = 'hero_image_path';
+
+    /**
+     * The homepage's search engine texts; each is optional and falls back to a sensible default.
+     *
+     * @var list<string>
+     */
+    public const array SEO_FIELDS = ['seo_title', 'seo_description', 'seo_keywords', 'seo_google_verification'];
+
+    /**
+     * The key holding the storage path of the picture shown when the homepage is shared.
+     */
+    public const string SEO_IMAGE = 'seo_image_path';
 
     /**
      * The homepage banner texts an admin may change, with the text shown when
@@ -151,12 +212,7 @@ class SiteSetting extends Model
     public static function publicSite(): array
     {
         $phone = self::get('contact_phone');
-        $digits = $phone === null ? '' : preg_replace('/\D+/', '', $phone) ?? '';
-
-        // WhatsApp wants the number with its country code: 0812… becomes 62812….
-        if (str_starts_with($digits, '0')) {
-            $digits = '62'.substr($digits, 1);
-        }
+        $footer = self::footer();
 
         $socials = [];
 
@@ -173,10 +229,65 @@ class SiteSetting extends Model
             'address' => self::get('contact_address'),
             'email' => self::get('contact_email'),
             'phone' => $phone,
-            'whatsapp_url' => $digits === '' ? null : 'https://wa.me/'.$digits,
+            'whatsapp_url' => self::whatsappUrl($phone),
+            // The floating button uses its own number, or the contact number when left empty.
+            'floating_whatsapp_url' => $footer['whatsapp']['show']
+                ? self::whatsappUrl($footer['whatsapp']['number'] ?: $phone, $footer['whatsapp']['message'])
+                : null,
             'hours' => self::get('contact_hours'),
             'socials' => $socials,
+            'footer' => $footer,
         ];
+    }
+
+    /**
+     * The wa.me link that opens a chat with the number, with an optional opening message.
+     */
+    public static function whatsappUrl(?string $phone, string $message = ''): ?string
+    {
+        $digits = $phone === null ? '' : preg_replace('/\D+/', '', $phone) ?? '';
+
+        // WhatsApp wants the number with its country code: 0812… becomes 62812….
+        if (str_starts_with($digits, '0')) {
+            $digits = '62'.substr($digits, 1);
+        }
+
+        if ($digits === '') {
+            return null;
+        }
+
+        return 'https://wa.me/'.$digits.($message === '' ? '' : '?text='.rawurlencode($message));
+    }
+
+    /**
+     * The footer layout: what the admin saved, with defaults for anything missing.
+     *
+     * @return array<string, mixed>
+     */
+    public static function footer(): array
+    {
+        $saved = json_decode(self::get(self::FOOTER) ?? '', true);
+        $footer = self::FOOTER_DEFAULTS;
+
+        if (! is_array($saved)) {
+            return $footer;
+        }
+
+        foreach (['categories', 'explore', 'account', 'statistics', 'whatsapp', 'back_to_top'] as $group) {
+            if (is_array($saved[$group] ?? null)) {
+                $footer[$group] = [...$footer[$group], ...$saved[$group]];
+            }
+        }
+
+        if (is_string($saved['copyright'] ?? null)) {
+            $footer['copyright'] = $saved['copyright'];
+        }
+
+        if (in_array($saved['floating_position'] ?? null, self::FLOATING_POSITIONS, true)) {
+            $footer['floating_position'] = $saved['floating_position'];
+        }
+
+        return $footer;
     }
 
     /**

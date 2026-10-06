@@ -10,6 +10,7 @@ use App\Models\SiteSetting;
 use App\Models\User;
 use App\Support\CatalogCourseCard;
 use App\Support\HomeTestimonials;
+use App\Support\Seo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -33,8 +34,10 @@ class HomeController extends Controller
     public function __invoke(Request $request): Response
     {
         $userId = $request->user()?->id;
+        $seo = Seo::home();
 
         return Inertia::render('Welcome', [
+            'seoTitle' => $seo['title'],
             'banner' => SiteSetting::banner(),
             'banners' => Banner::query()->active()->ordered()->get(['id', 'title', 'image_path', 'link_url'])
                 ->map(fn (Banner $banner): array => $banner->only(['id', 'title', 'image_url', 'link_url'])),
@@ -87,6 +90,6 @@ class HomeController extends Controller
                     'headline' => $instructor->headline,
                     'courses_count' => (int) $instructor->courses_count,
                 ]),
-        ]);
+        ])->withViewData(['seo' => $seo]);
     }
 }

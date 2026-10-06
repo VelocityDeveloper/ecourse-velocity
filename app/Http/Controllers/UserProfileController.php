@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\User;
 use App\Support\CatalogCourseCard;
+use App\Support\Seo;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -32,7 +33,10 @@ class UserProfileController extends Controller
 
         $reviews = (int) $courses->sum('reviews_count');
 
+        $seo = Seo::instructor($user);
+
         return Inertia::render('users/Show', [
+            'seoTitle' => $seo['title'],
             'profile' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -52,6 +56,6 @@ class UserProfileController extends Controller
                     1,
                 ),
             ],
-        ]);
+        ])->withViewData(['seo' => $seo]);
     }
 }

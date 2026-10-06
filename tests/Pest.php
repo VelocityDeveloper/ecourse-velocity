@@ -44,7 +44,14 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Answer the security picture of the login or registration form for the next request.
+ *
+ * @return array{captcha: string}
+ */
+function captcha(string $form = 'login'): array
 {
-    // ..
+    test()->withSession(['captcha.'.$form => ['code' => '12345', 'expires_at' => now()->addMinutes(10)->getTimestamp()]]);
+
+    return ['captcha' => '12345'];
 }

@@ -102,6 +102,34 @@ test('an instructor can add a quiz to a section of their own course', function (
     expect(Quiz::sole()->position)->toBe(1);
 });
 
+test('an admin can create a quiz from the quiz list and lands in its builder', function () {
+    $admin = User::factory()->admin()->create();
+    $section = sectionFor(User::factory()->instructor()->create());
+
+    $this->actingAs($admin)
+        ->post(route('quizzes.store', $section), [
+            'title' => 'Kuis Admin',
+            'open_builder' => true,
+        ])
+        ->assertRedirect(route('quizzes.edit', [
+            'course' => $section->course,
+            'quiz' => Quiz::query()->firstOrFail(),
+        ]));
+
+    expect(Quiz::sole()->section_id)->toBe($section->id);
+});
+
+test('the quiz list offers the sections of every manageable course', function () {
+    $admin = User::factory()->admin()->create();
+    $section = sectionFor(User::factory()->instructor()->create());
+
+    $this->actingAs($admin)
+        ->get(route('quizzes.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('courses.0.id', $section->course_id)
+            ->where('courses.0.sections.0.id', $section->id));
+});
+
 test('an instructor cannot add a quiz to another instructors course', function () {
     $instructor = User::factory()->instructor()->create();
     $section = Section::factory()->create();
