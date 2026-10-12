@@ -2,19 +2,25 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight,
+    Award,
     Check,
     ClipboardCheck,
     Clock,
     Compass,
     GraduationCap,
     Layers,
+    MessageCircleQuestion,
+    PlayCircle,
     Search,
     Sparkles,
+    UserPlus,
+    Wallet,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import BannerSlider from '@/components/BannerSlider.vue';
 import CardCarousel from '@/components/CardCarousel.vue';
 import CourseCard from '@/components/CourseCard.vue';
+import StepCarousel from '@/components/StepCarousel.vue';
 import SectionHeading from '@/components/SectionHeading.vue';
 import TestimonialCarousel from '@/components/TestimonialCarousel.vue';
 import StarRating from '@/components/StarRating.vue';
@@ -69,24 +75,48 @@ const ACCENTS = [
 
 const steps = [
     {
+        Icon: UserPlus,
+        title: 'Buat akun gratis',
+        description:
+            'Daftar dengan nama, email, dan kata sandi. Akun langsung aktif dan bisa dipakai masuk kapan saja.',
+    },
+    {
         Icon: Compass,
         title: 'Jelajahi katalog',
         description:
-            'Saring kursus berdasarkan kategori dan tingkat untuk menemukan yang paling cocok.',
+            'Saring kursus berdasarkan kategori dan tingkat, lalu baca silabus, profil instruktur, dan ulasan alumni.',
     },
     {
         Icon: ClipboardCheck,
-        title: 'Daftar dengan satu klik',
+        title: 'Daftar kursus',
         description:
-            'Ikuti kursus seketika. Kursus langsung muncul di Kursus Saya.',
+            'Kursus gratis langsung terbuka dengan satu klik. Kursus berbayar cukup dibayar lewat transfer bank atau QRIS.',
     },
     {
-        Icon: GraduationCap,
+        Icon: Wallet,
+        title: 'Konfirmasi pembayaran',
+        description:
+            'Unggah bukti transfer di halaman pesanan. Setelah dikonfirmasi admin, kursus muncul di Kursus Saya.',
+    },
+    {
+        Icon: PlayCircle,
         title: 'Belajar sesuai ritme Anda',
         description:
-            'Pelajari materi video dan artikel, lalu uji pemahaman Anda dengan kuis.',
+            'Tonton video dan baca materi kapan saja. Progres tersimpan otomatis, lengkap dengan catatan dan penanda.',
     },
-];
+    {
+        Icon: MessageCircleQuestion,
+        title: 'Kerjakan kuis & bertanya',
+        description:
+            'Uji pemahaman lewat kuis di tiap bab, dan tanyakan materi yang belum jelas langsung ke instruktur.',
+    },
+    {
+        Icon: Award,
+        title: 'Raih sertifikat',
+        description:
+            'Selesaikan semua materi untuk mendapatkan sertifikat yang bisa diunduh dan dibagikan.',
+    },
+].map((step, index) => ({ ...step, id: index + 1 }));
 
 const statItems = computed(() => [
     { label: 'Siswa', value: props.stats.students },
@@ -480,34 +510,46 @@ function searchCatalog(): void {
             <SectionHeading
                 eyebrow="Cara Kerja"
                 title="Dari Penasaran Menjadi Mahir"
-                description="Tiga langkah sederhana untuk mulai belajar hari ini."
+                description="Tujuh langkah dari membuat akun sampai meraih sertifikat."
             />
 
-            <ol class="grid gap-5 md:grid-cols-3">
-                <li
-                    v-for="(step, index) in steps"
-                    :key="step.title"
-                    class="relative flex flex-col gap-4 rounded-2xl border bg-card p-6 text-card-foreground shadow-sm"
-                >
-                    <div class="flex items-center justify-between">
-                        <span
-                            class="flex size-11 items-center justify-center rounded-xl"
-                            :class="ACCENTS[index % ACCENTS.length]"
-                        >
-                            <component :is="step.Icon" class="h-5 w-5" />
-                        </span>
-                        <span class="text-4xl font-extrabold text-primary/20">
-                            {{ String(index + 1).padStart(2, '0') }}
-                        </span>
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="font-bold">{{ step.title }}</h3>
-                        <p class="text-sm text-muted-foreground">
-                            {{ step.description }}
-                        </p>
-                    </div>
-                </li>
-            </ol>
+            <StepCarousel
+                :items="steps"
+                :per-view-large="3"
+                label="Langkah belajar"
+                item-name="Langkah"
+            >
+                <template #default="{ item: step }">
+                    <article
+                        class="group relative flex w-full flex-col gap-4 rounded-2xl border bg-card p-6 text-card-foreground shadow-sm transition duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-md"
+                    >
+                        <div class="flex items-center justify-between">
+                            <span
+                                class="flex size-11 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
+                                :class="ACCENTS[(step.id - 1) % ACCENTS.length]"
+                            >
+                                <component :is="step.Icon" class="h-5 w-5" />
+                            </span>
+                            <span
+                                class="text-4xl font-extrabold text-primary/20"
+                            >
+                                {{ String(step.id).padStart(2, '0') }}
+                            </span>
+                        </div>
+                        <div class="space-y-1">
+                            <p
+                                class="text-xs font-semibold tracking-wide text-primary uppercase"
+                            >
+                                Langkah {{ step.id }} dari {{ steps.length }}
+                            </p>
+                            <h3 class="font-bold">{{ step.title }}</h3>
+                            <p class="text-sm text-muted-foreground">
+                                {{ step.description }}
+                            </p>
+                        </div>
+                    </article>
+                </template>
+            </StepCarousel>
         </section>
 
         <!-- Success stories (Admin → Pengaturan Situs → Testimoni, else course reviews) -->
